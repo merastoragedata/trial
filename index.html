@@ -744,6 +744,15 @@ header.top .brand{justify-content:flex-start!important;gap:8px}
 
 html{scroll-behavior:auto!important}
 
+/* chat: flat, WebKit-safe layout (no pseudo layers, no transform/isolation) */
+.chatfs{transform:none!important;isolation:auto!important;left:0!important;right:0!important;margin:0 auto!important;width:100%;max-width:560px;top:0!important;overflow:hidden}
+.chatfs.loc{background-position:center bottom!important}
+.chatfs>*{position:relative;z-index:auto;flex-shrink:0}
+.chatfs>.chat,.chatfs>#cl{flex:1 1 auto;min-height:0}
+.chatfs .cbgart,.chatfs .cbgveil{display:none!important}
+.chatfs .comp>*{flex-shrink:0}.chatfs .comp input,.chatfs .comp textarea,.chatfs .comp .inp{flex:1 1 auto;min-width:0;width:auto;flex-shrink:1}
+.chatfs .comp .cin{flex:1 1 0!important;min-width:0!important;width:auto!important;max-width:100%}.chatfs .comp .cin input,.chatfs .comp .cin textarea{min-width:0;width:100%}
+
 </style></head><body>
 <header class="top"><div class="brand"><span id="orn0"></span><h1>Yatra Portal 2026</h1></div><div class="tools"><button id="fsm" class="ic" aria-label="Smaller text">A−</button><button id="fsp" class="ic" aria-label="Larger text">A+</button><button id="langb" class="ic" onclick="setLang()" aria-label="Language">हिं</button><select id="th" hidden aria-label="Theme"><option value="auto">Auto</option><option value="tirumala">Tirumala</option><option value="madurai">Madurai</option><option value="rameswaram">Rameswaram</option><option value="kanyakumari">Kanyakumari</option><option value="padmanabha">Padmanabha</option><option value="kovalam">Kovalam</option><option value="rail">Railway</option><option value="nagpur">Nagpur</option><option value="trichy">Trichy</option></select><button id="acct" class="av" onclick="acctMenu()" aria-label="Account"><span id="avl">A</span></button></div></header><div class="tband" id="tband" aria-hidden="true"></div>
 <main id="v"></main><nav id="nav"></nav>
@@ -3284,7 +3293,7 @@ const CHBG=[['loc','📍 Where I am now'],['none','Plain'],['lotus','Lotus patte
 const chPF=()=>(PF().cth)||'def',chBGp=()=>(PF().cbg)||'loc';
 function chLocArt(){try{const a=sc7Act(new Date());let key=a.mode=='live'?a.key:((a.plan&&a.plan[0]&&a.plan[0].key)||'padmanabha');const hr=a.mode=='live'?a.h:sc7H(new Date());return sc7Svg(key,hr,{})}catch(e){return ''}}
 function chDecor(h){const th=CHTH.find(x=>x[0]==chPF())||CHTH[0],bg=chBGp();let style=th[2]||'',art='',cls='';
- if(bg=='loc'){const sv=chLocArt().replace(/<animate[^>]*\/>/g,'').replace(/<animate(Motion|Transform)[\s\S]*?<\/animate(Motion|Transform)>/g,'');let u='';try{u='url("data:image/svg+xml;utf8,'+encodeURIComponent(sv.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))+'")'}catch(e){}art=u?`<div class="cbgart" style="background:${u} center bottom/cover no-repeat"></div><div class="cbgveil"></div>`:''}
+ const IOSX=/iP(hone|ad|od)/.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);if(bg=='loc'&&IOSX){}else if(bg=='loc'){const sv=chLocArt().replace(/<animate[^>]*\/>/g,'').replace(/<animate(Motion|Transform)[\s\S]*?<\/animate(Motion|Transform)>/g,'');let u='';try{u='url("data:image/svg+xml;utf8,'+encodeURIComponent(sv.replace('<svg ','<svg xmlns="http://www.w3.org/2000/svg" '))+'")'}catch(e){}if(u)style+=`;--cbgimg:linear-gradient(rgba(255,255,255,.55),rgba(255,255,255,.7)),${u}`}
  else if(bg=='custom'){const d=L.g('ychbg_'+ST.sess,'');if(d)style+=`;--cbgimg:linear-gradient(color-mix(in srgb,var(--bg) 38%,transparent),color-mix(in srgb,var(--bg) 38%,transparent)),url("${d}")`}
  else{const p=CHBG.find(x=>x[0]==bg);if(p&&p[2])style+=`;--cbgimg:${p[2]}`}
  return h.replace('<div class="chatfs">',`<div class="chatfs ${bg}" data-cth="${th[0]}" style="${style}">${art}`)}
