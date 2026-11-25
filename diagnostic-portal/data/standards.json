@@ -1,0 +1,75 @@
+{
+ "disclaimer": "Industry references summarised from engineering practice for comparison only. Values tagged 'verify' must be confirmed against the licensed standard copy before being used as alarm limits. MSETCL circular limits remain the governing criteria.",
+ "tests": {
+  "bushing": {
+   "title": "Bushing C1 capacitance & tan δ",
+   "items": [
+    {"std": "IEC 60137:2017", "topic": "Max tan δ (factory, OIP / RIP)", "value": "0.7 %", "vsCircular": "same", "conf": "high"},
+    {"std": "IEEE C57.19.01-2017", "topic": "PF of new OIP bushing at 20 °C", "value": "≤ 0.5 %", "vsCircular": "stricter", "conf": "high"},
+    {"std": "IEEE C57.152-2013 / common field practice", "topic": "In-service tan δ vs nameplate", "value": "> 2 × nameplate → investigate; > 3 × → remove", "vsCircular": "trend-based (circular uses fixed 0.7 %)", "conf": "medium"},
+    {"std": "IEEE C57.152-2013 / common field practice", "topic": "C1 change from nameplate", "value": "±5 % → investigate; ±10 % → remove", "vsCircular": "circular allows −5 % / +10 % before follow-up", "conf": "medium"},
+    {"std": "IEEE C57.152-2013 (temperature correction)", "topic": "Temperature correction", "value": "Use the bushing maker's curve. OIP bushings change little between 20 and 60 °C, so a generic transformer K-factor understates the real value.", "vsCircular": "The sheet divides every bushing reading by a generic K (1.61 at 42 °C)", "conf": "high"}
+   ]
+  },
+  "winding": {
+   "title": "Winding C & tan δ (overall insulation)",
+   "items": [
+    {"std": "IEEE C57.152-2013", "topic": "PF at 20 °C, new mineral-oil transformer", "value": "≤ 0.5 %", "vsCircular": "stricter than 0.7 %", "conf": "medium", "verify": true},
+    {"std": "IEEE C57.152-2013", "topic": "Ageing units", "value": "0.5 – 1.0 %: acceptable but trend; > 1.0 %: investigate with oil tests & DFR", "vsCircular": "consistent", "conf": "medium", "verify": true},
+    {"std": "Doble / field practice", "topic": "Cross-check", "value": "GST ≈ GSTg + UST within ~1 % — confirms lead/guard connections", "vsCircular": "not in circular (the sheet already does this check)", "conf": "high"},
+    {"std": "IEC 60076-1 / CIGRE TB 761", "topic": "Rate of change", "value": "Judge by the trend since commissioning, not one reading. A doubling of PF between tests calls for DFR and oil moisture", "vsCircular": "circular: compare with factory/commissioning", "conf": "medium"}
+   ]
+  },
+  "ct": {
+   "title": "CT C & tan δ (oil-paper, Um ≥ 72.5 kV)",
+   "items": [
+    {"std": "IEC 61869-1:2023", "topic": "Max tan δ at Um/√3 (routine)", "value": "0.5 %", "vsCircular": "stricter than 0.7 %", "conf": "medium", "verify": true},
+    {"std": "IEC 61869-1", "topic": "Tip-up (tan δ at Um/√3 − at 10 kV)", "value": "≤ 0.1 %", "vsCircular": "not in circular — only possible with HV test set", "conf": "medium", "verify": true},
+    {"std": "CEA / POWERGRID O&M practice", "topic": "Rate of rise", "value": "≥ 0.1 %/yr → increase monitoring; tan δ ≥ 1.0 % → replace", "vsCircular": "same rate; 1.0 % hard limit is not in the circular for CTs", "conf": "medium"}
+   ]
+  },
+  "cb_crm": {
+   "title": "CB main-contact resistance",
+   "items": [
+    {"std": "IEC 62271-1:2017 §7.4", "topic": "Test current", "value": "DC, ≥ 50 A up to rated current", "vsCircular": "not specified in circular (Karjat uses ~100 A ✓)", "conf": "high"},
+    {"std": "IEC 62271-1:2017", "topic": "Acceptance", "value": "≤ 1.2 × manufacturer's type-test value (Ru)", "vsCircular": "circular uses one fixed figure per voltage class", "conf": "high"},
+    {"std": "Field practice", "topic": "Trend", "value": "> 20 % rise from commissioning value, or phase imbalance > 25 %, → inspect contacts", "vsCircular": "not in circular", "conf": "medium"}
+   ]
+  },
+  "cb_timing": {
+   "title": "CB operating times",
+   "items": [
+    {"std": "IEC 62271-100", "topic": "Opening / closing time", "value": "Within manufacturer's declared tolerance; break time ≤ 2 cycles (40 ms) for 400 kV", "vsCircular": "circular trip 25 ms / close 150 ms caps", "conf": "high"},
+    {"std": "CBIP manual / POWERGRID practice", "topic": "Pole discrepancy", "value": "Close ≤ 5 ms, Open ≤ 3.33 ms between poles", "vsCircular": "not in circular", "conf": "medium", "verify": true},
+    {"std": "CBIP manual / POWERGRID practice", "topic": "Break discrepancy within a pole", "value": "Close ≤ 2.5 ms, Open ≤ 2 ms", "vsCircular": "not in circular", "conf": "medium", "verify": true}
+   ]
+  },
+  "la": {
+   "title": "Surge arrester leakage current",
+   "items": [
+    {"std": "IEC 60099-5:2018 Annex", "topic": "Method", "value": "Total leakage is mainly capacitive, so use it only as a trend. Judge by the resistive / 3rd-harmonic component with system-harmonic compensation (method B2)", "vsCircular": "consistent", "conf": "high"},
+    {"std": "IEC 60099-5 / maker guidance", "topic": "Interpretation", "value": "Normalise for voltage, temperature & surface moisture; ≥ 2× rise in resistive current over the arrester's own baseline → investigate", "vsCircular": "circular uses absolute bands (150 / 350 µA)", "conf": "medium"}
+   ]
+  },
+  "dga": {
+   "title": "Dissolved gas analysis",
+   "items": [
+    {"std": "IEEE C57.104-2008 (Condition 1)", "topic": "Gas limits used in the Karjat sheet", "value": "H₂ 100 · CH₄ 120 · C₂H₂ 1 · C₂H₄ 50 · C₂H₆ 65 · CO 350 · CO₂ 2500 · TDCG 720 ppm", "vsCircular": "circular gives no limits; sheet uses these", "conf": "high"},
+    {"std": "IEEE C57.104-2019", "topic": "What changed", "value": "Replaces fixed Condition 1–4 with 90th/95th-percentile tables (split by O₂/N₂ ratio & age) plus limits on gas increase (delta) and rate of rise", "vsCircular": "sheet still on 2008 approach", "conf": "high"},
+    {"std": "IEC 60599:2022", "topic": "Fault identification", "value": "Basic gas ratios (C₂H₂/C₂H₄, CH₄/H₂, C₂H₄/C₂H₆) and Duval Triangle 1. Use only once gases exceed typical values", "vsCircular": "not in circular", "conf": "high"},
+    {"std": "IEC 60599:2022", "topic": "Paper involvement", "value": "CO₂/CO < 3 suggests the fault involves paper (cellulose)", "vsCircular": "not in circular", "conf": "high"},
+    {"std": "Practice", "topic": "OLTC compartment", "value": "Arcing gases are normal in diverter oil; use Duval Triangle 2 (OLTC). Do not judge against main-tank limits", "vsCircular": "the sheet applies main-tank limits to OLTC samples", "conf": "high"}
+   ]
+  },
+  "oil": {
+   "title": "In-service oil (≥ 170 kV)",
+   "items": [
+    {"std": "IEC 60422:2013 (cat. A/O)", "topic": "BDV", "value": "> 60 kV good · 50–60 fair · < 50 poor", "vsCircular": "sheet uses > 50 kV", "conf": "medium", "verify": true},
+    {"std": "IEC 60422:2013 (cat. A/O)", "topic": "Water content", "value": "< 15 ppm good · 15–20 fair · > 20 poor (correct to 20 °C)", "vsCircular": "sheet uses < 20 ppm", "conf": "medium", "verify": true},
+    {"std": "IEC 60422:2013", "topic": "Acidity", "value": "< 0.10 good · 0.10–0.15 fair · > 0.15 mg KOH/g poor", "vsCircular": "—", "conf": "medium", "verify": true},
+    {"std": "IEC 60422:2013", "topic": "DDF at 90 °C", "value": "< 0.10 good · 0.10–0.20 fair · > 0.20 poor", "vsCircular": "—", "conf": "medium", "verify": true},
+    {"std": "IS 1866:2017", "topic": "Indian equivalent", "value": "Mirrors IEC 60422 categories; verify class limits for 400 kV", "vsCircular": "—", "conf": "medium", "verify": true}
+   ]
+  }
+ }
+}
