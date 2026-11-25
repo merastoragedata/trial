@@ -1,6 +1,6 @@
 // Small DOM, chart and circular-viewer helpers.
-import { DB, fmtDate, toDate } from './data.js?v=20261125.1527';
-import { SEV_LABEL } from './rules.js?v=20261125.1527';
+import { DB, fmtDate, toDate } from './data.js?v=20261125.1621';
+import { SEV_LABEL } from './rules.js?v=20261125.1621';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Shape-coded status (readable without colour): ◆ critical · ▲ alert · ● watch · ✓ normal · i info · – no data
@@ -50,16 +50,49 @@ export function bandsFrom(limits) {
   return out;
 }
 
+// Draws limit labels at the right end of each limit line and the value of the latest point.
+const labelPlugin = {
+  id: 'labels',
+  afterDatasetsDraw(chart) {
+    if (chart.config.type !== 'line') return;
+    const { ctx, chartArea: a } = chart; ctx.save();
+    ctx.font = '600 10.5px Inter, sans-serif';
+    chart.data.datasets.forEach((d, i) => {
+      const meta = chart.getDatasetMeta(i); if (meta.hidden) return;
+      if (d.isLimit) { const p = meta.data[1]; if (!p) return; ctx.fillStyle = d.borderColor; ctx.textAlign = 'right'; ctx.fillText(d.label, a.right - 4, p.y - 4); return; }
+      if (chart.data.datasets.filter(x => !x.isLimit).length > 3) return;
+      const p = meta.data.at(-1), raw = d.data.at(-1); if (!p || !raw) return;
+      ctx.fillStyle = d.borderColor; ctx.textAlign = 'center';
+      ctx.fillText(String(+(+raw.y).toFixed(3)), p.x, p.y - 9);
+    });
+    ctx.restore();
+  },
+};
+if (window.Chart) Chart.register(labelPlugin);
+
 export function lineChart(canvas, o) {
   const ink3 = css('--ink-3'), line = css('--line');
   const xs = o.series.flatMap(s => s.points.map(p => toDate(p.x).getTime()));
   const xmin = Math.min(...xs), xmax = Math.max(...xs);
   const pad = Math.max((xmax - xmin) * 0.06, 45 * 864e5);
-  const ds = o.series.map((s, i) => ({
-    label: s.label, data: s.points.map(p => ({ x: toDate(p.x).getTime(), y: p.y, meta: p.meta })),
-    borderColor: s.color || EXTRA[i % EXTRA.length], backgroundColor: s.color || EXTRA[i % EXTRA.length],
-    borderWidth: 2, pointRadius: 3.5, pointHoverRadius: 6, tension: 0, spanGaps: true, pointBackgroundColor: css('--panel'), pointBorderWidth: 2,
-  }));
+  const sc = { watch: css('--watch'), alert: css('--alert'), critical: css('--crit') };
+  const ds = o.series.map((s, i) => {
+    const col = s.color || EXTRA[i % EXTRA.length];
+    const sev = (p) => o.sevOf ? o.sevOf(p.y) : '';
+    return {
+      label: s.label, data: s.points.map(p => ({ x: toDate(p.x).getTime(), y: p.y, meta: p.meta })),
+      borderColor: col, backgroundColor: (ctx) => {           // gradient area under a single series
+        if (!(o.fill && i === 0)) return col;
+        const { chart } = ctx; const a = chart.chartArea; if (!a) return col;
+        const g = chart.ctx.createLinearGradient(0, a.top, 0, a.bottom); g.addColorStop(0, col + '55'); g.addColorStop(1, col + '00'); return g;
+      },
+      fill: o.fill && i === 0 ? 'start' : false,
+      borderWidth: 2.2, tension: 0.25, spanGaps: true, pointHoverRadius: 7, pointBorderWidth: 2,
+      pointRadius: s.points.map(p => ['alert', 'critical'].includes(sev(p)) ? 5.5 : 3.8),
+      pointBackgroundColor: s.points.map(p => sc[sev(p)] || css('--panel')),
+      pointBorderColor: s.points.map(p => sc[sev(p)] || col),
+    };
+  });
   for (const l of o.limits || []) {
     ds.push({ label: l.label, data: [{ x: xmin - pad, y: l.y }, { x: xmax + pad, y: l.y }], borderColor: l.color || css('--crit'),
       borderDash: [5, 4], borderWidth: 1.2, pointRadius: 0, pointHoverRadius: 0, fill: false, isLimit: true, pointStyle: 'line' });
@@ -67,16 +100,17 @@ export function lineChart(canvas, o) {
   const c = new Chart(canvas, {
     type: 'line', data: { datasets: ds },
     options: {
-      responsive: true, maintainAspectRatio: false, animation: false, parsing: false,
+      responsive: true, maintainAspectRatio: false, animation: { duration: 350 }, parsing: false,
+      layout: { padding: { top: 14, right: 6 } },
       interaction: { mode: 'nearest', intersect: false },
       scales: {
-        x: { type: 'linear', min: xmin - pad, max: xmax + pad, grid: { color: line }, ticks: { color: ink3, maxTicksLimit: 6, callback: v => new Date(v).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }) } },
-        y: { grid: { color: line }, ticks: { color: ink3 }, title: { display: !!o.yLabel, text: o.yLabel, color: ink3, font: { size: 11 } }, suggestedMin: o.yMin, suggestedMax: o.yMax, beginAtZero: !!o.zero },
+        x: { type: 'linear', min: xmin - pad, max: xmax + pad, grid: { color: line, drawTicks: false }, border: { display: false }, ticks: { color: ink3, maxTicksLimit: 6, padding: 6, callback: v => new Date(v).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }) } },
+        y: { grid: { color: line, drawTicks: false }, border: { display: false }, ticks: { color: ink3, padding: 6 }, title: { display: !!o.yLabel, text: o.yLabel, color: ink3, font: { size: 11 } }, suggestedMin: o.yMin, suggestedMax: o.yMax, beginAtZero: !!o.zero, grace: '8%' },
       },
       plugins: {
         zones: { bands: o.bands || [] },
-        legend: { position: 'bottom', labels: { color: css('--ink-2'), boxWidth: 8, boxHeight: 8, font: { size: 11, family: 'Inter' }, usePointStyle: true } },
-        tooltip: { filter: (it) => !it.dataset.isLimit, callbacks: {
+        legend: { position: 'bottom', labels: { color: css('--ink-2'), boxWidth: 8, boxHeight: 8, font: { size: 11, family: 'Inter' }, usePointStyle: true, filter: (it, d) => !d.datasets[it.datasetIndex].isLimit } },
+        tooltip: { backgroundColor: 'rgba(11,23,38,.92)', padding: 10, cornerRadius: 8, titleFont: { weight: '600' }, filter: (it) => !it.dataset.isLimit, callbacks: {
           title: (it) => it.length ? fmtDate(new Date(it[0].raw.x)) : '',
           label: (it) => `${it.dataset.label}: ${it.raw.y}${o.unit ? ' ' + o.unit : ''}${it.raw.meta ? ' · ' + it.raw.meta : ''}`,
         } },

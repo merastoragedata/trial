@@ -14,6 +14,7 @@ import sys, json, re, datetime
 import openpyxl
 
 ISSUES = []
+POP = {}   # test -> set of (bay, phase) blocks present in the sheet (equipment population)
 
 def num(x):
     if x is None or x == '': return None
@@ -72,7 +73,7 @@ def bushing(wb, out):
         rem = note_text_in_numbers('DB BUSHING TAND', i, {'C': r[6], 'tand': r[7]})
         out.append({'t': 'bushing', 'unit': unit, 'pos': pos, 'ph': txt(r[2]) or '-',
             'date': iso(r[4]), 'ses': txt(r[3]) or session_of(iso(r[4])),
-            'v': {'C': num(r[6]), 'tand': num(r[7]), 'U': num(r[8]), 'I': num(r[9]),
+            'v': {'C': num(r[6]), 'tand': num(r[7]), 'U': num(r[8]), 'I': num(r[9]), 'phi': num(r[10]),
                   'P': num(r[11]), 'F': num(r[12]), 'temp': num(r[13]),
                   'tand20': round(num(r[14]) * 100, 4) if num(r[14]) else None},
             'mk': txt(r[1]), 'rem': rem, 'src': f'DB BUSHING TAND!{i}'})
@@ -89,7 +90,7 @@ def winding(wb, out):
         out.append({'t': 'winding', 'unit': unit_of(name), 'pos': txt(r[2]) or 'HV-E',
             'ph': phase_of(name) or '-', 'mode': mode, 'acting': acting,
             'date': iso(r[5]), 'ses': txt(r[4]) or session_of(iso(r[5])),
-            'v': {'C': num(r[6]), 'tand': num(r[7]), 'U': num(r[8]), 'I': num(r[9]),
+            'v': {'C': num(r[6]), 'tand': num(r[7]), 'U': num(r[8]), 'I': num(r[9]), 'phi': num(r[10]),
                   'P': num(r[11]), 'F': num(r[12]), 'temp': num(r[13]),
                   'tand20': round(num(r[14]) * 100, 4) if num(r[14]) else None},
             'rem': rem, 'src': f'DB WINDING TAND!{i}'})
@@ -102,7 +103,9 @@ def blocks(wb, sheet, t, hdr_row, fields, date_col=7, ses_col=6, rem_col=None, s
     bay = None; ph = None; last = None
     for i, r in enumerate(ws.iter_rows(min_row=hdr_row + 1, values_only=True), start=hdr_row + 1):
         if num(r[0]) is not None: bay = int(num(r[0]))
-        if txt(r[5]) in ('R', 'Y', 'B'): ph = txt(r[5]); last = None
+        if txt(r[5]) in ('R', 'Y', 'B'):
+            ph = txt(r[5]); last = None
+            if bay is not None: POP.setdefault(t, set()).add((str(bay), ph))
         d = iso(r[date_col])
         rem = txt(r[rem_col]) if rem_col is not None and rem_col < len(r) else ''
         if rem.lower() in ('hello', 'test'): rem = ''  # placeholder text left in the sheet
@@ -113,8 +116,8 @@ def blocks(wb, sheet, t, hdr_row, fields, date_col=7, ses_col=6, rem_col=None, s
         raw = {k: r[c] for k, c in fields.items()}
         vals = {k: num(x) for k, x in raw.items()}
         bad = note_text_in_numbers(sheet, i, raw)
-        if all(v is None for v in vals.values()) and not bad:
-            continue  # date row with nothing measured yet
+        if all(v is None for v in vals.values()) and not bad and season_col is None:
+            continue  # date row with nothing measured yet (LA keeps it: a season with no reading)
         rec = {'t': t, 'unit': str(bay), 'pos': '', 'ph': ph or '-', 'date': d,
                'ses': txt(r[ses_col]) or session_of(d), 'v': vals,
                'rem': '; '.join(x for x in (bad, rem) if x), 'src': f'{sheet}!{i}'}
@@ -137,13 +140,15 @@ def la_220(wb, out):
         if r[0]:
             m = re.search(r'BAY\s*-\s*(\d+)', txt(r[0]))
             if m: bay = m[1]
-        if txt(r[1]) in ('R', 'Y', 'B'): ph = txt(r[1])
+        if txt(r[1]) in ('R', 'Y', 'B'):
+            ph = txt(r[1])
+            if bay: POP.setdefault('la', set()).add((bay, ph))
         d = iso(r[2])
         if not d or not bay: continue
         raw = {'Ith': r[4], 'Icorr': r[5], 'Itotal': r[6]}
         vals = {k: num(x) for k, x in raw.items()}
         bad = note_text_in_numbers('w', i, raw)
-        if all(v is None for v in vals.values()) and not bad and not r[7]: continue
+        if all(v is None for v in vals.values()) and not bad and not r[7] and not r[3]: continue
         out.append({'t': 'la', 'unit': bay, 'pos': '', 'ph': ph or '-', 'date': d,
             'ses': session_of(d), 'season': txt(r[3]), 'v': vals,
             'rem': '; '.join(x for x in (bad, txt(r[7])) if x), 'src': f'w!{i}'})
@@ -179,7 +184,7 @@ if __name__ == '__main__':
     out = []
     out_list = out
     bushing(wb, out); winding(wb, out)
-    ct = {'C': 13, 'tand': 14, 'U': 15, 'I': 16, 'P': 18, 'F': 19, 'temp': 20, 'corr': 21}
+    ct = {'C': 13, 'tand': 14, 'U': 15, 'I': 16, 'phi': 17, 'P': 18, 'F': 19, 'temp': 20, 'corr': 21}
     for kv in ('400', '220'):
         blocks(wb, f'{kv} kV CT Tan D Results', 'ct', 3, ct)
         blocks(wb, f'{kv} kV CB-CRM Results', 'cb_crm', 2, {'R': 12, 'I': 13, 'mV': 14}, rem_col=15)
@@ -242,6 +247,7 @@ if __name__ == '__main__':
                   'SPARE_ICT': {**dmeta.get('SPARE_ICT', {}), 'name': 'Spare ICT', 'rating': '167 MVA 400/220 kV 1-ph', 'bay': '400'},
                   'BUS_REACTOR': {**dmeta.get('BUS_REACTOR', {}), 'name': 'Bus Reactor', 'rating': '125 MVAr 400 kV', 'bay': '401'}},
         'tempCorrection': cf,
+        'population': {t: sorted([list(x) for x in v]) for t, v in POP.items()},
         'records': out, 'issues': ISSUES,
     }
     with open(dst, 'w') as f: json.dump(doc, f, separators=(',', ':'), ensure_ascii=False)

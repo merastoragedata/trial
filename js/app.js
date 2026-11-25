@@ -1,10 +1,13 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1527';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1527';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1527';
-import { IC, LOGO } from './icons.js?v=20261125.1527';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1527';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1527';
-import { art, skyline } from './art.js?v=20261125.1527';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1621';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1621';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1621';
+import { IC, LOGO } from './icons.js?v=20261125.1621';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1621';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1621';
+import { art, skyline } from './art.js?v=20261125.1621';
+import { renderSections, bindResults, openElement, openNorms, NOUN } from './results.js?v=20261125.1621';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1621';
+import { refresh } from './data.js?v=20261125.1621';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -150,7 +153,7 @@ function drawChart(card, rs, cfg, mi) {
   const lim = typeof m.limits === 'function' ? m.limits(rs[0]) : (m.limits || []);
   const c = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const sevColor = { alert: c('--alert'), critical: c('--crit'), watch: c('--watch') };
-  lineChart(card.querySelector('canvas'), { series, limits: lim.map(l => ({ ...l, color: sevColor[l.sev] })), bands: bandsFrom(lim), yLabel: m.unit, unit: m.unit });
+  lineChart(card.querySelector('canvas'), { series, limits: lim.map(l => ({ ...l, color: sevColor[l.sev] })), bands: bandsFrom(lim), yLabel: m.unit, unit: m.unit, fill: series.length === 1 });
 }
 
 function wireCharts(root, t, groups) {
@@ -253,7 +256,7 @@ function vOverview() {
       ${kpi('alert', '#/findings?sev=alert', '▲ Alerts', n('alert'), 'circular limit breached')}
       ${kpi('watch', '#/findings?sev=watch', '● Watch-list', n('watch'), 'adverse trend / industry flag')}
       ${kpi('crit', '#/schedule?f=overdue', 'Overdue tests', od.length, `${due.length} more due ≤ 120 days`)}
-      ${kpi('', '#/equipment', 'Assets monitored', units.length, `${tfs.length} transformers/reactor · ${bays.length} bays`)}
+      ${kpi('', '#/equipment', 'Equipment monitored', units.length, `${tfs.length} transformers/reactor · ${bays.length} bays`)}
       ${kpi('', '#/data', 'Test records', DB.records.length.toLocaleString('en-IN'), `${DB.site.issues.length} data-quality notes`)}</section>
     <div class="sec-h" style="margin-top:6px"><h2>Transformer & reactor health index</h2><span class="note">0–100 · DGA, oil, winding & bushing condition · worst factor governs</span></div>
     <div class="hi-grid">${TF_UNITS.map(hiCard).join('')}</div>
@@ -265,10 +268,10 @@ function vOverview() {
     </div>
     <div class="grid g-7-5 mt">
       <div class="card"><div class="card-h"><h2>Needs attention</h2><span class="sub">critical & alert</span><div class="sp"></div><a class="btn sm ghost" href="#/findings">All findings ${IC.arrow}</a></div>${findingList(fs.filter(f => SEV[f.sev] >= 3), 6)}</div>
-      <div class="card"><div class="card-h"><h2>Test schedule</h2><span class="sub">per asset · overdue & next 120 days</span><div class="sp"></div><a class="btn sm ghost" href="#/schedule">Full schedule ${IC.arrow}</a></div>${schedTable([...od, ...due].slice(0, 12), true)}</div>
+      <div class="card"><div class="card-h"><h2>Test schedule</h2><span class="sub">per equipment · overdue & next 120 days</span><div class="sp"></div><a class="btn sm ghost" href="#/schedule">Full schedule ${IC.arrow}</a></div>${schedTable([...od, ...due].slice(0, 12), true)}</div>
     </div>
-    <div class="card mt"><div class="card-h"><h2>Health matrix</h2><span class="sub">worst open finding per asset & test · ✓ = normal (ISA-101: colour only for abnormal)</span></div>
-      <div class="tbl-wrap"><table class="t"><thead><tr><th>Asset</th><th class="r">Health</th>${tests.map(t => `<th><a href="#/test/${t}">${esc(TESTS[t].short)}</a></th>`).join('')}</tr></thead><tbody>
+    <div class="card mt"><div class="card-h"><h2>Health matrix</h2><span class="sub">worst open finding per equipment & test · ✓ = normal (ISA-101: colour only for abnormal)</span></div>
+      <div class="tbl-wrap"><table class="t"><thead><tr><th>Equipment</th><th class="r">Health</th>${tests.map(t => `<th><a href="#/test/${t}">${esc(TESTS[t].short)}</a></th>`).join('')}</tr></thead><tbody>
       <tr class="grp"><td colspan="${tests.length + 2}">Transformers & reactor</td></tr>
       ${tfs.map(u => row(u)).join('')}<tr class="grp"><td colspan="${tests.length + 2}">400 kV bays</td></tr>${bays.filter(b => kvOf(b) === 400).map(row).join('')}
       <tr class="grp"><td colspan="${tests.length + 2}">220 kV bays</td></tr>${bays.filter(b => kvOf(b) === 220).map(row).join('')}
@@ -279,7 +282,7 @@ function vOverview() {
 function schedTable(list, compact) {
   if (!list.length) return `<div class="empty">${pill('ok', 'Nothing overdue or due in the next 120 days')}</div>`;
   const lagTxt = (s) => s.lag.length ? s.lag.map(l => `${l.k} last ${fmtDate(l.last)}`).join(' · ') : '';
-  return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th><th>Asset</th>${compact ? '' : '<th>Circular</th><th class="r">Last completed</th>'}<th class="r">Next due</th><th>Status</th>${compact ? '' : '<th>Not covered in last campaign</th>'}</tr></thead><tbody>
+  return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th><th>Equipment</th>${compact ? '' : '<th>Circular</th><th class="r">Last completed</th>'}<th class="r">Next due</th><th>Status</th>${compact ? '' : '<th>Not covered in last campaign</th>'}</tr></thead><tbody>
   ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td><td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a>${compact && s.lag.length ? ` <span class="tag ver" title="${esc(lagTxt(s))}">${s.lag.length} lagging</span>` : ''}</td>
   ${compact ? '' : `<td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · ${esc(s.freq)}</button></td><td class="r">${fmtDate(s.last)}</td>`}
   <td class="r" title="Last completed ${fmtDate(s.last)}">${fmtDate(s.due)}</td>
@@ -291,10 +294,10 @@ function vSchedule(q) {
   setCrumbs([['Overview', '#/'], ['Test schedule']]);
   const f = q.get('f') || 'open';
   const list = SCHED.filter(s => f === 'all' || (f === 'open' ? s.status !== 'ok' : s.status === f));
-  view().innerHTML = heroHead('Planning', 'Test schedule', 'One due date per asset and test, counted from the asset\'s <b>latest completed</b> test. A test done in 2025 and repeated in 2026 is due from the 2026 date. A row with a date but no measurement (e.g. "Rain, couldn\'t be tested") does not count as done. LA follows the circular\'s pre-monsoon (by 31 May) and post-monsoon (by 30 Nov) windows. "Due" = within 120 days.', printBtn)
+  view().innerHTML = heroHead('Planning', 'Test schedule', 'One due date per equipment and test, counted from its <b>latest completed</b> test. A test done in 2025 and repeated in 2026 is due from the 2026 date. A row with a date but no measurement (e.g. "Rain, couldn\'t be tested") does not count as done. LA follows the circular\'s pre-monsoon (by 31 May) and post-monsoon (by 30 Nov) windows. "Due" = within 120 days.', printBtn)
     + `<div class="toolbar"><div class="chips">${[['open', 'Overdue + due'], ['overdue', 'Overdue'], ['due', 'Due ≤ 120 d'], ['all', 'All']].map(([k, l]) => `<a class="chip ${f === k ? 'on' : ''}" href="#/schedule?f=${k}">${l} <span class="num">${SCHED.filter(s => k === 'all' || (k === 'open' ? s.status !== 'ok' : s.status === k)).length}</span></a>`).join('')}</div></div>
     <div class="card">${schedTable(list, false)}</div>
-    <p class="note mt">"Not covered in last campaign" lists phases or sampling points whose last completed test is more than 60 days older than the asset's latest campaign. They should be picked up in the next outage. 220 kV CTs are taken as "Major/Important S/s" (Sr 19, yearly), matching the sheet; per Note 2 the zonal CE confirms this classification.</p>`;
+    <p class="note mt">"Not covered in last campaign" lists phases or sampling points whose last completed test is more than 60 days older than that equipment's latest campaign. They should be picked up in the next outage. 220 kV CTs are taken as "Major/Important S/s" (Sr 19, yearly), matching the sheet; per Note 2 the zonal CE confirms this classification.</p>`;
 }
 
 function vSld() {
@@ -317,7 +320,7 @@ function vEquipment() {
       <div class="row">${ts.map(t => `<span class="tag">${esc(TESTS[t].short)}</span>`).join('') || '<span class="note">no tests recorded</span>'}</div>
       ${last ? `<div class="m">Last completed test ${fmtDate(last)}</div>` : ''}</div></a>`;
   };
-  view().innerHTML = heroHead('Asset register', 'Equipment', 'Transformers and the reactor are listed by unit; switchyard equipment (CT, CB, LA) by bay. The left edge carries the worst open finding, and the HI tag shows the health index. Drop a site photo in <code>assets/photos/</code> named after the asset (e.g. <code>ICT1.jpg</code>, <code>403.jpg</code>) and it replaces the illustration.', `<a class="btn" href="#/sld">${IC.sld}View on SLD</a>`)
+  view().innerHTML = heroHead('Equipment register', 'Equipment', 'Transformers and the reactor are listed by unit; switchyard equipment (CT, CB, LA) by bay. The left edge carries the worst open finding, and the HI tag shows the health index. Drop a site photo in <code>assets/photos/</code> named after the equipment (e.g. <code>ICT1.jpg</code>, <code>403.jpg</code>) and it replaces the illustration.', `<a class="btn" href="#/sld">${IC.sld}View on SLD</a>`)
     + `<div class="sec-h" style="margin-top:0"><h2>Transformers & reactor</h2></div><div class="tiles media-tiles">${TF_UNITS.map(tile).join('')}</div>
     <div class="sec-h"><h2>400 kV bays</h2><span class="note">one-and-a-half breaker</span></div><div class="tiles media-tiles">${allBays.filter(b => kvOf(b) === 400).map(tile).join('')}</div>
     <div class="sec-h"><h2>220 kV bays</h2><span class="note">double main + transfer</span></div><div class="tiles media-tiles">${allBays.filter(b => kvOf(b) === 220).map(tile).join('')}</div>`;
@@ -350,12 +353,12 @@ function vUnit(u, q) {
     ${ts.length ? `<div class="sec-h" style="margin-top:4px"><h2>Diagnostic tests</h2><span class="note">click a test for full results, graphs and history</span></div>
     <div class="test-cards">${ts.map(t => testCard(u, t)).join('')}</div>
     <div class="grid g-7-5 mt">${h ? `<div class="card"><div class="card-h"><h2>${isTF(u) ? 'Health index' : 'Bay health'}</h2><span class="sub">what drives the score</span></div><div class="card-b">${hiPanel(u)}</div></div>` : '<div></div>'}
-      <div class="card"><div class="card-h"><h2>Schedule</h2><span class="sub">per test, from latest completed</span></div>${schedTable(sch, true)}</div></div>
+      <div class="card"><div class="card-h"><h2>Schedule</h2><span class="sub">per test, from the latest completed test</span></div>${schedTable(sch, true)}</div></div>
     <div class="card mt"><div class="card-h"><h2>Findings</h2><span class="sub">${fs.length}</span></div>${findingList(fs)}</div>`
     : '<div class="card empty">No test records for this bay in the sheet yet. It is probably a future bay.</div>'}`;
-  $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openDetail(u, b.dataset.detail); });
-  $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openDetail(u, t); } });
-  if (q.get('t') && ts.includes(q.get('t'))) openDetail(u, q.get('t'));
+  $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openElement(b.dataset.detail, u, null); });
+  $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openElement(t, u, null); } });
+  if (q.get('t') && ts.includes(q.get('t'))) openElement(q.get('t'), u, null);
 }
 
 function vTest(t, q) {
@@ -370,31 +373,31 @@ function vTest(t, q) {
   const A = analytics(t, recs(t));
   view().innerHTML = `<section class="test-hero"><div class="th-art">${art(t === 'cb_crm' || t === 'cb_timing' ? 'breaker2' : t === 'ct' ? 'ct' : t === 'la' ? 'la' : 'transformer', { alt: T.name })}</div>
       <div class="th-body"><div class="eyebrow">${esc(T.eq)} · circular Sr ${T.sr}</div><h1>${esc(T.name)}</h1><p class="lede">${esc(TEST_ABOUT[t])}</p>
-      <div class="actions" style="display:flex;gap:8px;margin-top:12px">${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}${printBtn}</div></div></section>
-    <section class="kpis" style="grid-template-columns:repeat(5,minmax(0,1fr))">
-      <div class="kpi"><div class="l">Assets tested</div><div class="v">${A.assets}</div><div class="d">${A.series} ${A.series === 1 ? 'series' : 'phase / point series'}</div></div>
-      <div class="kpi"><div class="l">Latest campaign</div><div class="v" style="font-size:20px">${A.lastDate ? fmtDate(A.lastDate) : '—'}</div><div class="d">${recs(t).filter(done).length} completed records</div></div>
-      <div class="kpi ${A.within < 100 ? 'alert hot' : ''}"><div class="l">Within circular limit</div><div class="v">${A.within}%</div><div class="d">of latest readings</div></div>
-      <div class="kpi ${A.overdue ? 'crit hot' : ''}"><div class="l">Overdue</div><div class="v">${A.overdue}</div><div class="d">of ${A.assets} assets</div></div>
-      <div class="kpi"><div class="l">Worst latest</div><div class="v" style="font-size:20px">${A.worst ? fmt(A.worst.v, KM[t].dp) + ' ' + KM[t].unit : '—'}</div><div class="d">${A.worst ? esc(A.worst.label) : ''}</div></div></section>
-    <div class="grid g-7-5 mb">
-      <div class="card"><div class="card-h"><h3>Fleet ranking · latest ${esc(KM[t].label)}</h3><span class="sub">highest first</span></div><div class="card-b"><div style="height:${Math.min(560, 46 + A.rank.length * 20)}px;position:relative"><canvas id="rankCv"></canvas></div><p class="note" style="margin:6px 0 0">${esc(KM[t].limitNote)}</p></div></div>
-      <div class="card"><div class="card-h"><h3>Biggest movers</h3><span class="sub">change since previous test</span></div>${moversTable(A.movers, t)}</div></div>
-    <div class="card mb"><div class="card-h"><h3>Year-wise heat map · worst ${esc(KM[t].label)} per asset per FY</h3></div>${heatmap(t, A)}</div>
-    <div class="grid g2 mb">${clauseCard(t === 'ct' ? 18 : T.sr, t)}${standardsCard(t)}</div>
-    ${fs.length ? `<div class="card mb"><div class="card-h"><h2>Findings</h2><span class="sub">${fs.length}</span><div class="sp"></div><a class="btn sm ghost" href="#/findings?t=${t}">All ${IC.arrow}</a></div>${findingList(fs, 5)}</div>` : ''}
-    <div class="sec-h"><h2>Detailed results</h2><span class="note">filter by asset · click an asset name for its full pop-up</span></div>
-    <div class="toolbar"><div class="chips">${t === 'dga' ? '' : chip('all', 'All')}${kvChips ? chip('400', '400 kV') + chip('220', '220 kV') : ''}${units.map(u => chip(u, unitName(u))).join('')}</div></div>
-    <div id="tb"></div>`;
-  rankChart($('#rankCv'), t, A.rank);
+      <div class="actions" style="display:flex;gap:8px;margin-top:12px">${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button>${printBtn}</div></div></section>
+    <div id="v4"></div>
+    <div class="sec-h mt-l"><h2>More analysis</h2><span class="note">earlier views, kept for reference · click to expand</span></div>
+    <details class="sec"><summary><span class="sec-t">Fleet overview</span><span class="dim">ranking by the key parameter, biggest movers</span><span class="caret">▾</span></summary><div class="sec-b">
+      <div class="grid g-7-5"><div class="card"><div class="card-h"><h3>Ranking · latest ${esc(KM[t].label)}</h3></div><div class="card-b"><div style="height:${Math.min(560, 46 + A.rank.length * 20)}px;position:relative"><canvas id="rankCv"></canvas></div><p class="note" style="margin:6px 0 0">${esc(KM[t].limitNote)}</p></div></div>
+      <div class="card"><div class="card-h"><h3>Biggest movers</h3><span class="sub">change since previous test</span></div>${moversTable(A.movers, t)}</div></div></div></details>
+    <details class="sec"><summary><span class="sec-t">Year-wise heat map</span><span class="dim">worst ${esc(KM[t].label)} per ${t === 'ct' || t.startsWith('cb') || t === 'la' ? 'bay' : 'unit'} per FY</span><span class="caret">▾</span></summary><div class="sec-b"><div class="card">${heatmap(t, A)}</div></div></details>
+    <details class="sec"><summary><span class="sec-t">Circular clause & industry practice</span><span class="caret">▾</span></summary><div class="sec-b"><div class="grid g2">${clauseCard(t === 'ct' ? 18 : T.sr, t)}${standardsCard(t)}</div></div></details>
+    <details class="sec"><summary><span class="sec-t">Findings</span><span class="dim">${fs.length}</span><span class="caret">▾</span></summary><div class="sec-b"><div class="card">${findingList(fs)}</div></div></details>
+    <details class="sec" id="oldTrends"><summary><span class="sec-t">Trend charts & latest table (grouped)</span><span class="caret">▾</span></summary><div class="sec-b">
+      <div class="toolbar"><div class="chips">${t === 'dga' ? '' : chip('all', 'All')}${kvChips ? chip('400', '400 kV') + chip('220', '220 kV') : ''}${units.map(u => chip(u, unitName(u))).join('')}</div></div><div id="tb"></div></div></details>`;
+  renderSections(t, $('#v4'));
+  view().insertAdjacentHTML('beforeend', `<button class="fab-norms" data-norms title="Show the circular clause and industry standards for these results">${IC.norms}Norms & standards</button>`);
+  $$('[data-norms]').forEach(b => b.onclick = () => openNorms(t));
+  let rankDone = false;
+  $$('details.sec').forEach(d => d.addEventListener('toggle', () => { if (d.open && !rankDone && $('#rankCv', d)) { rankDone = true; rankChart($('#rankCv'), t, A.rank); } }));
   const body = renderTestBody(t, rs, false);
   $('#tb').innerHTML = body.html; body.after($('#tb'));
+  if (q.get('u') && !['ICT1'].includes(q.get('u')) || (t === 'dga' && q.get('u'))) $('#oldTrends').open = true;
 }
 
 function vTests() {
   setCrumbs([['Tests']]);
-  view().innerHTML = pageHead('Diagnostics', 'Tests', 'Test-wise view across all assets, each with its governing circular clause and the industry comparison.')
-    + `<div class="tiles">${Object.values(TESTS).map(T => { const fs = findings().filter(f => f.t === T.key); const w = fs.length ? worst(fs.map(f => f.sev)) : 'ok'; return `<a class="tile sev-${w}" href="#/test/${T.key}"><div class="row"><span style="width:22px;height:22px;color:var(--brand-2);display:grid">${IC[T.key]}</span><span class="n">${esc(T.name)}</span><span style="flex:1"></span>${pill(w)}</div><div class="m">${esc(T.eq)} · circular Sr ${T.sr}</div><div class="m">${recs(T.key).length} records · ${unitsFor(T.key).length} assets · ${fs.length} findings</div></a>`; }).join('')}</div>`;
+  view().innerHTML = pageHead('Diagnostics', 'Tests', 'Test-wise view across all equipment, each with its governing circular clause and the industry comparison.')
+    + `<div class="tiles">${Object.values(TESTS).map(T => { const fs = findings().filter(f => f.t === T.key); const w = fs.length ? worst(fs.map(f => f.sev)) : 'ok'; return `<a class="tile sev-${w}" href="#/test/${T.key}"><div class="row"><span style="width:22px;height:22px;color:var(--brand-2);display:grid">${IC[T.key]}</span><span class="n">${esc(T.name)}</span><span style="flex:1"></span>${pill(w)}</div><div class="m">${esc(T.eq)} · circular Sr ${T.sr}</div><div class="m">${recs(T.key).length} records · ${unitsFor(T.key).length} ${T.key === 'ct' || T.key.startsWith('cb') || T.key === 'la' ? 'bays' : 'units'} · ${fs.length} findings</div></a>`; }).join('')}</div>`;
 }
 
 function vFindings(q) {
@@ -444,7 +447,7 @@ function vStandards() {
   setCrumbs([['Industry standards']]);
   const tmap = { bushing: 1, winding: 3, ct: 18, cb_crm: 24, cb_timing: 26, la: 17, dga: 8, oil: 10 };
   view().innerHTML = pageHead('Reference · benchmarking', 'Circular vs industry standards', esc(DB.standards.disclaimer), printBtn)
-    + `<div class="callout warn mb"><b>Five gaps between the circular and current practice.</b><ol style="margin:6px 0 0;padding-left:20px"><li>Fixed absolute limits, where the industry trends each asset against its own baseline and its sister phases.</li><li>A generic temperature correction applied to bushings.</li><li>DGA still on the IEEE C57.104-<b>2008</b> table, with no rate-of-change rule and no OLTC-specific method.</li><li>No pole-discrepancy limit for breakers.</li><li>A 400 kV CRM limit that every healthy breaker here fails (per-break vs per-pole).</li></ol></div>
+    + `<div class="callout warn mb"><b>Five gaps between the circular and current practice.</b><ol style="margin:6px 0 0;padding-left:20px"><li>Fixed absolute limits, where the industry trends each piece of equipment against its own baseline and its sister phases.</li><li>A generic temperature correction applied to bushings.</li><li>DGA still on the IEEE C57.104-<b>2008</b> table, with no rate-of-change rule and no OLTC-specific method.</li><li>No pole-discrepancy limit for breakers.</li><li>A 400 kV CRM limit that every healthy breaker here fails (per-break vs per-pole).</li></ol></div>
     <div class="grid g2">${Object.entries(DB.standards.tests).map(([k, b]) => `<div class="card"><div class="card-h"><span style="width:18px;color:var(--brand-2)">${IC[k] || IC.standards}</span><h3>${esc(b.title)}</h3><div class="sp"></div>${tmap[k] ? circularBtn(tmap[k], 'Circular') : ''}</div><div class="card-b">${b.items.map(stdRow).join('')}</div></div>`).join('')}</div>`;
 }
 
@@ -553,7 +556,7 @@ function moversTable(m, t) {
 }
 function heatmap(t, A) {
   if (!A.heat.length) return '<div class="empty">No data</div>';
-  return `<div class="tbl-wrap"><table class="t heat"><thead><tr><th>Asset</th>${A.fys.map(f => `<th class="r">FY ${f}</th>`).join('')}</tr></thead><tbody>${A.heat.map(h => `<tr><td><a href="#/eq/${h.u}?t=${t}">${esc(unitName(h.u))}</a> <span class="dim">${esc(isTF(h.u) ? '' : bayTitle(h.u))}</span></td>${h.cells.map(c => c ? `<td class="r hc-${c.sev}" title="${c.n} readings">${fmt(c.v, KM[t].dp)}</td>` : '<td class="r dim">·</td>').join('')}</tr>`).join('')}</tbody></table></div>`;
+  return `<div class="tbl-wrap"><table class="t heat"><thead><tr><th>Equipment</th>${A.fys.map(f => `<th class="r">FY ${f}</th>`).join('')}</tr></thead><tbody>${A.heat.map(h => `<tr><td><a href="#/eq/${h.u}?t=${t}">${esc(unitName(h.u))}</a> <span class="dim">${esc(isTF(h.u) ? '' : bayTitle(h.u))}</span></td>${h.cells.map(c => c ? `<td class="r hc-${c.sev}" title="${c.n} readings">${fmt(c.v, KM[t].dp)}</td>` : '<td class="r dim">·</td>').join('')}</tr>`).join('')}</tbody></table></div>`;
 }
 function testCard(u, t) {
   const rs = recs(t, { unit: u }).filter(done), k = KM[t];
@@ -624,9 +627,9 @@ function openDetail(u, t) {
 }
 
 // ============================================================ router & shell
-function route() {
+function route(opt = {}) {
   destroyCharts();
-  $$('.modal-bg').forEach(m => m.remove());
+  if (!opt.keepModal) $$('.modal-bg, .drawer').forEach(m => m.remove());
   const h = location.hash.replace(/^#/, '') || '/';
   const [path, qs] = h.split('?'); const q = new URLSearchParams(qs || '');
   const p = path.split('/').filter(Boolean);
@@ -636,7 +639,8 @@ function route() {
   if (p[0] === 'eq') vUnit(decodeURIComponent(p[1]), q);
   else if (p[0] === 'test') vTest(p[1], q);
   else (V[p[0] || ''] || vNotFound)(q);
-  window.scrollTo(0, 0);
+  if (!opt.keepScroll) window.scrollTo(0, 0);
+  adminBar();
 }
 
 function shell() {
@@ -646,6 +650,8 @@ function shell() {
   $('#menuBtn').onclick = () => $('#sb').classList.toggle('open');
   $('#printBtn').onclick = () => window.print();
   $('#searchBtn').onclick = openPalette;
+  const ab = document.createElement('button'); ab.className = 'icon-btn admin-btn'; ab.id = 'adminBtn'; ab.title = 'Admin: edit results, remarks and targets'; ab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Admin</span>`;
+  $('#themeBtn').before(ab); ab.onclick = () => { toggleAdmin(); rerenderInPlace(); };
   const k = 'ehv-theme'; let t = null; try { t = localStorage.getItem(k); } catch { }
   if (t) document.documentElement.dataset.theme = t;
   $('#themeBtn').onclick = () => {
@@ -666,7 +672,7 @@ function afterLoad() {
   // command palette index
   const items = [
     ...[['#/', 'Overview', 'overview'], ['#/findings', 'Findings', 'findings'], ['#/schedule', 'Test schedule', 'schedule'], ['#/sld', 'Single-line diagram', 'sld'], ['#/equipment', 'Equipment', 'equipment'], ['#/norms', 'MSETCL norms 2024', 'norms'], ['#/norms?tab=errata', 'Corrections to old JSON', 'norms'], ['#/standards', 'Industry standards', 'standards'], ['#/data', 'Data & sources', 'data'], ['#/about', 'Roadmap', 'roadmap']].map(([href, label, ic]) => ({ href, label, kind: 'page', icon: IC[ic] })),
-    ...TF_UNITS.map(u => ({ href: '#/eq/' + u, label: unitName(u), sub: DB.site.units[u].rating, kind: 'asset', icon: IC.equipment })),
+    ...TF_UNITS.map(u => ({ href: '#/eq/' + u, label: unitName(u), sub: DB.site.units[u].rating, kind: 'equipment', icon: IC.equipment })),
     ...Object.keys(DB.site.bays).map(u => ({ href: '#/eq/' + u, label: `Bay ${u}`, sub: bayTitle(u), kind: `${kvOf(u)} kV bay`, icon: IC.sld })),
     ...Object.values(TESTS).map(T => ({ href: '#/test/' + T.key, label: T.name, sub: T.eq, kind: 'test', icon: IC[T.key] })),
     ...DB.norms.rows.map(r => ({ href: `#/norms?q=${encodeURIComponent(r.activity)}`, label: `Sr ${r.sr} · ${r.activity}`, sub: r.equipment, kind: 'circular', icon: IC.norms })),
@@ -675,14 +681,38 @@ function afterLoad() {
   setPaletteItems(items);
 }
 
+// ============================================================ admin
+function rerun() { run(); SCHED = schedule(); afterLoad(); }
+function rerenderInPlace() {
+  const y = window.scrollY, openSecs = $$('details.sec').map(d => d.open);
+  route({ keepModal: true, keepScroll: true });
+  $$('details.sec').forEach((d, i) => { if (openSecs[i] != null) d.open = openSecs[i]; });
+  window.scrollTo(0, y);
+  if ($('.modal-bg') && RESULTS_CTX.onModalRerender) RESULTS_CTX.onModalRerender();
+}
+const RESULTS_CTX = { rerun, rerender: rerenderInPlace, clauseCard: (sr, t) => clauseCard(sr, t), standardsCard: (t) => standardsCard(t) };
+function adminBar() {
+  let bar = $('#adminBar');
+  if (!isAdmin()) { if (bar) bar.remove(); $('#adminBtn')?.classList.remove('on'); return; }
+  $('#adminBtn')?.classList.add('on');
+  if (!bar) { bar = document.createElement('div'); bar.id = 'adminBar'; bar.className = 'admin-bar'; $('.main').insertBefore(bar, $('#view')); }
+  bar.innerHTML = `<b>Admin mode</b><span>Click any result, remark or date in the sequence-wise tables to edit it. Type a value or a formula such as <code>=tand/K(temp)</code> or <code>=(C-prev.C)/prev.C*100</code>. ${editCount()} change(s) saved in this browser.</span><span class="sp"></span>
+    <button class="btn sm" id="exEd">Export changes</button><label class="btn sm">Import<input type="file" accept=".json" id="imEd" hidden></label><button class="btn sm" id="rsEd">Discard all</button><button class="btn sm pri" id="exitAd">Exit admin</button>`;
+  $('#exEd').onclick = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([exportEdits()], { type: 'application/json' })); a.download = `diagnostic-edits-${new Date().toISOString().slice(0, 10)}.json`; a.click(); };
+  $('#imEd').onchange = async (e) => { const f = e.target.files[0]; if (!f) return; try { importEdits(await f.text()); refresh(); rerun(); rerenderInPlace(); } catch (er) { alert('Could not import: ' + er.message); } };
+  $('#rsEd').onclick = () => { if (confirm('Discard every change made in this browser and return to the sheet values?')) { resetEdits(); refresh(); rerun(); rerenderInPlace(); } };
+  $('#exitAd').onclick = () => { toggleAdmin(); rerenderInPlace(); };
+}
+
 (async function main() {
   shell();
+  bindResults(RESULTS_CTX);
   try {
     await loadAll();
     run(); SCHED = schedule();
     bindRise((u) => findings().some(f => f.t === 'bushing' && f.unit === u && /rising/i.test(f.title)));
     afterLoad();
-    window.addEventListener('hashchange', route);
+    window.addEventListener('hashchange', () => route());
     route();
   } catch (e) {
     view().innerHTML = `<div class="callout warn"><b>Could not load data.</b> ${esc(e.message)}<br>Open the portal through a web server (GitHub Pages, or <code>python3 -m http.server</code> in this folder), not directly as a file.</div>`;
