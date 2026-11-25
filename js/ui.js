@@ -1,6 +1,6 @@
 // Small DOM, chart and circular-viewer helpers.
-import { DB, fmtDate, toDate } from './data.js?v=20261125.1621';
-import { SEV_LABEL } from './rules.js?v=20261125.1621';
+import { DB, fmtDate, toDate } from './data.js?v=20261125.1811';
+import { SEV_LABEL } from './rules.js?v=20261125.1811';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Shape-coded status (readable without colour): ◆ critical · ▲ alert · ● watch · ✓ normal · i info · – no data
@@ -50,6 +50,23 @@ export function bandsFrom(limits) {
   return out;
 }
 
+/** Average-reference lines: mean of the readings to date and ±20 % steps of it.
+ *  ±20 % is always shown; further steps (±40, 60, 80, 100 % …) wherever the data reaches. */
+export function avgRefs(ys, limits = []) {
+  ys = ys.filter(y => y != null && isFinite(y));
+  if (!ys.length) return [];
+  const avg = ys.reduce((a, b) => a + b, 0) / ys.length, base = Math.abs(avg);
+  if (base < 1e-9) return [];
+  const lo = Math.min(...ys), hi = Math.max(...ys), out = [{ k: 0, y: avg, label: `avg ${+avg.toFixed(Math.abs(avg) < 1 ? 3 : 1)}` }];
+  for (let k = 1; k <= 25; k++) {
+    const up = avg + base * 0.2 * k, dn = avg - base * 0.2 * k;
+    if (k === 1 || up <= hi) out.push({ k, y: up, label: `+${20 * k}%` });
+    if (k === 1 || dn >= lo) out.push({ k: -k, y: dn, label: `−${20 * k}%` });
+    if (up > hi && dn < lo) break;
+  }
+  return out;
+}
+
 // Draws limit labels at the right end of each limit line and the value of the latest point.
 const labelPlugin = {
   id: 'labels',
@@ -60,7 +77,8 @@ const labelPlugin = {
     chart.data.datasets.forEach((d, i) => {
       const meta = chart.getDatasetMeta(i); if (meta.hidden) return;
       if (d.isLimit) { const p = meta.data[1]; if (!p) return; ctx.fillStyle = d.borderColor; ctx.textAlign = 'right'; ctx.fillText(d.label, a.right - 4, p.y - 4); return; }
-      if (chart.data.datasets.filter(x => !x.isLimit).length > 3) return;
+      if (d.isRef) { const p = meta.data[0]; if (!p || p.y < a.top || p.y > a.bottom) return; ctx.save(); ctx.font = (d.refK === 0 ? '600 ' : '500 ') + '9.5px Inter, sans-serif'; ctx.fillStyle = d.refK === 0 ? css('--ink-2') : d.borderColor; ctx.textAlign = 'left'; ctx.fillText(d.label, a.left + 4, p.y - 3); ctx.restore(); return; }
+      if (chart.data.datasets.filter(x => !x.isLimit && !x.isRef).length > 3) return;
       const p = meta.data.at(-1), raw = d.data.at(-1); if (!p || !raw) return;
       ctx.fillStyle = d.borderColor; ctx.textAlign = 'center';
       ctx.fillText(String(+(+raw.y).toFixed(3)), p.x, p.y - 9);
@@ -93,6 +111,13 @@ export function lineChart(canvas, o) {
       pointBorderColor: s.points.map(p => sc[sev(p)] || col),
     };
   });
+  // average-reference lines: the element's own average to date and ±20 % steps of it
+  if (o.avgRef && o.series.length === 1) {
+    for (const r of avgRefs(o.series[0].points.map(p => p.y), o.limits)) {
+      ds.push({ label: r.label, data: [{ x: xmin - pad, y: r.y }, { x: xmax + pad, y: r.y }], borderColor: r.k === 0 ? css('--ink-2') : r.k > 0 ? `rgba(196,84,12,${Math.min(0.25 + r.k * 0.12, 0.8)})` : `rgba(26,111,194,${Math.min(0.25 - r.k * 0.12, 0.8)})`,
+        borderDash: r.k === 0 ? [] : [2, 3], borderWidth: r.k === 0 ? 1.4 : 1, pointRadius: 0, pointHoverRadius: 0, fill: false, isRef: true, refK: r.k });
+    }
+  }
   for (const l of o.limits || []) {
     ds.push({ label: l.label, data: [{ x: xmin - pad, y: l.y }, { x: xmax + pad, y: l.y }], borderColor: l.color || css('--crit'),
       borderDash: [5, 4], borderWidth: 1.2, pointRadius: 0, pointHoverRadius: 0, fill: false, isLimit: true, pointStyle: 'line' });
@@ -109,8 +134,8 @@ export function lineChart(canvas, o) {
       },
       plugins: {
         zones: { bands: o.bands || [] },
-        legend: { position: 'bottom', labels: { color: css('--ink-2'), boxWidth: 8, boxHeight: 8, font: { size: 11, family: 'Inter' }, usePointStyle: true, filter: (it, d) => !d.datasets[it.datasetIndex].isLimit } },
-        tooltip: { backgroundColor: 'rgba(11,23,38,.92)', padding: 10, cornerRadius: 8, titleFont: { weight: '600' }, filter: (it) => !it.dataset.isLimit, callbacks: {
+        legend: { position: 'bottom', labels: { color: css('--ink-2'), boxWidth: 8, boxHeight: 8, font: { size: 11, family: 'Inter' }, usePointStyle: true, filter: (it, d) => !d.datasets[it.datasetIndex].isLimit && !d.datasets[it.datasetIndex].isRef } },
+        tooltip: { backgroundColor: 'rgba(11,23,38,.92)', padding: 10, cornerRadius: 8, titleFont: { weight: '600' }, filter: (it) => !it.dataset.isLimit && !it.dataset.isRef, callbacks: {
           title: (it) => it.length ? fmtDate(new Date(it[0].raw.x)) : '',
           label: (it) => `${it.dataset.label}: ${it.raw.y}${o.unit ? ' ' + o.unit : ''}${it.raw.meta ? ' · ' + it.raw.meta : ''}`,
         } },

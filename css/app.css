@@ -626,3 +626,29 @@ input.tgt{width:70px;text-align:right;font:inherit;font-family:var(--mono);borde
 .test-hero>*{min-width:0}
 .test-hero .actions{flex-wrap:wrap}
 @media (max-width:860px){.admin-btn span{display:none}.admin-btn{padding:0;width:34px;justify-content:center}.test-hero .art{max-width:100%}.el-b{padding:0 10px 10px}.el-h{padding:9px 10px}}
+
+/* ==========================================================================
+   v5 — substation-in-forest backdrop, average-reference chart chips (desktop)
+   ========================================================================== */
+body{background:
+  linear-gradient(180deg,rgba(244,246,249,.42) 0%,rgba(244,246,249,.72) 38%,rgba(244,246,249,.86) 70%,rgba(244,246,249,.9) 100%),
+  url(../assets/bg/substation.svg) center bottom/cover no-repeat fixed;
+  background-color:#e9eef0}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) body{background:linear-gradient(180deg,rgba(8,14,24,.62) 0%,rgba(8,14,24,.82) 45%,rgba(8,14,24,.9) 100%),url(../assets/bg/substation.svg) center bottom/cover no-repeat fixed;background-color:#0a121d}}
+:root[data-theme="dark"] body{background:linear-gradient(180deg,rgba(8,14,24,.62) 0%,rgba(8,14,24,.82) 45%,rgba(8,14,24,.9) 100%),url(../assets/bg/substation.svg) center bottom/cover no-repeat fixed;background-color:#0a121d}
+.top{background:rgba(244,246,249,.72)}
+:root[data-theme="dark"] .top{background:rgba(10,18,29,.75)}
+.hero{background:linear-gradient(90deg,rgba(7,24,44,.94) 0%,rgba(7,24,44,.8) 40%,rgba(7,24,44,.35) 75%,rgba(7,24,44,.15) 100%),url(../assets/bg/substation.svg) center 78%/cover no-repeat;min-height:240px}
+.hero .skyline{display:none}
+.hero::after{background:radial-gradient(500px 200px at 80% 0,rgba(242,169,0,.15),transparent 70%)}
+
+/* element chart parameter chips + reference labels */
+.mc-chips{display:flex;flex-wrap:wrap;gap:4px;margin:2px 0 4px}
+.mc-chips button{border:1px solid var(--line-2);background:var(--panel);border-radius:999px;font-size:11px;padding:2px 9px;cursor:pointer;color:var(--ink-2)}
+.mc-chips button.on{background:var(--brand);border-color:var(--brand);color:#fff}
+.mc-ref{font-size:8.5px;font-family:var(--mono);font-weight:600}
+.mc-note{font-size:10.5px;color:var(--ink-3);padding:2px 4px 0}
+.el-b{grid-template-columns:minmax(0,1fr) 400px}
+.rank-class{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.el-sec{border-top:1px dashed var(--line-2);margin-top:18px;padding-top:4px}
+.el-sec:first-of-type{border-top:0}

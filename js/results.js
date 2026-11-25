@@ -1,11 +1,11 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM } from './data.js?v=20261125.1621';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow } from './rules.js?v=20261125.1621';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal } from './ui.js?v=20261125.1621';
-import { isAdmin, setCell, addRow, deleteNewRow, targets, setTarget } from './edit.js?v=20261125.1621';
-import { IC } from './icons.js?v=20261125.1621';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM } from './data.js?v=20261125.1811';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow } from './rules.js?v=20261125.1811';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs } from './ui.js?v=20261125.1811';
+import { isAdmin, setCell, addRow, deleteNewRow, targets, setTarget } from './edit.js?v=20261125.1811';
+import { IC } from './icons.js?v=20261125.1811';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -33,7 +33,8 @@ export function cellSev(t, k, v, r) {
   if (v == null || Number.isNaN(v)) return '';
   const kv = kvOf(r.unit), oltc = r.pos === 'OLTC';
   switch (k) {
-    case 'tand': case 'tand20': return g(v, TAN);
+    case 'tand': return '';                         // measured value shown for record; judged on corrected
+    case 'tand20': return g(v, TAN);
     case 'dTand': return g(v, [[0.1, 'alert'], [0.07, 'watch']]);
     case 'dC': return v > 10 || v < -5 ? 'alert' : v > 8 || v < -4 ? 'watch' : 'ok';
     case 'R': return v > LIM.crm[kv] ? 'alert' : 'ok';
@@ -66,9 +67,9 @@ const cellVal = (r, c) => c.k === 'mode' ? (r.mode || 'UST') : c.k === 'season' 
 // ------------------------------------------------------------------ ranking parameters (circular-relevant)
 const P = (k, label, unit, dp, get, o = {}) => ({ k, label, unit, dp, get, ...o });
 export const RANKP = {
-  ct: [P('tand', 'Tan δ (measured)', '%', 3, r => r.v.tand), P('tand20', 'Tan δ @20 °C', '%', 3, r => r.v.tand20), P('dTand', 'Tan δ rise since last', '%', 3, r => r.v.dTand), P('dC', 'C change since last', '%', 2, r => r.v.dC, { abs: 1 }), P('C', 'Capacitance', 'pF', 1, r => r.v.C)],
-  bushing: [P('tand', 'Tan δ (measured)', '%', 3, r => r.v.tand), P('tand20', 'Tan δ @20 °C', '%', 3, r => r.v.tand20), P('dTand', 'Tan δ rise since last', '%', 3, r => r.v.dTand), P('dC', 'C₁ change since last', '%', 2, r => r.v.dC, { abs: 1 })],
-  winding: [P('tand20', 'Tan δ @20 °C', '%', 3, r => r.v.tand20), P('tand', 'Tan δ (measured)', '%', 3, r => r.v.tand), P('dTand', 'Tan δ rise since last', '%', 3, r => r.v.dTand), P('dC', 'C change since last', '%', 2, r => r.v.dC, { abs: 1 })],
+  ct: [P('tand20', 'Corrected tan δ @20 °C', '%', 3, r => r.v.tand20), P('dTand', 'Tan δ rise since last', '%', 3, r => r.v.dTand), P('dC', 'C change since last', '%', 2, r => r.v.dC, { abs: 1 }), P('C', 'Capacitance', 'pF', 1, r => r.v.C)],
+  bushing: [P('tand20', 'Corrected tan δ @20 °C', '%', 3, r => r.v.tand20), P('dTand', 'Tan δ rise since last', '%', 3, r => r.v.dTand), P('dC', 'C₁ change since last', '%', 2, r => r.v.dC, { abs: 1 })],
+  winding: [P('tand20', 'Corrected tan δ @20 °C', '%', 3, r => r.v.tand20), P('dTand', 'Tan δ rise since last', '%', 3, r => r.v.dTand), P('dC', 'C change since last', '%', 2, r => r.v.dC, { abs: 1 })],
   cb_crm: [P('R', 'Contact resistance', 'µΩ', 1, r => r.v.R)],
   cb_timing: [P('open1', 'Trip time TC1', 'ms', 2, r => r.v.open1), P('open2', 'Trip time TC2', 'ms', 2, r => r.v.open2), P('close', 'Close time', 'ms', 2, r => r.v.close), P('co1', 'Close-Open TC1', 'ms', 2, r => r.v.co1)],
   la: [P('Icorr', 'Icorr (3rd-harmonic resistive)', 'µA', 1, r => r.v.Icorr), P('Ith', 'Ith', 'µA', 1, r => r.v.Ith), P('Itotal', 'Itotal', 'µA', 0, r => r.v.Itotal)],
@@ -82,10 +83,10 @@ let CRM_MED = {};
 export function elemHealth(t, L) {
   if (!L) return null; const v = L.v; let s = 100;
   if (['ct', 'bushing', 'winding'].includes(t)) {
-    const x = t === 'winding' ? v.tand20 : v.tand; if (x == null) return null;
+    const x = v.tand20; if (x == null) return null;
     s = lerp(x, [[0.3, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]);
     if (v.dTand > 0.1) s = Math.min(s, 60); if (v.dC != null && (v.dC > 10 || v.dC < -5)) s = Math.min(s, 40);
-  } else if (t === 'cb_crm') { if (v.R == null) return null; s = lerp(v.R / (CRM_MED[kvOf(L.unit)] || v.R), [[1, 100], [1.2, 85], [1.5, 55], [2, 20], [3, 0]]); }
+  } else if (t === 'cb_crm') { if (v.R == null) return null; s = lerp(v.R / LIM.crm[kvOf(L.unit)], [[0.8, 100], [1.0, 80], [1.2, 60], [1.5, 30], [2, 0]]); }
   else if (t === 'cb_timing') { const tr = LIM.trip[kvOf(L.unit)], op = Math.max(v.open1 ?? 0, v.open2 ?? 0); s = Math.min(lerp(op / tr, [[0.8, 100], [0.9, 90], [1, 65], [1.2, 25], [1.5, 0]]), v.close ? lerp(v.close / 150, [[0.7, 100], [0.85, 90], [1, 60], [1.5, 10], [2, 0]]) : 100); }
   else if (t === 'la') { if (v.Icorr == null) return null; s = lerp(v.Icorr, [[30, 100], [100, 85], [150, 65], [350, 25], [500, 0]]); }
   else if (t === 'dga') {
@@ -160,6 +161,8 @@ export function svgChart(series, o = {}) {
   let y0 = Math.min(...pts.map(p => p[1]), ...(o.zero ? [0] : [])), y1 = Math.max(...pts.map(p => p[1]));
   const near = lims.filter(l => l <= y1 * 1.6 && l >= y0 * 0.6); y0 = Math.min(y0, ...near); y1 = Math.max(y1, ...near);
   if (y1 === y0) { y1 += Math.abs(y1) * 0.1 || 1; y0 -= Math.abs(y0) * 0.1 || 1; }
+  const refs = series.length === 1 && o.avgRef !== false ? avgRefs(series[0].pts.map(p => p[1])) : [];
+  const r20 = refs.filter(r => Math.abs(r.k) <= 1); if (r20.length) { y0 = Math.min(y0, ...r20.map(r => r.y)); y1 = Math.max(y1, ...r20.map(r => r.y)); }
   const pad = (y1 - y0) * 0.12; y0 -= pad; y1 += pad;
   const x0 = Math.min(...xs), x1 = Math.max(...xs), X = (x) => L + (x1 === x0 ? (W - L - R) / 2 : (x - x0) / (x1 - x0) * (W - L - R)), Y = (y) => T + (1 - (y - y0) / (y1 - y0)) * (H - T - B);
   const id = 'g' + Math.random().toString(36).slice(2, 8);
@@ -169,6 +172,10 @@ export function svgChart(series, o = {}) {
     s += `<rect x="${L}" y="${band[0]}" width="${W - L - R}" height="${Math.max(0, band[1] - band[0])}" fill="${SC[l.sev]}" opacity=".07"/><line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="${SC[l.sev]}" stroke-dasharray="4 3" stroke-width="1.1"/><text x="${W - R - 2}" y="${yy - 3}" text-anchor="end" class="mc-lim" fill="${SC[l.sev]}">${esc(l.label)}</text>`;
   }
   s += `<line x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" class="mc-ax"/>`;
+  for (const r of refs) if (r.y >= y0 && r.y <= y1) {
+    const yy = Y(r.y), col = r.k === 0 ? 'var(--ink-2)' : r.k > 0 ? `rgba(196,84,12,${Math.min(0.3 + r.k * 0.12, 0.85)})` : `rgba(26,111,194,${Math.min(0.3 - r.k * 0.12, 0.85)})`;
+    s += `<line x1="${L}" x2="${W - R}" y1="${yy}" y2="${yy}" stroke="${col}" stroke-width="${r.k === 0 ? 1.2 : 0.8}" ${r.k === 0 ? '' : 'stroke-dasharray="2 3"'}/><text x="${L + 3}" y="${yy - 2}" class="mc-ref" fill="${col}">${esc(r.label)}</text>`;
+  }
   s += `<text x="${L - 4}" y="${T + 6}" text-anchor="end" class="mc-t">${fmt(y1 - pad, o.dp ?? 2)}</text><text x="${L - 4}" y="${H - B}" text-anchor="end" class="mc-t">${fmt(y0 + pad, o.dp ?? 2)}</text>`;
   const dates = [...new Set(pts.map(p => p[0]))].sort();
   const tickD = dates.length <= 5 ? dates : [dates[0], dates[Math.floor(dates.length / 2)], dates.at(-1)];
@@ -190,22 +197,44 @@ export function svgChart(series, o = {}) {
   return `<svg class="mchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${s}</svg>${leg}`;
 }
 const GASCOL = { H2: '#2f6fd0', CH4: '#0f766e', C2H4: '#c2410c', C2H6: '#7c3aed', C2H2: '#c4161c', CO: '#a16207', CO2: '#64748b' };
+// parameters charted per element (one at a time — each phase / point is its own unit)
+const CHARTP = {
+  ct: [['tand20', 'Corrected tan δ @20 °C', '%', 3], ['C', 'Capacitance', 'pF', 1], ['dTand', 'Tan δ rise', '%', 3], ['dC', 'C change', '%', 2]],
+  cb_crm: [['R', 'Contact resistance', 'µΩ', 1]],
+  cb_timing: [['open1', 'Trip TC1', 'ms', 1], ['open2', 'Trip TC2', 'ms', 1], ['close', 'Close', 'ms', 1], ['co1', 'Close-Open', 'ms', 1]],
+  la: [['Icorr', 'Icorr', 'µA', 0], ['Ith', 'Ith', 'µA', 0], ['Itotal', 'Itotal', 'µA', 0]],
+  dga: [['TDCG', 'TDCG', 'ppm', 0], ...['H2', 'CH4', 'C2H4', 'C2H6', 'C2H2', 'CO', 'CO2'].map(x => [x, chem(x), 'ppm', 1]), ['BDV', 'BDV', 'kV', 0], ['H2O', 'Water', 'ppm', 1]],
+};
+CHARTP.bushing = CHARTP.ct; CHARTP.winding = CHARTP.ct;
+const LIMS = (t, k, u, pos) => {
+  const kv = kvOf(u);
+  return ({ tand20: [{ y: 0.5, sev: 'watch', label: '0.5 %' }, { y: 0.7, sev: 'alert', label: '0.7 %' }], dTand: [{ y: 0.1, sev: 'alert', label: '0.1 %' }], dC: [{ y: 10, sev: 'alert', label: '+10 %' }, { y: -5, sev: 'alert', label: '−5 %', lo: 1 }],
+    R: [{ y: LIM.crm[kv], sev: 'alert', label: `${LIM.crm[kv]} µΩ` }], open1: [{ y: LIM.trip[kv], sev: 'alert', label: `${LIM.trip[kv]} ms` }], open2: [{ y: LIM.trip[kv], sev: 'alert', label: `${LIM.trip[kv]} ms` }], close: [{ y: 150, sev: 'alert', label: '150 ms' }],
+    Icorr: [{ y: 150, sev: 'alert', label: '150' }, { y: 350, sev: 'critical', label: '350' }], Ith: [{ y: 150, sev: 'alert', label: '150' }, { y: 350, sev: 'critical', label: '350' }],
+    TDCG: pos === 'OLTC' ? [] : [{ y: 720, sev: 'watch', label: '720' }], BDV: [{ y: pos === 'OLTC' ? 40 : 50, sev: 'alert', label: pos === 'OLTC' ? '40 kV' : '50 kV', lo: 1 }], H2O: [{ y: pos === 'OLTC' ? 40 : 20, sev: 'alert', label: pos === 'OLTC' ? '40' : '20' }],
+  })[k] || (t === 'dga' && pos !== 'OLTC' && LIM.dga[k] ? [{ y: LIM.dga[k], sev: k === 'C2H2' ? 'alert' : 'watch', label: String(LIM.dga[k]) }] : []);
+};
+const EREG = new Map();     // element key -> element (for the chart selectors)
+const ESEL = {};            // element key -> selected parameter index
+function elemChartSvg(t, e, i) {
+  const [k, label, unit, dp] = CHARTP[t][i];
+  const pts = e.done.filter(r => r.v[k] != null).map(r => [r.date, r.v[k], cellSev(t, k, r.v[k], r)]);
+  const col = GASCOL[k] || (k === 'C' ? '#0f766e' : 'var(--brand-2)');
+  return `<div class="mc-t2">${label} <span class="dim">${unit}</span></div>${svgChart([{ name: label, color: col, pts }], { dp, h: 190, bars: t === 'la' || t === 'cb_crm', zero: t === 'la' || t === 'cb_crm', limits: LIMS(t, k, e.u, e.sub.split('|').pop()) })}
+    <div class="mc-note">avg = average of this ${NOUN[t][0]}'s readings to date · dotted lines every 20 % of avg</div>`;
+}
 function elemChart(t, e) {
-  const rs = e.done, P = (k) => rs.filter(r => r.v[k] != null).map(r => [r.date, r.v[k], cellSev(t, k, r.v[k], r)]);
-  const kv = kvOf(e.u);
-  if (['ct', 'bushing', 'winding'].includes(t)) {
-    const k = t === 'winding' ? 'tand20' : 'tand';
-    return `<div class="mc-t2">${t === 'winding' ? 'Tan δ @20 °C' : 'Tan δ'} %</div>${svgChart([{ name: 'tan δ', color: 'var(--brand-2)', pts: P(k) }], { dp: 3, limits: [{ y: 0.7, sev: 'alert', label: '0.7 %' }, { y: 0.5, sev: 'watch', label: '0.5 %' }], h: 120 })}
-      <div class="mc-t2">Capacitance pF</div>${svgChart([{ name: 'C', color: '#0f766e', pts: rs.filter(r => r.v.C != null).map(r => [r.date, r.v.C, cellSev(t, 'dC', r.v.dC, r)]) }], { dp: 1, h: 105 })}`;
-  }
-  if (t === 'cb_crm') return `<div class="mc-t2">Contact resistance µΩ</div>${svgChart([{ name: 'CRM', color: 'var(--brand-2)', pts: P('R') }], { dp: 1, bars: 1, zero: 1, limits: [{ y: LIM.crm[kv], sev: 'alert', label: `${LIM.crm[kv]} µΩ` }] })}`;
-  if (t === 'cb_timing') return `<div class="mc-t2">Trip time ms</div>${svgChart([{ name: 'TC1', color: 'var(--brand-2)', pts: P('open1') }, { name: 'TC2', color: '#7c3aed', pts: P('open2') }], { dp: 1, h: 120, limits: [{ y: LIM.trip[kv], sev: 'alert', label: `${LIM.trip[kv]} ms` }] })}<div class="mc-t2">Close time ms</div>${svgChart([{ name: 'Close', color: '#0f766e', pts: P('close') }], { dp: 1, h: 100, limits: [{ y: 150, sev: 'alert', label: '150 ms' }] })}`;
-  if (t === 'la') return `<div class="mc-t2">Icorr µA · pre / post monsoon</div>${svgChart([{ name: 'Icorr', color: 'var(--brand-2)', pts: P('Icorr') }], { dp: 0, bars: 1, zero: 1, h: 140, limits: [{ y: 150, sev: 'alert', label: '150' }, { y: 350, sev: 'critical', label: '350' }] })}`;
-  if (t === 'dga') {
-    if (e.sub.endsWith('OLTC')) return `<div class="mc-t2">OLTC oil · BDV kV / water ppm</div>${svgChart([{ name: 'BDV', color: 'var(--brand-2)', pts: P('BDV') }, { name: 'Water', color: '#0f766e', pts: P('H2O') }], { dp: 0, h: 140 })}`;
-    return `<div class="mc-t2">Key gases ppm</div>${svgChart(['H2', 'CH4', 'C2H4', 'C2H6', 'C2H2'].map(x => ({ name: chem(x), color: GASCOL[x], pts: P(x) })), { dp: 0, h: 130 })}<div class="mc-t2">CO / CO₂ ppm</div>${svgChart([{ name: 'CO', color: GASCOL.CO, pts: P('CO') }, { name: 'CO₂', color: GASCOL.CO2, pts: P('CO2') }], { dp: 0, h: 100 })}`;
-  }
-  return '';
+  const key = `${t}#${e.u}|${e.sub}`; EREG.set(key, e);
+  const P = CHARTP[t], i = Math.min(ESEL[key] ?? 0, P.length - 1);
+  const chips = P.length > 1 ? `<div class="mc-chips">${P.map((p, j) => `<button class="${j === i ? 'on' : ''}" data-ck="${esc(key)}" data-ci="${j}">${p[1]}</button>`).join('')}</div>` : '';
+  return `${chips}<div class="mc-box" data-cbox="${esc(key)}">${elemChartSvg(t, e, i)}</div>`;
+}
+function wireChartChips(root) {
+  $$('[data-ck]', root).forEach(b => b.onclick = (ev) => {
+    ev.stopPropagation(); const key = b.dataset.ck, i = +b.dataset.ci, e = EREG.get(key), t = key.split('#')[0]; ESEL[key] = i;
+    b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+    const box = root.querySelector(`[data-cbox="${CSS.escape(key)}"]`); if (box) box.innerHTML = elemChartSvg(t, e, i);
+  });
 }
 
 // ------------------------------------------------------------------ tables
@@ -281,7 +310,7 @@ function wireEditing(root) {
 
 // ------------------------------------------------------------------ sections
 const FYS = () => { const y = parseInt(curFY(), 10); return [0, 1, 2].map(i => `${y - i}-${String(y - i + 1).slice(2)}`); };
-let FY_SEL = null, RANK_SEL = {};
+let FY_SEL = null, RANK_SEL = {}, CLASS_SEL = {};
 
 export function renderSections(t, mount) {
   const T = TESTS[t], M = model(t), fy = FY_SEL || curFY(), N = NOUN[t];
@@ -305,8 +334,8 @@ export function renderSections(t, mount) {
     ${card('c-violet', IC.equipment, `Average ${N[0]} health`, `${avgH ?? '—'}<small>/100</small>`, weakest ? `weakest: ${unitName(weakest.u)} · ${subLabel(t, weakest.sub)} (${weakest.health})` : '—')}
   </section>
 
-  <details class="sec" id="secRank"><summary><span class="sec-t">${IC.standards} Fleet ranking</span><span class="dim">every ${N[0]}, ranked by any circular parameter</span><span class="caret">▾</span></summary>
-    <div class="sec-b"><div class="seg" id="rankSeg">${RANKP[t].map((p, i) => `<button class="${(RANK_SEL[t] ?? 0) === i ? 'on' : ''}" data-i="${i}">${p.label}</button>`).join('')}</div>
+  <details class="sec" id="secRank"><summary><span class="sec-t">${IC.standards} Fleet ranking</span><span class="dim">${N[1]} of the same voltage class / rating ranked by any circular parameter</span><span class="caret">▾</span></summary>
+    <div class="sec-b"><div class="rank-class"><span class="note">Comparable class</span><div class="seg" id="classSeg"></div></div><div class="seg" id="rankSeg">${RANKP[t].map((p, i) => `<button class="${(RANK_SEL[t] ?? 0) === i ? 'on' : ''}" data-i="${i}">${p.label}</button>`).join('')}</div>
     <div class="rank-wrap"><canvas id="rankCv2"></canvas></div><p class="note" id="rankNote"></p></div></details>
 
   <details class="sec" open><summary><span class="sec-t">${IC.schedule} Yearly progress · ${esc(T.name)}</span><span class="dim">target = ${N[1]} falling due in the FY (incl. overdue & never tested); admin can set the annual target</span><span class="caret">▾</span></summary>
@@ -324,7 +353,7 @@ export function renderSections(t, mount) {
     $('#seqAll', mount).innerHTML = us.map(U => unitBlock(t, U, false)).join('') || '<div class="empty">Nothing selected — use the filter.</div>';
     $('#seqLatest', mount).innerHTML = us.map(U => unitBlock(t, U, true)).join('') || '<div class="empty">Nothing selected.</div>';
     $$('[data-open]', mount).forEach(el => el.onclick = (ev) => { if (ev.target.closest('td.ed, input, button[data-add], button[data-del]')) return; openElement(t, el.dataset.open, el.dataset.sub || null); });
-    wireEditing(mount);
+    wireEditing(mount); wireChartChips(mount);
   };
   drawSeq();
   wireFilter(mount, t, M, () => CTX.rerender({ keepScroll: true }));
@@ -353,9 +382,25 @@ function progressTable(t, pr, fy) {
   <p class="note">Next-due colours: <span class="lg d-od">overdue</span> <span class="lg d-fy">due within FY ${fy}</span> <span class="lg d-ok">due later</span> · <span class="lg c-fy">tested in FY ${fy}</span>. ${adm ? 'Type a number in "Target" to declare the annual target (leave blank for the calculated value).' : 'Admin can declare the annual target.'}</p>`;
 }
 
+// Comparable class of an element: same voltage class, rating and position (make where known).
+export function classOf(t, e) {
+  if (isTF(e.u)) {
+    const rating = e.u === 'BUS_REACTOR' ? '125 MVAr reactor' : e.u === 'SPARE_ICT' ? '167 MVA 1-ph ICT' : '501 MVA ICT (167 MVA 1-ph units)';
+    const make = DB.site.units[e.u]?.make ? ` · ${DB.site.units[e.u].make}` : '';
+    if (t === 'bushing') return `${e.sub.split('|')[0] || 'Bushing'} bushings · ${rating}`;
+    if (t === 'winding') return `${e.sub.split('|')[1]} · ${rating}${make}`;
+    if (t === 'dga') return `${e.sub.split('|')[1] === 'OLTC' ? 'OLTC' : 'Main tank'} · ${rating}${make}`;
+    return rating;
+  }
+  return `${kvOf(e.u)} kV ${NOUN[t][1]}`;
+}
 function rankChart(t, M, i, mount) {
   const p = RANKP[t][i], cv = $('#rankCv2', mount); if (!cv) return;
-  const rows = M.elements.filter(e => e.L && p.get(e.L) != null).map(e => ({ e, v: p.get(e.L), sev: cellSev(t, p.k, p.get(e.L), e.L) || 'ok' }))
+  const classes = [...new Set(M.elements.filter(e => e.L).map(e => classOf(t, e)))].sort();
+  const cls = classes.includes(CLASS_SEL[t]) ? CLASS_SEL[t] : classes[0];
+  const cs = $('#classSeg', mount);
+  if (cs) { cs.innerHTML = classes.map(c => `<button class="${c === cls ? 'on' : ''}" data-c="${esc(c)}">${esc(c)}</button>`).join(''); $$('button', cs).forEach(b => b.onclick = () => { CLASS_SEL[t] = b.dataset.c; rankChart(t, M, RANK_SEL[t] ?? 0, mount); }); }
+  const rows = M.elements.filter(e => e.L && p.get(e.L) != null && classOf(t, e) === cls).map(e => ({ e, v: p.get(e.L), sev: cellSev(t, p.k, p.get(e.L), e.L) || 'ok' }))
     .sort((a, b) => p.asc ? a.v - b.v : (p.abs ? Math.abs(b.v) - Math.abs(a.v) : b.v - a.v)).slice(0, 40);
   const old = Chart.getChart(cv); if (old) old.destroy();
   cv.parentElement.style.height = Math.max(160, 40 + rows.length * 19) + 'px';
@@ -365,19 +410,19 @@ function rankChart(t, M, i, mount) {
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (it) => `${fmt(it.raw, p.dp)} ${p.unit} · ${fmtDate(rows[it.dataIndex].e.L.date)}` } } },
       onClick: (_e, els) => { if (els[0]) { const r = rows[els[0].index]; openElement(t, r.e.u, r.e.sub); } },
       scales: { x: { grid: { color: c('--line') }, ticks: { color: c('--ink-3') }, title: { display: true, text: `${p.label} (${p.unit})`, color: c('--ink-3') } }, y: { grid: { display: false }, ticks: { color: c('--ink-2'), font: { size: 11 } } } } } });
-  $('#rankNote', mount).textContent = `Latest completed test of each ${NOUN[t][0]}. Bars are coloured by the circular / industry rule; click a bar to open that ${NOUN[t][0]}.`;
+  $('#rankNote', mount).textContent = `Compared only within one class — same voltage class, rating and position (make where recorded). Latest completed test of each ${NOUN[t][0]}; colours follow the circular / industry rule; click a bar to open it.`;
 }
 
 // ------------------------------------------------------------------ pop-up: a bay / unit with its elements
 const BIG = {
-  ct: [['tand', 'Tan δ % (measured)', [{ y: 0.5, label: 'IEC 0.5 %', sev: 'watch' }, { y: 0.7, label: 'Circular 0.7 %', sev: 'alert' }]], ['tand20', 'Corrected tan δ % @20 °C', [{ y: 0.7, label: '0.7 %', sev: 'alert' }]], ['dTand', 'Tan δ rise since previous test (%)', [{ y: 0.1, label: '0.1 %', sev: 'alert' }]], ['C', 'Capacitance (pF)', []], ['dC', 'C change since previous test (%)', [{ y: 10, label: '+10 %', sev: 'alert' }, { y: -5, label: '−5 %', sev: 'alert', lo: true }]]],
+  ct: [['tand20', 'Corrected tan δ % @20 °C', [{ y: 0.5, label: 'IEC 0.5 %', sev: 'watch' }, { y: 0.7, label: 'Circular 0.7 %', sev: 'alert' }]], ['dTand', 'Tan δ rise since previous test (%)', [{ y: 0.1, label: '0.1 %', sev: 'alert' }]], ['C', 'Capacitance (pF)', []], ['dC', 'C change since previous test (%)', [{ y: 10, label: '+10 %', sev: 'alert' }, { y: -5, label: '−5 %', sev: 'alert', lo: true }]]],
   cb_crm: [['R', 'Contact resistance (µΩ)', u => [{ y: LIM.crm[kvOf(u)], label: `Circular ${LIM.crm[kvOf(u)]} µΩ`, sev: 'alert' }]], ['I', 'Applied current (A)', []]],
   cb_timing: [['open1', 'Trip time TC1 (ms)', u => [{ y: LIM.trip[kvOf(u)], label: `${LIM.trip[kvOf(u)]} ms`, sev: 'alert' }]], ['open2', 'Trip time TC2 (ms)', u => [{ y: LIM.trip[kvOf(u)], label: `${LIM.trip[kvOf(u)]} ms`, sev: 'alert' }]], ['close', 'Close time (ms)', [{ y: 150, label: '150 ms', sev: 'alert' }]], ['co1', 'Close-Open TC1 (ms)', []]],
   la: [['Icorr', 'Icorr — 3rd-harmonic resistive (µA)', [{ y: 150, label: '150 µA', sev: 'alert' }, { y: 350, label: '350 µA', sev: 'critical' }]], ['Ith', 'Ith (µA)', []], ['Itotal', 'Itotal (µA)', []]],
   dga: [['H2', 'H₂ (ppm)', [{ y: 100, label: '100', sev: 'watch' }]], ['CH4', 'CH₄ (ppm)', [{ y: 120, label: '120', sev: 'watch' }]], ['C2H4', 'C₂H₄ (ppm)', [{ y: 50, label: '50', sev: 'watch' }]], ['C2H2', 'C₂H₂ (ppm)', [{ y: 1, label: '1', sev: 'alert' }]], ['CO', 'CO (ppm)', [{ y: 350, label: '350', sev: 'watch' }]], ['TDCG', 'TDCG (ppm)', [{ y: 720, label: '720', sev: 'watch' }]], ['BDV', 'BDV (kV)', [{ y: 50, label: '50 kV', sev: 'alert', lo: true }]], ['H2O', 'Water (ppm)', [{ y: 20, label: '20 ppm', sev: 'alert' }]]],
 };
 BIG.bushing = BIG.ct.map(x => x[0] === 'C' ? ['C', 'Capacitance C₁ (pF)', []] : x);
-BIG.winding = [BIG.ct[1], BIG.ct[0], BIG.ct[2], BIG.ct[3], BIG.ct[4]];
+BIG.winding = BIG.ct.map(x => x);
 
 export function openElement(t, u, sub) {
   const M = model(t), U = M.units.find(x => x.u === u); if (!U) return;
@@ -399,12 +444,19 @@ export function openElement(t, u, sub) {
         return `<div class="ph-card hc-${L ? statusOf(L) : 'none'}"><div class="k">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(subLabel(t, e.sub))} ${hChip(e.health)}</div><div class="v num">${fmt(v, k.dp)} <span class="u">${k.unit}</span></div>
           <div class="d">${pv != null ? `${v > pv ? '▲' : v < pv ? '▼' : '='} ${fmt(Math.abs(v - pv), k.dp)} since ${fmtDate(Pv.date)}${t !== 'la' && dy > 0.3 ? ` · ${fmt((v - pv) / dy, k.dp)}/yr` : ''}` : 'single test'}</div>
           <div class="d dim">${B && B !== L ? `first ${fmt(bv, k.dp)} (${fmtDate(B.date)}) · ` : ''}${e.done.length} test${e.done.length === 1 ? '' : 's'}</div></div>`; }).join('');
+      const charts = (e, few) => (few ? big.slice(0, 2) : big).map(([k, label]) => `<div class="chart-card"><div class="card-h"><h3>${label}</h3><span class="sub">${esc(subLabel(t, e.sub))}</span></div><div class="chart-box" style="height:240px"><canvas data-k="${k}" data-e="${esc(e.sub)}"></canvas></div><div class="legend-note">avg line = this ${NOUN[t][0]}'s average to date · dotted steps every 20 % of avg · dashed = circular / industry limit</div></div>`).join('');
       box.innerHTML = `<div class="ph-cards">${stats}</div>
-        <div class="grid g2 mt" id="elCharts">${big.map(([k, label], i) => `<div class="chart-card"><div class="card-h"><h3>${label}</h3><span class="sub">${multi ? 'all ' + NOUN[t][1] : 'history'}</span></div><div class="chart-box" style="height:250px"><canvas data-k="${k}"></canvas></div></div>`).join('')}</div>
-        ${es.map(e => `<div class="card mt"><div class="card-h">${e.ph !== '-' ? phase(e.ph) : ''}<h3>${esc(subLabel(t, e.sub))}</h3>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', 'never tested')}<div class="sp"></div><span class="note">${e.rows.length} rows</span></div><div class="tbl-wrap">${seqTable(t, e, false)}</div></div>`).join('')}`;
-      $$('#elCharts canvas', box).forEach(cv => { const def = big.find(b => b[0] === cv.dataset.k); const lim = typeof def[2] === 'function' ? def[2](u) : def[2]; const ser = seriesFor(cv.dataset.k); if (!ser.length) { cv.parentElement.innerHTML = '<div class="empty">No readings</div>'; return; }
+        ${es.map(e => `<div class="el-sec"><div class="row-flex mt"><h3 style="margin:0">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(subLabel(t, e.sub))}</h3>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', 'never tested')}${multi && es.length > 1 ? `<button class="btn sm" data-goto="${esc(e.sub)}">Open this ${NOUN[t][0]} only ${IC.arrow}</button>` : ''}</div>
+          <div class="grid g2 mt">${charts(e, multi && es.length > 3)}</div>
+          <div class="card mt"><div class="card-h"><h3>Test history</h3><div class="sp"></div><span class="note">${e.rows.length} rows</span></div><div class="tbl-wrap">${seqTable(t, e, false)}</div></div></div>`).join('')}`;
+      $$('canvas[data-k]', box).forEach(cv => { const e = es.find(x => x.sub === cv.dataset.e); const def = big.find(b => b[0] === cv.dataset.k); const lim = typeof def[2] === 'function' ? def[2](u) : def[2];
+        const pts = e.done.filter(r => r.v[cv.dataset.k] != null).map(r => ({ x: r.date, y: +r.v[cv.dataset.k].toFixed(4), meta: r.season || (r.v.temp != null ? `${r.v.temp} °C` : '') }));
+        if (!pts.length) { cv.parentElement.innerHTML = '<div class="empty">No readings</div>'; return; }
         const c = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim(); const sc = { alert: c('--alert'), critical: c('--crit'), watch: c('--watch') };
-        lineChart(cv, { series: ser, limits: lim.map(l => ({ ...l, color: sc[l.sev] })), bands: bandsFrom(lim), fill: ser.length === 1, sevOf: (y) => { const fake = { unit: u, pos: es[0].sub.split('|').pop(), v: {} }; return cellSev(t, cv.dataset.k, y, fake); } }); });
+        const col = e.ph !== '-' && ['ct', 'cb_crm', 'cb_timing', 'la', 'bushing'].includes(t) ? colors[e.ph] : '#1a6fc2';
+        lineChart(cv, { series: [{ label: subLabel(t, e.sub), color: col, points: pts }], limits: lim.map(l => ({ ...l, color: sc[l.sev] })), bands: bandsFrom(lim), fill: true, avgRef: true,
+          sevOf: (y) => cellSev(t, cv.dataset.k, y, { unit: u, pos: e.sub.split('|').pop(), v: {} }) }); });
+      $$('[data-goto]', box).forEach(b => b.onclick = () => { cur = b.dataset.goto; draw(); });
       wireEditing(box);
     };
     $$('#elTabs button', root).forEach(b => b.onclick = () => { cur = b.dataset.s || null; draw(); });
