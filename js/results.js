@@ -1,12 +1,12 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM } from './data.js?v=20261125.1917';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation } from './rules.js?v=20261125.1917';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261125.1917';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget } from './edit.js?v=20261125.1917';
-import { art } from './art.js?v=20261125.1917';
-import { IC } from './icons.js?v=20261125.1917';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf } from './data.js?v=20261125.1955';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit } from './rules.js?v=20261125.1955';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261125.1955';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261125.1955';
+import { art } from './art.js?v=20261125.1955';
+import { IC } from './icons.js?v=20261125.1955';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -31,12 +31,20 @@ const PH_UNIT = (u, ph) => /^(ICT1|ICT2)$/.test(u) && /^[RYB]$/.test(ph);
 export const phaseUnitName = (u, ph) => `${ph}-phase unit${DB.site.units[u]?.serials?.[ph] ? ' · Sr ' + DB.site.units[u].serials[ph] : ''}`;
 /** Full name of an element, e.g. "R-phase unit · HV bushing". */
 export const elemLabel = (t, u, sub) => { const ph = sub.split('|')[0]; return (['bushing', 'winding', 'dga'].includes(t) && PH_UNIT(u, ph) ? `${ph}-phase unit · ` : '') + subLabel(t, sub); };
+/** Full nomenclature of an element: "ICT1, Yph, LV Bushing 3.1" · "Bay 404, Rph, CT" · "ICT2, Bph, OLTC". */
+export function fullName(t, u, sub, noUnit) {
+  const [a, b] = sub.split('|'); const ph = /^[RYB]$/.test(a) ? `${a}ph` : '';
+  const part = t === 'bushing' ? (a === 'N' ? 'Neutral Bushing' : b ? (b.startsWith('LV-') ? `LV Bushing ${b.slice(3)}` : `${b} Bushing`) : 'Bushing')
+    : t === 'winding' ? `${b} ${WMODE[b] || ''}`.trim() : t === 'dga' ? (b === 'OLTC' ? 'OLTC' : 'Main tank') : t === 'ct' ? 'CT' : t === 'la' ? 'LA' : 'CB pole';
+  return [noUnit ? '' : shortUnit(u), ph, part].filter(Boolean).join(', ');
+}
 const phOf = (t, sub) => { const p = sub.split('|')[0]; return /^[RYBN]$/.test(p) ? p : '-'; };
 
 // ------------------------------------------------------------------ financial year
 export function fyRange(fy) { const y = parseInt(fy, 10); return [new Date(y, 3, 1), new Date(y + 1, 2, 31, 23, 59)]; }
 export const curFY = () => DB.site.substation.fy;
 const inFY = (iso, fy) => { const [a, b] = fyRange(fy), d = toDate(iso); return d >= a && d <= b; };
+export const codDue = (t, u) => { const c = codOf(u); return !c ? null : t === 'la' ? laWindow(c)[1] : addMonths(c, months(t, u)); };
 const months = (t, u) => t === 'ct' ? (kvOf(u) === 220 ? 12 : 24) : { bushing: 12, winding: 24, dga: 6, la: 6, cb_crm: 24, cb_timing: 24 }[t];
 
 // ------------------------------------------------------------------ colour rules (cell → severity)
@@ -147,12 +155,12 @@ function progress(t, M, fy) {
         const got = t === 'la' ? new Set(e.done.filter(r => inFY(r.date, fy)).map(r => laWindow(r.date)[0])).size : inside.length;
         prog += Math.min(got, need); extra += Math.max(0, got - need);
       } else {
-        const due = before ? addMonths(before, m) : start;  // never tested → due from the start of the FY
+        const due = before ? addMonths(before, m) : dts.length ? start : (codDue(t, u) ?? start);  // never tested → commissioning + interval
         if (due <= end) { target++; if (inside.length) prog++; } else if (inside.length) extra++;
         if (!inside.length && due < DB.today) overdue++;
       }
       const l = dts.at(-1); if (l && (!last || l > last)) last = l;
-      if (l) { const nd = t === 'la' ? laWindow(l)[1] : addMonths(l, m); if (!next || nd < next) next = nd; } else next = start;
+      const nd = l ? (t === 'la' ? laWindow(l)[1] : addMonths(l, m)) : (codDue(t, u) ?? start); if (!next || nd < next) next = nd;
     }
     const ov = TG[`${t}|${fy}|${u}`];
     return { u, pop, target: ov ?? target, auto: target, prog, extra, last, next, overdue, pct: (ov ?? target) ? Math.min(100, Math.round(prog / (ov ?? target) * 100)) : null, override: ov != null };
@@ -233,26 +241,28 @@ const LIMS = (t, k, u, pos) => {
 };
 const EREG = new Map();     // element key -> element (for the chart selectors)
 const ESEL = {};            // element key -> selected parameter index
-function elemChartSvg(t, e, i) {
+const CHARTG = { ct: [[0, 2], [1, 3]], bushing: [[0, 2], [1, 3]], winding: [[0, 2], [1, 3]] };
+function elemChartSvg(t, e, i, two) {
   const [k, label, unit, dp] = CHARTP[t][i];
   const pts = e.done.filter(r => r.v[k] != null).map(r => [r.date, r.v[k], cellSev(t, k, r.v[k], r)]);
   const col = GASCOL[k] || (k === 'C' ? '#0f766e' : 'var(--brand-2)');
   const main = t === 'dga' && !e.sub.endsWith('OLTC');
   const series = main ? [['Top', '#2f6fd0'], ['Bottom', '#a16207']].map(([p, c]) => ({ name: `${p} sample`, color: c, pts: e.done.filter(r => r.pos === p && r.v[k] != null).map(r => [r.date, r.v[k], cellSev(t, k, r.v[k], r)]) })).filter(x => x.pts.length) : [{ name: label, color: col, pts }];
-  return `<div class="mc-t2">${label} <span class="dim">${unit}</span></div>${svgChart(series.length ? series : [{ name: label, color: col, pts }], { dp, w: 720, h: 230, bars: t === 'la' || t === 'cb_crm', zero: t === 'la' || t === 'cb_crm', limits: LIMS(t, k, e.u, e.sub.split('|').pop()) })}
+  return `<div class="mc-t2">${label} <span class="dim">${unit}</span></div>${svgChart(series.length ? series : [{ name: label, color: col, pts }], { dp, w: two ? 600 : 720, h: two ? 240 : 230, bars: t === 'la' || t === 'cb_crm', zero: t === 'la' || t === 'cb_crm', limits: LIMS(t, k, e.u, e.sub.split('|').pop()) })}
     <div class="mc-note">grid lines at a round step ≈ 20 % of this ${NOUN[t][0]}'s average</div>`;
 }
 function elemChart(t, e) {
   const key = `${t}#${e.u}|${e.sub}`; EREG.set(key, e);
-  const P = CHARTP[t], i = Math.min(ESEL[key] ?? 0, P.length - 1);
-  const chips = P.length > 1 ? `<div class="mc-chips">${P.map((p, j) => `<button class="${j === i ? 'on' : ''}" data-ck="${esc(key)}" data-ci="${j}">${p[1]}</button>`).join('')}</div>` : '';
-  return `${chips}<div class="mc-box" data-cbox="${esc(key)}">${elemChartSvg(t, e, i)}</div>`;
+  const P = CHARTP[t], G = CHARTG[t] || [P.map((_, j) => j)], two = G.length > 1;
+  return `<div class="ch-row ${two ? 'two' : ''}">${G.map((g, gi) => { const gk = `${key}#${gi}`, i = g.includes(ESEL[gk]) ? ESEL[gk] : g[0];
+    const chips = g.length > 1 ? `<div class="mc-chips">${g.map(j => `<button class="${j === i ? 'on' : ''}" data-ck="${esc(gk)}" data-ci="${j}">${P[j][1]}</button>`).join('')}</div>` : '';
+    return `<div class="ch-cell">${chips}<div class="mc-box" data-cbox="${esc(gk)}">${elemChartSvg(t, e, i, two)}</div></div>`; }).join('')}</div>`;
 }
 function wireChartChips(root) {
   $$('[data-ck]', root).forEach(b => b.onclick = (ev) => {
-    ev.stopPropagation(); const key = b.dataset.ck, i = +b.dataset.ci, e = EREG.get(key), t = key.split('#')[0]; ESEL[key] = i;
+    ev.stopPropagation(); const key = b.dataset.ck, i = +b.dataset.ci, e = EREG.get(key.replace(/#\d+$/, '')), t = key.split('#')[0]; ESEL[key] = i;
     b.parentElement.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
-    const box = root.querySelector(`[data-cbox="${CSS.escape(key)}"]`); if (box) box.innerHTML = elemChartSvg(t, e, i);
+    const box = root.querySelector(`[data-cbox="${CSS.escape(key)}"]`); if (box) box.innerHTML = elemChartSvg(t, e, i, !!CHARTG[t]);
   });
 }
 
@@ -341,22 +351,66 @@ function seqTable(t, e, latestOnly) {
   const xrow = nx ? `<tr class="xtoggle"><td colspan="${cols.length + 3}"><button class="btn sm ghost" data-xtoggle>${nx} copied / template row${nx === 1 ? '' : 's'} hidden from the sheet — show</button></td></tr>` : '';
   return `<table class="t seq">${head}<tbody>${body}${xrow}</tbody></table>${isAdmin() && !latestOnly ? `<button class="btn sm" data-add="${esc(t + '|' + e.u + '|' + e.sub)}">＋ Add test row</button>` : ''}`;
 }
+// Latest results: the latest test with everything needed to verify it — previous and first test of the
+// same element, and the change since each (absolute and %), coloured by the circular's change rules.
+const NODIFF = new Set(['dTand', 'dC', 'F', 'U', 'I', 'P', 'phi', 'temp', 'O2', 'N2', 'mV']);
+function latestTable(t, e) {
+  const cols = COLS[t], dates = [...new Set(e.done.map(r => r.date))];
+  if (!dates.length) return `<div class="lt-none">No test on record since commissioning (${fmtDate(codOf(e.u))}).</div>`;
+  const at = (d) => e.done.filter(r => r.date === d).sort((a, b) => (a.pos || '').localeCompare(b.pos || '')).reverse();
+  const Ld = dates.at(-1), Pd = dates.at(-2), Fd = dates.length > 2 ? dates[0] : null;
+  const L = at(Ld), P = Pd ? at(Pd) : [], F = Fd ? at(Fd) : [];
+  const twin = (r, set) => set.find(x => (x.pos || '') === (r.pos || '')) || (set.length === 1 ? set[0] : null);
+  const plain = (r, c) => `<td class="r">${c.txt ? esc(cellVal(r, c) || '') : fmt(cellVal(r, c), c.dp)}</td>`;
+  const row = (cls, tag, r) => `<tr class="${cls}" data-date="${r.date}"><td class="lt-tag">${tag}</td><td class="${cls === 'lt-l' && inFY(r.date, curFY()) ? 'c-fy' : ''}">${fmtDate(r.date)}</td>${cols.map(c => cls === 'lt-l' ? cellHtml(t, r, c) : plain(r, c)).join('')}<td class="rem">${esc(r.rem || '')}</td></tr>`;
+  const diff = (tag, a, b, pct) => !b ? '' : `<tr class="lt-d ${pct ? 'pct' : ''}"><td class="lt-tag">${tag}</td><td class="dim">${fmtDate(b.date)} → ${fmtDate(a.date)}</td>${cols.map(c => {
+      if (c.txt) return `<td>${c.k === 'pos' ? esc(a.pos || '') : ''}</td>`;
+      if (NODIFF.has(c.k)) return '<td class="r dim">·</td>';
+      const x = a.v[c.k], y = b.v[c.k]; if (x == null || y == null) return '<td class="r dim">—</td>';
+      const d = pct ? (y ? (x - y) / Math.abs(y) * 100 : null) : x - y;
+      const sv = !pct && c.k === 'tand20' ? cellSev(t, 'dTand', d, a) : pct && c.k === 'C' ? cellSev(t, 'dC', d, a) : '';
+      return `<td class="r ${sv ? 'c-' + sv : ''}">${d == null ? '—' : (d > 0 ? '+' : d < 0 ? '−' : '') + fmt(Math.abs(d), pct ? 2 : Math.max(c.dp, 1))}${pct && d != null ? ' %' : ''}</td>`; }).join('')}<td></td></tr>`;
+  const head = `<thead><tr><th style="min-width:150px">Row</th><th style="min-width:150px">Date of test</th>${cols.map(c => `<th class="r" style="min-width:${colW(c)}px">${c.label}</th>`).join('')}<th style="min-width:170px">Remarks</th></tr></thead>`;
+  const body = L.map(r => row('lt-l', 'Latest test', r)).join('')
+    + P.map(r => row('lt-p', 'Previous test', r)).join('')
+    + L.map(r => diff('Change since previous', r, twin(r, P), false) + diff('% change since previous', r, twin(r, P), true)).join('')
+    + F.map(r => row('lt-p lt-f', 'First test (baseline)', r)).join('')
+    + L.map(r => diff('Change since first', r, twin(r, F), false) + diff('% change since first', r, twin(r, F), true)).join('');
+  return `<table class="t seq lt">${head}<tbody>${body}</tbody></table>`;
+}
+// latest values of sister phases side by side (same bay / unit, same design) — a cross-check, not a pass/fail rule
+const PCP = { ct: ['tand20', 'C'], bushing: ['tand20', 'C'], winding: ['tand20', 'C'], cb_crm: ['R'], cb_timing: ['open1', 'open2', 'close'], la: ['Icorr', 'Ith', 'Itotal'], dga: ['TDCG', 'H2', 'C2H2', 'CO', 'H2O', 'BDV'] };
+const PCL = { tand20: ['Corr. tan δ @20 °C', '%', 3], C: ['Capacitance', 'pF', 1], R: ['Contact resistance', 'µΩ', 1], open1: ['Trip TC1', 'ms', 2], open2: ['Trip TC2', 'ms', 2], close: ['Close', 'ms', 2], Icorr: ['Icorr', 'µA', 1], Ith: ['Ith', 'µA', 1], Itotal: ['Itotal', 'µA', 1], TDCG: ['TDCG', 'ppm', 0], H2: ['H₂', 'ppm', 1], C2H2: ['C₂H₂', 'ppm', 1], CO: ['CO', 'ppm', 0], H2O: ['Water', 'ppm', 1], BDV: ['BDV', 'kV', 0] };
+function phaseCompare(t, U) {
+  const groups = [...groupBy(U.es.filter(e => e.L && /^[RYB]$/.test(e.ph)), e => e.sub.split('|').slice(1).join('|'))].filter(([, es]) => es.length >= 2);
+  if (!groups.length) return '';
+  const rows = groups.flatMap(([k, es]) => es.sort((a, b) => PHO[a.ph] - PHO[b.ph]) && PCP[t].map(p => {
+    const vals = ['R', 'Y', 'B'].map(ph => es.find(e => e.ph === ph)), nums = vals.map(e => e?.L?.v[p]).filter(x => x != null);
+    if (nums.length < 2) return '';
+    const mean = nums.reduce((a, b) => a + b, 0) / nums.length, dev = mean ? Math.max(...nums.map(x => Math.abs(x - mean) / Math.abs(mean) * 100)) : 0;
+    const dates = new Set(vals.filter(Boolean).map(e => e.L.date));
+    const [lab, unit, dp] = PCL[p];
+    return `<tr><td>${esc(k ? fullName(t, U.u, 'R|' + k, true).replace(/^Rph, /, '') : NOUN[t][0].toUpperCase())}</td><td>${lab} <span class="dim">${unit}</span></td>${vals.map(e => `<td class="r">${e?.L?.v[p] != null ? fmt(e.L.v[p], dp) + (dates.size > 1 ? `<div class="dim sm">${fmtDate(e.L.date)}</div>` : '') : '—'}</td>`).join('')}<td class="r">${fmt(mean, dp)}</td><td class="r">${fmt(dev, 1)} %</td></tr>`; })).join('');
+  if (!rows) return '';
+  return `<div class="pcmp"><div class="pcmp-h"><b>Phase comparison · latest values</b><span class="dim">sister phases of the same ${HOLDER[t].includes('bay') ? 'bay' : 'unit'} side by side, to verify the readings — judgement stays with the circular limits above</span></div>
+    <div class="el-tbl"><table class="t seq pc"><thead><tr><th style="min-width:150px">Element</th><th style="min-width:170px">Parameter</th><th class="r" style="min-width:96px"><span class="ph R">R</span></th><th class="r" style="min-width:96px"><span class="ph Y">Y</span></th><th class="r" style="min-width:96px"><span class="ph B">B</span></th><th class="r" style="min-width:90px">Mean</th><th class="r" style="min-width:150px">Largest deviation from mean</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+}
 function elementBlock(t, e, latestOnly) {
-  const sch = e.L ? (t === 'la' ? laWindow(e.L.date)[1] : addMonths(e.L.date, months(t, e.u))) : null;
+  const sch = e.L ? (t === 'la' ? laWindow(e.L.date)[1] : addMonths(e.L.date, months(t, e.u))) : codDue(t, e.u);
   const st = e.L ? statusOf(e.L) : 'none', od = sch && sch < DB.today;
   return `<div class="el" data-ph="${e.ph}" data-el="${esc(e.u + '|' + e.sub)}">
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
-      ${e.ph !== '-' && !(PH_UNIT(e.u, e.ph) && ['bushing', 'winding', 'dga'].includes(t)) ? phase(e.ph) : ''}<b>${esc(subLabel(t, e.sub))}</b>${hChip(e.health)}${pill(st)}
-      <span class="el-due ${od ? 'od' : ''}">${sch ? `${od ? 'Overdue · ' : 'Next due '}${fmtDate(sch)}` : 'Never tested'}</span>
+      ${e.ph !== '-' && !(PH_UNIT(e.u, e.ph) && ['bushing', 'winding', 'dga'].includes(t)) ? phase(e.ph) : ''}<b>${esc(fullName(t, e.u, e.sub))}</b>${hChip(e.health)}${pill(st)}
+      <span class="el-due ${od ? 'od' : ''}">${!e.L ? `Never tested · ${od ? 'overdue since' : 'due'} ${sch ? fmtDate(sch) : '—'} <i class="dim">(commissioning + ${t === 'la' ? 'first monsoon window' : months(t, e.u) + ' months'})</i>` : `${od ? 'Overdue · ' : 'Next due '}${fmtDate(sch)}`}</span>
       ${t === 'bushing' && e.rows[0]?.mk ? `<span class="dim el-mk">${esc(e.rows[0].mk.replace(/\n/g, ' '))}</span>` : ''}<span class="el-open">${IC.arrow}</span></div>
-    <div class="el-b"><div class="el-tbl">${seqTable(t, e, latestOnly)}</div><div class="el-ch">${elemChart(t, e)}</div></div></div>`;
+    <div class="el-b"><div class="el-tbl">${latestOnly ? latestTable(t, e) : seqTable(t, e, false)}</div>${e.done.length ? `<div class="el-ch gx ${CHARTG[t] ? 'two' : ''}">${elemChart(t, e)}</div>` : ''}</div></div>`;
 }
 function unitBlock(t, U, latestOnly) {
   const hs = U.es.map(e => e.health).filter(x => x != null), worstH = hs.length ? Math.min(...hs) : null;
   return `<section class="ub" data-unit="${esc(U.u)}"><header class="ub-h" data-open="${esc(U.u)}" title="Open all ${NOUN[t][1]} of this ${HOLDER[t].split(' ')[0]}">
     <div><div class="ub-k">${isTF(U.u) ? esc(DB.site.units[U.u].rating) : `${kvOf(U.u)} kV · Bay ${esc(U.u)}`}</div><div class="ub-n">${esc(unitName(U.u, true))}</div></div>
     <div class="ub-s"><span class="dim">${U.es.length} ${NOUN[t][U.es.length === 1 ? 0 : 1]}</span><span title="Weakest element health">${hChip(worstH)}</span><span class="btn sm">Open ${IC.arrow}</span></div></header>
-    ${groupPU(t, U).map(([ph, es]) => (ph ? `<div class="pu-h"><span class="ph ${ph}">${ph}</span><b>${esc(phaseUnitName(U.u, ph))}</b><span class="dim">${es.length} ${NOUN[t][es.length === 1 ? 0 : 1]}</span><a class="btn sm ghost" href="${elHref(t, U.u, ph)}">Open phase unit ${IC.arrow}</a></div>` : '') + es.map(e => elementBlock(t, e, latestOnly)).join('') + (t === 'dga' && ph ? oltcStrip(U.u, ph) : '')).join('')}</section>`;
+    ${groupPU(t, U).map(([ph, es]) => (ph ? `<div class="pu-h"><span class="ph ${ph}">${ph}</span><b>${esc(phaseUnitName(U.u, ph))}</b><span class="dim">${es.length} ${NOUN[t][es.length === 1 ? 0 : 1]}</span><a class="btn sm ghost" href="${elHref(t, U.u, ph)}">Open phase unit ${IC.arrow}</a></div>` : '') + es.map(e => elementBlock(t, e, latestOnly)).join('') + (t === 'dga' && ph ? oltcStrip(U.u, ph) : '')).join('')}${latestOnly && t !== 'winding' ? phaseCompare(t, U) : ''}</section>`;
 }
 // ICTs: R / Y / B single-phase units each hold their own bushings, windings and tank
 function groupPU(t, U) {
@@ -415,6 +469,87 @@ function wireEditing(root) {
   $$('[data-del]', root).forEach(b => b.onclick = (ev) => { ev.stopPropagation(); if (confirm('Delete this added row?')) { deleteNewRow(b.dataset.del); refresh(); CTX.rerun(); CTX.rerender(); } });
 }
 
+// ------------------------------------------------------------------ admin view toggles
+export const applyView = () => document.documentElement.classList.toggle('no-graphs', !viewPref('graphs'));
+const gBtn = () => isAdmin() ? `<button class="tg-btn ${viewPref('graphs') ? 'on' : ''}" data-gtog title="Admin: show or hide all graphs in the results">${IC.trend || ''}<span>Graphs ${viewPref('graphs') ? 'on' : 'off'}</span><i></i></button>` : '';
+function wireToggles(root) {
+  $$('[data-gtog]', root).forEach(b => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); setViewPref('graphs', !viewPref('graphs')); applyView();
+    $$('[data-gtog]').forEach(x => { x.classList.toggle('on', viewPref('graphs')); x.querySelector('span').textContent = `Graphs ${viewPref('graphs') ? 'on' : 'off'}`; }); });
+  $$('[data-btog]', root).forEach(b => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); setViewPref('blank', !viewPref('blank')); CTX.rerender({ keepScroll: true }); });
+  $$('[data-cod]', root).forEach(i => i.onchange = () => { setCod(i.dataset.cod, i.value || null); CTX.rerender({ keepScroll: true }); });
+}
+
+// ------------------------------------------------------------------ never tested since commissioning
+function neverPanel(t, M) {
+  const N = NOUN[t], holder = HOLDER[t].includes('bay') ? 'bays' : 'units';
+  const blank = M.elements.filter(e => !e.done.length); if (!blank.length) return '';
+  const blankUnits = M.units.filter(U => U.es.every(e => !e.done.length));
+  const interval = t === 'la' ? 'first monsoon window' : t === 'ct' ? '12 / 24 months' : `${months(t, 'x')} months`;
+  const tog = isAdmin() ? `<button class="tg-btn ${viewPref('blank') ? 'on' : ''}" data-btog title="Admin: show or hide ${holder} with no test at all in the results below"><span>Blank ${holder} ${viewPref('blank') ? 'shown' : 'hidden'} (${blankUnits.length})</span><i></i></button>`
+    : !viewPref('blank') && blankUnits.length ? `<span class="note">${blankUnits.length} blank ${holder} hidden by admin</span>` : '';
+  return `<section class="card never mt"><div class="card-h"><span class="nv-ic">${IC.schedule}</span><h3>Never tested since commissioning</h3>
+      <span class="sub">${blank.length} ${N[blank.length === 1 ? 0 : 1]} in ${new Set(blank.map(e => e.u)).size} ${holder} have no result on record · due = commissioning date + circular interval (${interval})</span><div class="sp"></div>${tog}</div>
+    <div class="tbl-wrap"><table class="t never-t"><thead><tr><th style="min-width:230px">${holder === 'bays' ? 'Bay' : 'Unit'}</th><th style="min-width:300px">Never-tested ${N[1]}</th><th class="r" style="min-width:140px">Commissioned</th><th class="r" style="min-width:170px">Due (commissioning + interval)</th><th style="min-width:110px">Status</th></tr></thead><tbody>
+    ${[...groupBy(blank, e => e.u)].map(([u, es]) => { const cod = codOf(u), due = codDue(t, u), od = due && due < DB.today, all = es.length === M.units.find(x => x.u === u)?.es.length;
+      return `<tr><td><a href="${elHref(t, u)}"><b>${esc(unitName(u))}</b></a> <span class="dim">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</span>${all ? ' <span class="tag">blank</span>' : ''}</td>
+        <td>${all ? `all ${es.length} ${N[es.length === 1 ? 0 : 1]}` : es.map(e => esc(fullName(t, u, e.sub, true))).join(' · ')}</td>
+        <td class="r">${isAdmin() ? `<input type="date" class="cod-in" data-cod="${esc(u)}" value="${cod || ''}" title="Admin: commissioning date">` : fmtDate(cod)}</td>
+        <td class="r ${od ? 'd-od' : 'd-fy'}">${due ? fmtDate(due) : '—'}</td><td>${od ? '<span class="lg d-od">overdue</span>' : '<span class="lg d-fy">due</span>'}</td></tr>`; }).join('')}
+    </tbody></table></div></section>`;
+}
+
+// ------------------------------------------------------------------ winding: latest results cross-checked (as the sheet's "Last Test Results")
+// The six capacitances of one two-winding unit are not independent: C(HV-LV) measured from either end must agree,
+// and each GST reading must equal the sum of its GSTg and UST parts (C, and the capacitance-weighted tan δ).
+const WG = [['HV-LV', ['C(HV-LV)', 'C(HV)', 'C(HV)+C(HV-LV)']], ['LV-HV', ['C(LV-HV)', 'C(LV)', 'C(LV)+C(HV-LV)']]];
+const cSev = (d) => d == null ? '' : Math.abs(d) > 2 ? 'alert' : Math.abs(d) > 1 ? 'watch' : 'ok';
+const tSev = (d) => d == null ? '' : Math.abs(d) > 25 ? 'alert' : Math.abs(d) > 10 ? 'watch' : 'ok';
+const CHK = { ok: 'consistent', watch: 'check set-up', alert: 're-test / verify connections', '': '' };
+function windingChecks(L) {
+  const v = (a, k) => L[a]?.v[k], out = [];
+  if (L['C(HV-LV)'] && L['C(LV-HV)']) { const a = v('C(HV-LV)', 'C'), b = v('C(LV-HV)', 'C'), d = (a - b) / a * 100;
+    out.push({ k: 'Inter-winding C from both ends (UST)', f: '[C(HV-LV) − C(LV-HV)] ÷ C(HV-LV)', calc: a, meas: b, cl: 'C(HV-LV)', ml: 'C(LV-HV)', d, u: 'pF', dp: 1, sev: cSev(d) }); }
+  for (const [side, [ust, gstg, gst]] of WG) if (L[ust] && L[gstg] && L[gst]) {
+    const calc = v(gstg, 'C') + v(ust, 'C'), meas = v(gst, 'C'), d = (calc - meas) / meas * 100;
+    out.push({ k: `${side}: ${gstg} + ${ust} = GST`, f: '(GSTg + UST − GST) ÷ GST', calc, meas, cl: 'calculated', ml: 'measured GST', d, u: 'pF', dp: 1, sev: cSev(d) });
+    const tc = (v(gstg, 'C') * v(gstg, 'tand') + v(ust, 'C') * v(ust, 'tand')) / calc, tm = v(gst, 'tand'), dt = tm ? (tc - tm) / tm * 100 : null;
+    out.push({ k: `${side}: GST tan δ = C-weighted tan δ of its parts`, f: '(C·tanδ GSTg + C·tanδ UST) ÷ (C GSTg + C UST)', calc: tc, meas: tm, cl: 'calculated', ml: 'measured GST', d: dt, u: '%', dp: 3, sev: tSev(dt) });
+  }
+  return out;
+}
+function windingLatest(M) {
+  const blocks = [];
+  for (const U of M.units) {
+    const pus = groupPU('winding', U).filter(([, es]) => es.some(e => e.L)); if (!pus.length) continue;
+    const cards = pus.map(([ph, es]) => {
+      const L = {}; for (const e of es) if (e.L) L[e.sub.split('|')[1]] = e.L;
+      const name = ph ? `${shortUnit(U.u)}, ${ph}ph` : shortUnit(U.u);
+      const groups = U.u === 'BUS_REACTOR' ? [['HV-E', Object.keys(L)]] : WG;
+      const dates = new Set(Object.values(L).map(r => r.date));
+      const REA = U.u === 'BUS_REACTOR';
+      const IP = Object.values(L).some(r => r.v.I != null || r.v.P != null);   // the sheet leaves I and P blank for windings
+      const rows = groups.map(([side, acts]) => acts.filter(a => L[a]).map((a, i, arr) => { const r = L[a], x = r.v;
+        return `<tr data-date="${r.date}">${i === 0 && !REA ? `<td rowspan="${arr.length}" class="wl-side">${side}</td>` : ''}<td>${esc(r.mode || WMODE[a] || '')}</td><td><b>${esc(a)}</b></td><td>${esc(r.ses || '')}</td><td>${fmtDate(r.date)}</td>
+          <td class="r">${fmt(x.C, 1)}</td><td class="r">${fmt(x.tand, 3)}</td><td class="r">${fmt(x.U, 2)}</td>${IP ? `<td class="r">${fmt(x.I, 2)}</td><td class="r">${fmt(x.P, 2)}</td>` : ''}<td class="r">${fmt(x.F, 2)}</td><td class="r">${fmt(x.temp, 0)}</td>
+          <td class="r c-${cellSev('winding', 'tand20', x.tand20, r)}"><b>${fmt(x.tand20, 3)}</b></td><td class="r c-${cellSev('winding', 'dTand', x.dTand, r)}">${fmt(x.dTand, 3)}</td><td class="r c-${cellSev('winding', 'dC', x.dC, r)}">${fmt(x.dC, 2)}</td></tr>`; }).join('')).join('');
+      const ck = windingChecks(L);
+      return `<div class="wl-pu" data-ph="${ph || '-'}"><div class="wl-h">${ph ? `<span class="ph ${ph}">${ph}</span>` : ''}<b>${esc(name)}</b>${ph && DB.site.units[U.u]?.serials?.[ph] ? `<span class="dim">Sr ${esc(DB.site.units[U.u].serials[ph])}</span>` : ''}${dates.size > 1 ? `<span class="lg d-fy">readings from ${dates.size} different dates</span>` : ''}<a class="btn sm ghost" href="${elHref('winding', U.u, ph || null)}">Open ${IC.arrow}</a></div>
+        <div class="el-tbl"><table class="t seq wl"><thead><tr>${REA ? '' : '<th style="min-width:70px">Winding</th>'}<th style="min-width:56px">Mode</th><th style="min-width:128px">C (acting)</th><th style="min-width:68px">Session</th><th style="min-width:100px">Date of test</th><th class="r" style="min-width:90px">C (pF)</th><th class="r" style="min-width:78px">Tan δ %</th><th class="r" style="min-width:62px">U (kV)</th>${IP ? '<th class="r" style="min-width:62px">I (mA)</th><th class="r" style="min-width:62px">P (W)</th>' : ''}<th class="r" style="min-width:62px">F (Hz)</th><th class="r" style="min-width:60px">Temp °C</th><th class="r" style="min-width:100px">Corr. tan δ % @20 °C</th><th class="r" style="min-width:92px">Tan δ ↑ vs previous</th><th class="r" style="min-width:92px">C change % vs previous</th></tr></thead><tbody>${rows}</tbody></table></div>
+        ${ck.length ? `<div class="wl-ck">${ck.map(c => `<div class="ck c-${c.sev}"><div class="ck-k">${esc(c.k)}</div><div class="ck-v"><span>${c.cl} <b>${fmt(c.calc, c.dp)}</b></span><span>${c.ml} <b>${fmt(c.meas, c.dp)}</b></span><span class="ck-d">${c.d > 0 ? '+' : c.d < 0 ? '−' : ''}${fmt(Math.abs(c.d), 2)} %</span></div><div class="ck-f">${esc(c.f)} · <b>${CHK[c.sev]}</b></div></div>`).join('')}</div>` : ''}</div>`;
+    });
+    // sister phase units side by side
+    const sis = pus.length > 1 ? (() => { const acts = WG.flatMap(([, a]) => a);
+      const rows = acts.map(a => { const es = ['R', 'Y', 'B'].map(ph => U.es.find(e => e.ph === ph && e.sub.endsWith('|' + a))?.L); if (es.filter(Boolean).length < 2) return '';
+        const cs = es.filter(Boolean).map(r => r.v.C), m = cs.reduce((x, y) => x + y, 0) / cs.length, dev = Math.max(...cs.map(c => Math.abs(c - m) / m * 100));
+        const ts = es.filter(Boolean).map(r => r.v.tand20), spread = Math.max(...ts) - Math.min(...ts);
+        return `<tr><td><b>${esc(a)}</b> <span class="dim">${WMODE[a] || ''}</span></td>${es.map(r => `<td class="r">${r ? fmt(r.v.C, 1) : '—'}</td>`).join('')}<td class="r ${dev > 3 ? 'c-watch' : ''}">${fmt(dev, 2)} %</td>${es.map(r => `<td class="r c-${r ? cellSev('winding', 'tand20', r.v.tand20, r) : ''}">${r ? fmt(r.v.tand20, 3) : '—'}</td>`).join('')}<td class="r ${spread > 0.1 ? 'c-watch' : ''}">${fmt(spread, 3)}</td></tr>`; }).join('');
+      return rows ? `<div class="wl-pu wl-sis"><div class="wl-h"><b>${esc(shortUnit(U.u))} · R / Y / B phase units compared</b><span class="dim">identical single-phase units — capacitance within ~3 % and corrected tan δ within 0.1 % of each other is expected</span></div>
+        <div class="el-tbl"><table class="t seq"><thead><tr><th style="min-width:170px">C (acting)</th><th class="r" style="min-width:90px">C Rph (pF)</th><th class="r" style="min-width:90px">C Yph (pF)</th><th class="r" style="min-width:90px">C Bph (pF)</th><th class="r" style="min-width:110px">C largest dev. from mean</th><th class="r" style="min-width:90px">tan δ20 Rph</th><th class="r" style="min-width:90px">tan δ20 Yph</th><th class="r" style="min-width:90px">tan δ20 Bph</th><th class="r" style="min-width:100px">tan δ20 spread</th></tr></thead><tbody>${rows}</tbody></table></div></div>` : ''; })() : '';
+    blocks.push(`<section class="ub" data-unit="${esc(U.u)}"><header class="ub-h" data-open="${esc(U.u)}"><div><div class="ub-k">${esc(DB.site.units[U.u]?.rating || '')}</div><div class="ub-n">${esc(unitName(U.u, true))}</div></div><div class="ub-s"><span class="btn sm">Open ${IC.arrow}</span></div></header>${cards.join('')}${sis}</section>`);
+  }
+  return blocks.join('');
+}
+
 // ------------------------------------------------------------------ sections
 const FYS = () => { const y = parseInt(curFY(), 10); return [-1, 0, 1, 2].map(i => `${y - i}-${String(y - i + 1).slice(2)}`); };
 export const nextFY = () => { const y = parseInt(curFY(), 10) + 1; return `${y}-${String(y + 1).slice(2)}`; };
@@ -439,8 +574,9 @@ export function renderSections(t, mount) {
     ${card('c-blue', IC[t], `${cap(N[1])} tested in FY ${fy}`, `${testedFY}<small> / ${M.elements.length}</small>`, `across ${unitsFY} ${unitsFY === 1 ? holder.replace(/s$/, '') : holder} · population ${M.elements.length} ${N[1]}`)}
     ${card('c-teal', IC.schedule, `FY ${fy} progress`, `${pr.T.pct ?? '—'}<small>%</small>`, `${pr.T.prog} of ${pr.T.target} ${N[1]} due this FY${pr.T.override ? ' (admin target)' : ''}`, `<div class="fc-bar"><span style="width:${ringPct}%"></span></div>`)}
     ${card(bad ? 'c-red' : 'c-green', IC.findings, 'Outside circular limit', `${bad}<small> ${bad === 1 ? N[0] : N[1]}</small>`, `${watch} more on watch · ${latest.length - bad - watch} normal`)}
-    ${card('c-violet', IC.equipment, `Average ${N[0]} health`, `${avgH ?? '—'}<small>/100</small>`, weakest ? `weakest: ${unitName(weakest.u)} · ${elemLabel(t, weakest.u, weakest.sub)} (${weakest.health})` : '—')}
+    ${card('c-violet', IC.equipment, `Average ${N[0]} health`, `${avgH ?? '—'}<small>/100</small>`, weakest ? `weakest: ${fullName(t, weakest.u, weakest.sub)} (${weakest.health})` : '—')}
   </section>
+  ${neverPanel(t, M)}
 
   <details class="sec" id="secRank"><summary><span class="sec-t">${IC.standards} Fleet ranking</span><span class="dim">${N[1]} of the same voltage class / rating ranked by any circular parameter</span><span class="caret">▾</span></summary>
     <div class="sec-b"><div class="rank-class"><span class="note">Comparable class</span><div class="seg" id="classSeg"></div></div><div class="seg" id="rankSeg">${RANKP[t].map((p, i) => `<button class="${(RANK_SEL[t] ?? 0) === i ? 'on' : ''}" data-i="${i}">${p.label}</button>`).join('')}</div>
@@ -450,20 +586,25 @@ export function renderSections(t, mount) {
     <div class="sec-b"><div class="toolbar"><a class="btn pri" href="#/targets?t=${t}">${IC.schedule} Set FY targets</a><div class="seg" id="fySeg">${FYS().map(f => `<button class="${f === fy ? 'on' : ''}" data-fy="${f}">FY ${f}${f === nextFY() ? ' (next)' : ''}</button>`).join('')}</div><span class="note">${months(t, 'x') < 12 || t === 'ct' ? `Frequency: ${t === 'ct' ? '400 kV 2-yearly · 220 kV yearly' : t === 'la' ? 'pre- and post-monsoon (2 per year)' : t === 'dga' ? '½-yearly (2 per year)' : ''}` : `Frequency: every ${months(t, 'x') / 12 === 1 ? 'year' : months(t, 'x') / 12 + ' years'}`}</span></div>
     ${progressTable(t, pr, fy)}</div></details>
 
-  <details class="sec" open id="secAll"><summary><span class="sec-t">${IC.norms} Detailed test results · sequence-wise</span><span class="dim">every test of every ${N[0]}, as in the sheet — click a ${HOLDER[t].split(' ')[0]} or ${N[0]} to open it</span><span class="caret">▾</span></summary>
+  ${t === 'winding' ? `<details class="sec" open id="secWL"><summary><span class="sec-t">${IC.findings} Latest tan δ results · cross-checked</span><span class="dim">latest test of each phase unit with the sheet's checks — C(HV-LV) from both ends, GST = GSTg + UST (C and tan δ), and R / Y / B compared</span>${gBtn()}<span class="caret">▾</span></summary>
+    <div class="sec-b"><div id="secWLb">${windingLatest(M)}</div><p class="note">Checks are measurement-consistency rules used in practice (Doble / IEEE C57.152 test-set-up checks): within 1 % consistent, 1–2 % check the set-up, over 2 % re-test. They validate the readings; the insulation itself is judged on corrected tan δ against the circular.</p></div></details>` : ''}
+
+  <details class="sec" open id="secAll"><summary><span class="sec-t">${IC.norms} Detailed test results · sequence-wise</span><span class="dim">every test of every ${N[0]}, as in the sheet — click a ${HOLDER[t].split(' ')[0]} or ${N[0]} to open it</span>${gBtn()}<span class="caret">▾</span></summary>
     <div class="sec-b"><div class="toolbar">${filterUI(t, M)}<span class="legend">${legend(t)}</span></div><div id="seqAll"></div></div></details>
 
-  <details class="sec" open id="secLatest"><summary><span class="sec-t">${IC.findings} Latest test results</span><span class="dim">same format · latest completed test of each ${N[0]} · graphs show full history</span><span class="caret">▾</span></summary>
+  <details class="sec" open id="secLatest"><summary><span class="sec-t">${IC.findings} Latest test results</span><span class="dim">latest completed test of each ${N[0]} with previous & first test and the change since each · graphs always show the full history</span>${gBtn()}<span class="caret">▾</span></summary>
     <div class="sec-b"><div id="seqLatest"></div></div></details>`;
   mount.innerHTML = html;
   const drawSeq = () => {
-    const sel = FILTER[t], us = M.units.filter(U => !sel || sel.has(U.u));
+    const sel = FILTER[t], us = M.units.filter(U => (!sel || sel.has(U.u)) && (viewPref('blank') || U.es.some(e => e.done.length)));
     $('#seqAll', mount).innerHTML = us.map(U => unitBlock(t, U, false)).join('') || '<div class="empty">Nothing selected — use the filter.</div>';
     $('#seqLatest', mount).innerHTML = us.map(U => unitBlock(t, U, true)).join('') || '<div class="empty">Nothing selected.</div>';
     $$('[data-open]', mount).forEach(el => el.onclick = (ev) => { if (ev.target.closest('td.ed, input, button[data-add], button[data-del]')) return; openElement(t, el.dataset.open, el.dataset.sub || null); });
     wireEditing(mount); wireChartChips(mount);
   };
   drawSeq();
+  applyView(); wireToggles(mount);
+  $$('#secWLb [data-open]', mount).forEach(el => el.onclick = () => openElement('winding', el.dataset.open));
   wireInteractive(mount);
   wireFilter(mount, t, M, () => CTX.rerender({ keepScroll: true }));
   $$('#fySeg button', mount).forEach(b => b.onclick = () => { FY_SEL = b.dataset.fy; CTX.rerender({ keepScroll: true }); });
@@ -515,7 +656,7 @@ function rankChart(t, M, i, mount) {
   cv.parentElement.style.height = Math.max(160, 40 + rows.length * 19) + 'px';
   const c = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
   const col = { ok: c('--brand-2'), watch: c('--watch'), alert: c('--alert'), critical: c('--crit') };
-  new Chart(cv, { type: 'bar', data: { labels: rows.map(r => `${unitName(r.e.u)} · ${elemLabel(t, r.e.u, r.e.sub)}`), datasets: [{ data: rows.map(r => r.v), backgroundColor: rows.map(r => col[r.sev] + (r.sev === 'ok' ? '99' : '')), borderRadius: 4, barThickness: 13 }] },
+  new Chart(cv, { type: 'bar', data: { labels: rows.map(r => fullName(t, r.e.u, r.e.sub)), datasets: [{ data: rows.map(r => r.v), backgroundColor: rows.map(r => col[r.sev] + (r.sev === 'ok' ? '99' : '')), borderRadius: 4, barThickness: 13 }] },
     options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: { duration: 400 }, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (it) => `${fmt(it.raw, p.dp)} ${p.unit} · ${fmtDate(rows[it.dataIndex].e.L.date)}` } } },
       onClick: (_e, els) => { if (els[0]) { const r = rows[els[0].index]; openElement(t, r.e.u, r.e.sub); } },
       scales: { x: { grid: { color: c('--line') }, ticks: { color: c('--ink-3') }, title: { display: true, text: `${p.label} (${p.unit})`, color: c('--ink-3') } }, y: { grid: { display: false }, ticks: { color: c('--ink-2'), font: { size: 11 } } } } } });
@@ -549,13 +690,15 @@ export function renderElementPage(t, u, sub, mount) {
   const sr = t === 'ct' ? (kvOf(u) === 220 ? 19 : 18) : T.sr;
   const k = RANKP[t][0];
   const pus = groupPU(t, U);
-  const title = one ? elemLabel(t, u, one.sub) : isPU ? phaseUnitName(u, sub) : '';
+  const title = one ? fullName(t, u, one.sub, true) : isPU ? phaseUnitName(u, sub) : '';
   const stats = es.map(e => { const L = e.L, Pv = e.done.at(-2), B = e.done[0]; const v = L ? k.get(L) : null, pv = Pv ? k.get(Pv) : null, bv = B ? k.get(B) : null;
-    return `<a class="ph-card hc-${L ? statusOf(L) : 'none'}" href="${elHref(t, u, e.sub)}"><div class="k">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(subLabel(t, e.sub))} ${hChip(e.health)}</div><div class="v num">${fmt(v, k.dp)} <span class="u">${k.unit}</span></div>
+    return `<a class="ph-card hc-${L ? statusOf(L) : 'none'}" href="${elHref(t, u, e.sub)}"><div class="k">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(fullName(t, u, e.sub))} ${hChip(e.health)}</div><div class="v num">${fmt(v, k.dp)} <span class="u">${k.unit}</span></div>
       <div class="d">${pv != null ? `${v > pv ? '▲' : v < pv ? '▼' : '='} ${fmt(Math.abs(v - pv), k.dp)} since ${fmtDate(Pv.date)}` : L ? 'single test' : 'never tested'}</div>
       <div class="d dim">${B && B !== L ? `first ${fmt(bv, k.dp)} (${fmtDate(B.date)}) · ` : ''}${e.done.length} test${e.done.length === 1 ? '' : 's'}</div></a>`; }).join('');
-  const charts = (e, n) => big.slice(0, n ?? big.length).map(([key, label]) => `<div class="chart-card"><div class="card-h"><h3>${label}</h3><span class="sub">${esc(subLabel(t, e.sub))}</span></div><div class="chart-box" style="height:270px"><canvas data-k="${key}" data-e="${esc(e.sub)}"></canvas></div><div class="legend-note">grid at a round step ≈ 20 % of this ${NOUN[t][0]}'s average · dashed = circular / industry limit · hover a table row to find it here</div></div>`).join('');
-  const tabs = `<nav class="tabs el-tabs"><a class="${sub ? '' : 'on'}" href="${elHref(t, u, null)}">All ${NOUN[t][1]} (${U.es.length})</a>${pus[0][0] !== null
+  const GRP = ['ct', 'bushing', 'winding'].includes(t) ? [['tand20', 'dTand'], ['C', 'dC']] : big.map(b => [b[0]]);
+  const bl = (k) => big.find(b => b[0] === k)?.[1] || k;
+  const charts = (e, n) => GRP.slice(0, n ?? GRP.length).map((g) => `<div class="chart-card gx"><div class="card-h"><h3>${g.length > 1 ? (g[0] === 'tand20' ? 'Tan δ' : 'Capacitance') : bl(g[0])}</h3><span class="sub">${esc(fullName(t, u, e.sub))}</span>${g.length > 1 ? `<div class="mc-chips sm">${g.map((k, j) => `<button class="${j ? '' : 'on'}" data-bk="${k}">${bl(k)}</button>`).join('')}</div>` : ''}</div><div class="chart-box" style="height:270px"><canvas data-k="${g[0]}" data-e="${esc(e.sub)}"></canvas></div><div class="legend-note">grid at a round step ≈ 20 % of this ${NOUN[t][0]}'s average · dashed = circular / industry limit · hover a table row to find it here</div></div>`).join('');
+  const tabs = `<nav class="tabs el-tabs">${gBtn() ? `<span class="tabs-tools">${gBtn()}</span>` : ''}<a class="${sub ? '' : 'on'}" href="${elHref(t, u, null)}">All ${NOUN[t][1]} (${U.es.length})</a>${pus[0][0] !== null
       ? pus.map(([ph, list]) => `<a class="${sub === ph || (one && one.ph === ph) ? 'on' : ''}" href="${elHref(t, u, ph)}"><span class="dot-ph ph-${ph}"></span>${ph}-phase unit <span class="dim">(${list.length})</span></a>`).join('')
       : U.es.map(e => `<a class="${e.sub === sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${e.ph !== '-' ? `<span class="dot-ph ph-${e.ph}"></span>` : ''}${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>
     ${(isPU || (one && pus[0][0] !== null)) ? `<nav class="tabs el-tabs sub">${pus.find(p => p[0] === (isPU ? sub : one.ph))[1].map(e => `<a class="${one && e.sub === one.sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>` : ''}`;
@@ -568,20 +711,23 @@ export function renderElementPage(t, u, sub, mount) {
         <div class="row-flex mt">${circularBtn(sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button><a class="btn" href="#/test/${t}">${IC.arrow} All ${NOUN[t][1]}</a></div></div></section>
     ${tabs}
     <div class="ph-cards">${stats}</div>
-    ${es.map(e => `<section class="el-sec el" data-ph="${e.ph}"><div class="row-flex"><h2 style="margin:0">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(elemLabel(t, u, e.sub))}</h2>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', 'never tested')}${!one ? `<a class="btn sm" href="${elHref(t, u, e.sub)}">Open this ${NOUN[t][0]} only ${IC.arrow}</a>` : ''}</div>
+    ${es.map(e => `<section class="el-sec el" data-ph="${e.ph}"><div class="row-flex"><h2 style="margin:0">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(fullName(t, u, e.sub))}</h2>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', `never tested · due ${fmtDate(codDue(t, u))}`)}${!one ? `<a class="btn sm" href="${elHref(t, u, e.sub)}">Open this ${NOUN[t][0]} only ${IC.arrow}</a>` : ''}</div>
       <div class="card mt"><div class="card-h"><h3>Test results</h3><span class="sub">click a column header to sort · hover a row to find it on the graphs</span><div class="sp"></div><span class="note">${e.rows.length} rows</span></div><div class="tbl-wrap">${seqTable(t, e, false)}</div></div>
       <div class="grid g2 mt">${charts(e, one ? null : 2)}</div></section>`).join('')}
     ${dgaPanels}`;
   $$('[data-norms]', mount).forEach(b => b.onclick = () => openNorms(t));
-  $$('canvas[data-k]', mount).forEach(cv => { const e = es.find(x => x.sub === cv.dataset.e); const def = big.find(b => b[0] === cv.dataset.k); if (!def) return; const lim = typeof def[2] === 'function' ? def[2](u) : def[2];
+  const drawBig = (cv) => { Chart.getChart(cv)?.destroy(); const e = es.find(x => x.sub === cv.dataset.e); const def = big.find(b => b[0] === cv.dataset.k); if (!def) return; const lim = typeof def[2] === 'function' ? def[2](u) : def[2];
     const key = cv.dataset.k, mk = (rs) => rs.filter(r => r.v[key] != null).map(r => ({ x: r.date, y: +r.v[key].toFixed(4), meta: r.season || (r.v.temp != null ? `${r.v.temp} °C` : r.pos || '') }));
     const mainTank = t === 'dga' && !e.sub.endsWith('OLTC');
     const col = e.ph !== '-' && ['ct', 'cb_crm', 'cb_timing', 'la', 'bushing'].includes(t) ? colors[e.ph] : '#1a6fc2';
-    const series = mainTank ? [['Top', '#2f6fd0'], ['Bottom', '#a16207']].map(([p, c]) => ({ label: `${p} sample`, color: c, points: mk(e.done.filter(r => r.pos === p)) })).filter(x => x.points.length) : [{ label: subLabel(t, e.sub), color: col, points: mk(e.done) }];
+    const series = mainTank ? [['Top', '#2f6fd0'], ['Bottom', '#a16207']].map(([p, c]) => ({ label: `${p} sample`, color: c, points: mk(e.done.filter(r => r.pos === p)) })).filter(x => x.points.length) : [{ label: fullName(t, u, e.sub), color: col, points: mk(e.done) }];
     if (!series.length || !series[0].points.length) { cv.parentElement.innerHTML = '<div class="empty">No readings</div>'; return; }
     const c = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim(); const sc = { alert: c('--alert'), critical: c('--crit'), watch: c('--watch') };
     cv.__chart = lineChart(cv, { series, limits: lim.map(l => ({ ...l, color: sc[l.sev] })), bands: bandsFrom(lim), fill: series.length === 1, stepRef: true, zero: ['la', 'cb_crm'].includes(t),
-      sevOf: (y) => cellSev(t, key, y, { unit: u, pos: e.sub.split('|').pop(), v: {} }) }); });
+      sevOf: (y) => cellSev(t, key, y, { unit: u, pos: e.sub.split('|').pop(), v: {} }) }); };
+  $$('canvas[data-k]', mount).forEach(drawBig);
+  $$('[data-bk]', mount).forEach(b => b.onclick = () => { const card = b.closest('.chart-card'), cv = card.querySelector('canvas'); $$('[data-bk]', card).forEach(x => x.classList.toggle('on', x === b)); cv.dataset.k = b.dataset.bk; drawBig(cv); });
+  applyView(); wireToggles(mount);
   mount.addEventListener('mouseover', (ev) => { const tr = ev.target.closest('tr[data-date]'); if (!tr) return; const sec = tr.closest('.el-sec'); if (!sec) return;
     $$('canvas[data-k]', sec).forEach(cv => { const ch = cv.__chart; if (!ch) return; const act = [];
       ch.data.datasets.forEach((ds, di) => { if (ds.isLimit || ds.isRef) return; const i = ds.data.findIndex(p => new Date(p.x).toISOString().slice(0, 10) === tr.dataset.date); if (i >= 0) act.push({ datasetIndex: di, index: i }); });

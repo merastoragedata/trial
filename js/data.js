@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM } from './edit.js?v=20261125.1917';
+import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261125.1955';
 export { ELEM };
 
-export const BUILD = '20261125.1917';  // set by tools/stamp_version.py
+export const BUILD = '20261125.1955';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -84,6 +84,12 @@ export function groupBy(arr, fn) {
 export const toDate = (s) => new Date(s + 'T00:00:00');
 export const years = (a, b) => (toDate(b) - toDate(a)) / (365.25 * 864e5);
 export function addMonths(iso, m) { const d = toDate(iso); d.setMonth(d.getMonth() + m); return d; }
+/** Commissioning date of a bay / unit: admin correction, else the unit record, else the substation's first commissioning. */
+export function codOf(u) {
+  const o = codOverrides()[u]; if (o) return o;
+  if (DB.site.units[u]?.commissioned) return DB.site.units[u].commissioned;
+  return Object.values(DB.site.units).map(x => x.commissioned).filter(Boolean).sort()[0] || null;
+}
 export function fmtDate(x) {
   const d = typeof x === 'string' ? toDate(x) : x;
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
