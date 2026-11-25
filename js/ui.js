@@ -1,6 +1,6 @@
 // Small DOM, chart and circular-viewer helpers.
-import { DB, fmtDate, toDate } from './data.js?v=20261125.1811';
-import { SEV_LABEL } from './rules.js?v=20261125.1811';
+import { DB, fmtDate, toDate } from './data.js?v=20261125.1848';
+import { SEV_LABEL } from './rules.js?v=20261125.1848';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Shape-coded status (readable without colour): ◆ critical · ▲ alert · ● watch · ✓ normal · i info · – no data
@@ -50,6 +50,23 @@ export function bandsFrom(limits) {
   return out;
 }
 
+/** A round step near 20 % of the average (1, 2, 2.5, 5 × 10^n). */
+export function niceStep(x) {
+  if (!(x > 0) || !isFinite(x)) return null;
+  const e = Math.floor(Math.log10(x)), f = x / 10 ** e;
+  const n = [1, 2, 2.5, 5, 10].reduce((a, b) => Math.abs(b - f) < Math.abs(a - f) ? b : a);
+  return n * 10 ** e;
+}
+/** Least-squares trend through (date, value) points; returns [{x,y},{x,y}] and slope per year. */
+export function trendLine(pts) {
+  if (pts.length < 3) return null;
+  const xs = pts.map(p => +toDate(p.x) / 864e5), ys = pts.map(p => p.y), n = xs.length;
+  const mx = xs.reduce((a, b) => a + b) / n, my = ys.reduce((a, b) => a + b) / n;
+  const sxx = xs.reduce((a, x) => a + (x - mx) ** 2, 0); if (!sxx) return null;
+  const b = xs.reduce((a, x, i) => a + (x - mx) * (ys[i] - my), 0) / sxx, a = my - b * mx;
+  const x0 = Math.min(...xs), x1 = Math.max(...xs);
+  return { pts: [{ x: x0 * 864e5, y: a + b * x0 }, { x: x1 * 864e5, y: a + b * x1 }], perYear: b * 365.25 };
+}
 /** Average-reference lines: mean of the readings to date and ±20 % steps of it.
  *  ±20 % is always shown; further steps (±40, 60, 80, 100 % …) wherever the data reaches. */
 export function avgRefs(ys, limits = []) {
@@ -77,6 +94,7 @@ const labelPlugin = {
     chart.data.datasets.forEach((d, i) => {
       const meta = chart.getDatasetMeta(i); if (meta.hidden) return;
       if (d.isLimit) { const p = meta.data[1]; if (!p) return; ctx.fillStyle = d.borderColor; ctx.textAlign = 'right'; ctx.fillText(d.label, a.right - 4, p.y - 4); return; }
+      if (d.isTrend) { const p = meta.data[1]; if (!p) return; ctx.save(); ctx.font = '600 10px Inter, sans-serif'; ctx.fillStyle = d.borderColor; ctx.textAlign = 'right'; ctx.fillText(d.label, Math.min(p.x, a.right - 2), Math.min(a.bottom - 4, p.y + 14 + (d.trendIdx || 0) * 13)); ctx.restore(); return; }
       if (d.isRef) { const p = meta.data[0]; if (!p || p.y < a.top || p.y > a.bottom) return; ctx.save(); ctx.font = (d.refK === 0 ? '600 ' : '500 ') + '9.5px Inter, sans-serif'; ctx.fillStyle = d.refK === 0 ? css('--ink-2') : d.borderColor; ctx.textAlign = 'left'; ctx.fillText(d.label, a.left + 4, p.y - 3); ctx.restore(); return; }
       if (chart.data.datasets.filter(x => !x.isLimit && !x.isRef).length > 3) return;
       const p = meta.data.at(-1), raw = d.data.at(-1); if (!p || !raw) return;
@@ -105,17 +123,26 @@ export function lineChart(canvas, o) {
         const g = chart.ctx.createLinearGradient(0, a.top, 0, a.bottom); g.addColorStop(0, col + '55'); g.addColorStop(1, col + '00'); return g;
       },
       fill: o.fill && i === 0 ? 'start' : false,
-      borderWidth: 2.2, tension: 0.25, spanGaps: true, pointHoverRadius: 7, pointBorderWidth: 2,
+      borderWidth: 2.2, tension: 0.3, cubicInterpolationMode: 'monotone', spanGaps: true, pointHoverRadius: 7, pointBorderWidth: 2,
       pointRadius: s.points.map(p => ['alert', 'critical'].includes(sev(p)) ? 5.5 : 3.8),
       pointBackgroundColor: s.points.map(p => sc[sev(p)] || css('--panel')),
       pointBorderColor: s.points.map(p => sc[sev(p)] || col),
     };
   });
-  // average-reference lines: the element's own average to date and ±20 % steps of it
-  if (o.avgRef && o.series.length === 1) {
-    for (const r of avgRefs(o.series[0].points.map(p => p.y), o.limits)) {
-      ds.push({ label: r.label, data: [{ x: xmin - pad, y: r.y }, { x: xmax + pad, y: r.y }], borderColor: r.k === 0 ? css('--ink-2') : r.k > 0 ? `rgba(196,84,12,${Math.min(0.25 + r.k * 0.12, 0.8)})` : `rgba(26,111,194,${Math.min(0.25 - r.k * 0.12, 0.8)})`,
-        borderDash: r.k === 0 ? [] : [2, 3], borderWidth: r.k === 0 ? 1.4 : 1, pointRadius: 0, pointHoverRadius: 0, fill: false, isRef: true, refK: r.k });
+  // round grid step near 20 % of the element's own average; dotted least-squares trend
+  let ystep = null, ymin, ymax;
+  if (o.stepRef && o.series.length >= 1) {
+    const ys0 = o.series[0].points.map(p => p.y).filter(y => y != null), ys = o.series.flatMap(se => se.points.map(p => p.y)).filter(y => y != null);
+    const avg = ys0.reduce((a, b) => a + b, 0) / ys0.length;
+    ystep = niceStep(Math.abs(avg) * 0.2) || niceStep((Math.max(...ys) - Math.min(...ys)) / 5 || 1);
+    const near = (o.limits || []).map(l => l.y).filter(l => l <= Math.max(...ys) * 1.6 + ystep && l >= Math.min(...ys) * 0.6 - ystep);
+    let lo = Math.min(...ys, ...near), hi = Math.max(...ys, ...near);
+    while ((hi - lo) / ystep > 9) ystep = niceStep(ystep * 2.2);
+    ymin = Math.floor(lo / ystep) * ystep - (lo % ystep === 0 ? ystep : 0); ymax = Math.ceil(hi / ystep) * ystep + (hi % ystep === 0 ? ystep : 0);
+    if (o.zero && ymin < 0 && Math.min(...ys) >= 0) ymin = 0;
+    for (const se of o.series) {
+      const tr = trendLine(se.points.filter(p => p.y != null)); if (!tr) continue;
+      ds.push({ label: `${o.series.length > 1 ? se.label + ' ' : ''}trend ${tr.perYear >= 0 ? '+' : ''}${+tr.perYear.toPrecision(2)}/yr`, trendIdx: o.series.indexOf(se), data: tr.pts, borderColor: se.color || EXTRA[0], borderDash: [2, 4], borderWidth: 1.6, pointRadius: 0, pointHoverRadius: 0, fill: false, isRef: true, isTrend: true });
     }
   }
   for (const l of o.limits || []) {
@@ -130,7 +157,8 @@ export function lineChart(canvas, o) {
       interaction: { mode: 'nearest', intersect: false },
       scales: {
         x: { type: 'linear', min: xmin - pad, max: xmax + pad, grid: { color: line, drawTicks: false }, border: { display: false }, ticks: { color: ink3, maxTicksLimit: 6, padding: 6, callback: v => new Date(v).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' }) } },
-        y: { grid: { color: line, drawTicks: false }, border: { display: false }, ticks: { color: ink3, padding: 6 }, title: { display: !!o.yLabel, text: o.yLabel, color: ink3, font: { size: 11 } }, suggestedMin: o.yMin, suggestedMax: o.yMax, beginAtZero: !!o.zero, grace: '8%' },
+        y: ystep ? { min: ymin, max: ymax, grid: { color: line, drawTicks: false }, border: { display: false, dash: [2, 4] }, ticks: { color: ink3, padding: 6, stepSize: ystep }, title: { display: !!o.yLabel, text: o.yLabel, color: ink3, font: { size: 11 } } }
+          : { grid: { color: line, drawTicks: false }, border: { display: false }, ticks: { color: ink3, padding: 6 }, title: { display: !!o.yLabel, text: o.yLabel, color: ink3, font: { size: 11 } }, suggestedMin: o.yMin, suggestedMax: o.yMax, beginAtZero: !!o.zero, grace: '8%' },
       },
       plugins: {
         zones: { bands: o.bands || [] },

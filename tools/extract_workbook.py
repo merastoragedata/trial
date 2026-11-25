@@ -209,6 +209,28 @@ if __name__ == '__main__':
         else: kept.append(r)
     out[:] = kept
 
+    # --- copied rows: identical readings in many different sampling points / elements on one date
+    # Different tanks / phases cannot return identical multi-parameter readings, so such rows are
+    # template or pasted data. They are kept (visible, greyed) but flagged and excluded from analysis.
+    import collections as _c
+    sig_keys = {'dga': ['H2', 'CH4', 'CO', 'CO2', 'C2H4', 'C2H6', 'C2H2', 'O2', 'N2'],
+                'ct': ['C', 'tand', 'U', 'I', 'P', 'F', 'temp'], 'bushing': ['C', 'tand', 'U', 'I', 'P', 'F', 'temp'],
+                'winding': ['C', 'tand', 'U', 'I', 'P', 'F', 'temp'], 'la': ['Ith', 'Icorr', 'Itotal']}
+    groups = _c.defaultdict(list)
+    for r in out:
+        ks = sig_keys.get(r['t'])
+        if not ks: continue
+        sig = tuple(r['v'].get(k) for k in ks)
+        if sum(v is not None for v in sig) >= 4:
+            groups[(r['t'], r['date'], sig)].append(r)
+    for (t, d, sig), rs in groups.items():
+        elems = {(r['unit'], r['ph'], r['pos'], r.get('acting')) for r in rs}
+        if len(elems) >= 3:
+            why = f'Identical readings in {len(elems)} different sampling points/elements on {d} - copied or template row, excluded from analysis'
+            for r in rs:
+                r['excluded'] = why
+            ISSUES.append({'src': f"{t.upper()} {d}", 'field': 'row', 'text': why, 'copied': True, 'rows': [r['src'] for r in rs]})
+
     # --- calculation audit -------------------------------------------------
     # TDCG: recompute from the six combustible gases; never trust the sheet column
     for r in out:
