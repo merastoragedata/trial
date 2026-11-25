@@ -38,7 +38,10 @@ logged under **Data & sources** and kept out of the analysis.
 | `assets/circular/` | Scanned circular pages, rotated upright |
 | `js/data.js` | Data layer. The single place to swap JSON for a database |
 | `js/rules.js` | Engineering rules |
-| `js/app.js`, `js/ui.js` | Views, charts, circular viewer |
+| `js/health.js` | Transformer Health Index (weighted factors, worst factor governs) |
+| `js/sld.js` | Single-line diagrams: 400 kV one-and-a-half breaker, 220 kV double main + transfer |
+| `js/icons.js` | SVG icon set (IEC 60617-style equipment symbols) |
+| `js/app.js`, `js/ui.js` | Views, charts with limit zones, Duval Triangle, command palette (Ctrl K), circular viewer |
 | `vendor/` | Chart.js 4.4.1 (MIT), bundled so the portal also works on an intranet without internet |
 
 ## Roadmap

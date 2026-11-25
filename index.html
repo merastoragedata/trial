@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>EHV Diagnostic Portal</title>
-<meta name="description" content="Diagnostic test health, MSETCL 2024 test-frequency norms and industry-standard comparison for EHV substation equipment.">
+<meta name="description" content="Condition monitoring for EHV substation equipment: diagnostic test health, MSETCL 2024 test-frequency norms and industry-standard comparison.">
+<meta name="theme-color" content="#0b1726">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230b5394'/%3E%3Ccircle cx='9.5' cy='12' r='4.6' fill='none' stroke='white' stroke-width='1.8'/%3E%3Ccircle cx='14.5' cy='12' r='4.6' fill='none' stroke='%23f2a900' stroke-width='1.8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -13,31 +15,37 @@
 <script type="module" src="js/app.js"></script>
 </head>
 <body>
+<a class="hide" href="#view">Skip to content</a>
 <div class="shell">
-  <aside class="sb" id="sb">
-    <div class="brand">
-      <div class="k">EHV Diagnostics</div>
-      <div class="t" id="site-name">Loading…</div>
-      <div class="s" id="site-fy"></div>
-    </div>
+  <aside class="sb" id="sb" aria-label="Primary">
+    <div class="brand"><div class="logo" id="logo"></div><div><div class="k">EHV O&amp;M</div><div class="t">Diagnostic Portal</div></div></div>
+    <div class="site"><div class="l">Substation</div><div class="n" id="site-name">Loading…</div><div class="m" id="site-fy"></div></div>
     <nav class="nav">
-      <a href="#/"><span class="ic">▦</span>Overview</a>
-      <a href="#/findings"><span class="ic">⚑</span>Findings<span class="ct" id="nc-find"></span></a>
-      <a href="#/schedule"><span class="ic">◷</span>Schedule<span class="ct" id="nc-sched"></span></a>
-      <a href="#/equipment"><span class="ic">⌗</span>Equipment</a>
-      <div class="g">Tests</div>
+      <a href="#/" data-ic="overview"><span class="ic"></span>Overview</a>
+      <a href="#/findings" data-ic="findings"><span class="ic"></span>Findings<span class="ct hot" id="nc-find"></span></a>
+      <a href="#/schedule" data-ic="schedule"><span class="ic"></span>Test schedule<span class="ct" id="nc-sched"></span></a>
+      <a href="#/sld" data-ic="sld"><span class="ic"></span>Single-line diagram</a>
+      <a href="#/equipment" data-ic="equipment"><span class="ic"></span>Equipment</a>
+      <div class="g">Diagnostic tests</div>
       <div id="nav-tests"></div>
       <div class="g">Reference</div>
-      <a href="#/norms"><span class="ic">§</span>MSETCL norms 2024</a>
-      <a href="#/standards"><span class="ic">≡</span>Industry standards</a>
-      <a href="#/data"><span class="ic">⛁</span>Data & sources</a>
-      <a href="#/about"><span class="ic">➜</span>Roadmap</a>
+      <a href="#/norms" data-ic="norms"><span class="ic"></span>MSETCL norms 2024</a>
+      <a href="#/standards" data-ic="standards"><span class="ic"></span>Industry standards</a>
+      <a href="#/data" data-ic="data"><span class="ic"></span>Data &amp; sources</a>
+      <a href="#/about" data-ic="roadmap"><span class="ic"></span>Roadmap</a>
     </nav>
-    <div class="sb-foot"><button id="themeBtn" title="Toggle light/dark">◐ Theme</button></div>
+    <div class="sb-foot">Evaluated per MSETCL circular 06961 (18 Oct 2024) · IEC / IEEE cross-check</div>
   </aside>
   <main class="main">
-    <div class="top"><button class="menu-btn" id="menuBtn" aria-label="Menu">☰</button><div class="crumbs" id="crumbs"></div><div class="sp"></div></div>
-    <div class="view" id="view"><div class="empty">Loading data…</div></div>
+    <header class="top">
+      <button class="icon-btn menu-btn" id="menuBtn" aria-label="Open menu"></button>
+      <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+      <div class="sp"></div>
+      <button class="search-btn" id="searchBtn" aria-label="Search"><i id="searchIc" style="width:16px;height:16px;display:grid"></i><span>Jump to bay, test, Sr. No…</span><kbd>Ctrl K</kbd></button>
+      <button class="icon-btn" id="printBtn" title="Print / save as PDF" aria-label="Print"></button>
+      <button class="icon-btn" id="themeBtn" title="Light / dark" aria-label="Toggle theme"></button>
+    </header>
+    <div class="view" id="view" tabindex="-1"><div class="empty">Loading data…</div></div>
   </main>
 </div>
 </body>
