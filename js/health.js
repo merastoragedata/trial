@@ -1,0 +1,75 @@
+// Transformer Health Index — weighted-factor method in the spirit of CIGRE TB 761 and
+// Jahromi et al. (2009). Indicative only: weights and break-points are set here, openly,
+// so S.E. PAC can tune them. Each factor keeps the reading that drove its score.
+import { DB, recs, groupBy } from './data.js';
+import { LIM } from './rules.js';
+
+const lerp = (x, pts) => {           // piecewise-linear: pts = [[x,score],...] ascending x
+  if (x <= pts[0][0]) return pts[0][1];
+  for (let i = 1; i < pts.length; i++) if (x <= pts[i][0]) {
+    const [x0, y0] = pts[i - 1], [x1, y1] = pts[i];
+    return y0 + (y1 - y0) * (x - x0) / (x1 - x0);
+  }
+  return pts[pts.length - 1][1];
+};
+const latestBy = (rs, key) => [...groupBy(rs, key).values()].map(s => s.sort((a, b) => a.date.localeCompare(b.date)).at(-1));
+
+export const HI_WEIGHTS = { dga: 30, oil: 15, winding: 25, bushing: 30 };
+export const HI_BANDS = [[85, 1, 'Very good', 'Normal ageing — continue routine tests'], [70, 2, 'Good', 'Routine tests at circular frequency'], [50, 3, 'Fair', 'Increase monitoring; plan investigation'], [30, 4, 'Poor', 'Plan corrective action / outage'], [0, 5, 'Very poor', 'Immediate risk assessment']];
+export const band = (hi) => HI_BANDS.find(b => hi >= b[0]);
+
+const GAS_W = { H2: 2, CH4: 3, C2H6: 3, C2H4: 3, C2H2: 5, CO: 1, CO2: 1 };
+const ratioScore = (r) => lerp(r, [[0.5, 100], [1, 70], [2, 40], [4, 10], [8, 0]]);
+
+export function healthIndex(unit) {
+  const f = {};
+  // DGA — weighted gas-ratio score on the worst main-tank sample
+  const dga = latestBy(recs('dga', { unit }).filter(r => r.pos !== 'OLTC'), r => r.ph + r.pos);
+  if (dga.length) {
+    const scored = dga.map(r => {
+      let sw = 0, ss = 0, worstG = null, worstR = 0;
+      for (const [g, w] of Object.entries(GAS_W)) if (r.v[g] != null) { const rt = r.v[g] / LIM.dga[g]; ss += w * ratioScore(rt); sw += w; if (rt > worstR) { worstR = rt; worstG = g; } }
+      // weighted average, but the worst gas governs (a single fault gas must not be diluted)
+      return { r, s: sw ? Math.min(ss / sw, ratioScore(worstR) + 20) : 100, worstG, worstR };
+    }).sort((a, b) => a.s - b.s)[0];
+    f.dga = { score: scored.s, label: 'Dissolved gases', why: `${scored.r.ph !== '-' ? scored.r.ph + '-ph ' : ''}${scored.r.pos}, ${scored.r.date}: highest ${scored.worstG} at ${scored.worstR.toFixed(1)}× IEEE Cond-1`, date: scored.r.date };
+  }
+  // Oil quality — BDV & water of the same samples
+  const oil = dga.filter(r => r.v.BDV != null || r.v.H2O != null).map(r => {
+    const a = r.v.BDV != null ? lerp(r.v.BDV, [[30, 0], [40, 10], [50, 40], [60, 70], [70, 100]]) : 100;
+    const b = r.v.H2O != null ? lerp(r.v.H2O, [[10, 100], [15, 85], [20, 60], [30, 30], [40, 0]]) : 100;
+    return { r, s: (a + b) / 2 };
+  }).sort((a, b) => a.s - b.s)[0];
+  if (oil) f.oil = { score: oil.s, label: 'Oil quality', why: `BDV ${oil.r.v.BDV ?? '—'} kV · water ${oil.r.v.H2O ?? '—'} ppm (${oil.r.ph !== '-' ? oil.r.ph + '-ph ' : ''}${oil.r.pos})`, date: oil.r.date };
+  // Winding insulation — worst tan δ @20 °C of latest test
+  const w = latestBy(recs('winding', { unit }).filter(r => r.v.tand20 != null), r => r.ph + r.acting).sort((a, b) => b.v.tand20 - a.v.tand20)[0];
+  if (w) f.winding = { score: lerp(w.v.tand20, [[0.3, 100], [0.5, 85], [0.7, 60], [1.0, 30], [1.5, 0]]), label: 'Winding insulation', why: `${w.ph !== '-' ? w.ph + '-ph ' : ''}${w.acting} tan δ₂₀ ${w.v.tand20.toFixed(3)} %`, date: w.date };
+  // Bushings — worst measured tan δ, capped if rising > 0.1 %/yr
+  const bs = latestBy(recs('bushing', { unit }).filter(r => r.v.tand != null), r => r.pos + r.ph);
+  if (bs.length) {
+    const b = bs.sort((a, b) => b.v.tand - a.v.tand)[0];
+    let sc = lerp(b.v.tand, [[0.4, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]);
+    const rising = DB.records.some(r => r.t === 'bushing' && r.unit === unit) && FIND_RISE(unit);
+    if (rising) sc = Math.min(sc, 60);
+    f.bushing = { score: sc, label: 'Bushings', why: `${b.pos ? b.pos + ' ' : ''}${b.ph}-ph tan δ ${b.v.tand.toFixed(3)} %${rising ? ' · rising > 0.1 %/yr (capped at 60)' : ''}`, date: b.date };
+  }
+  const keys = Object.keys(f);
+  if (!keys.length) return null;
+  const tw = keys.reduce((a, k) => a + HI_WEIGHTS[k], 0);
+  const gov = [...keys].sort((a, b) => f[a].score - f[b].score)[0];
+  // governing-factor override: a poor factor caps the overall index (CIGRE TB 761 principle)
+  const hi = Math.min(keys.reduce((a, k) => a + HI_WEIGHTS[k] * f[k].score, 0) / tw, f[gov].score + 25);
+  return { hi: Math.round(hi), band: band(hi), factors: f, governing: gov };
+}
+
+let FIND_RISE = () => false;
+export function bindRise(fn) { FIND_RISE = fn; }
+
+export function gaugeSVG(hi, size = 76) {
+  const b = band(hi), r = 30, c = 2 * Math.PI * r, frac = Math.max(0, Math.min(1, hi / 100));
+  const col = `var(--${['good', 'brand-2', 'watch', 'alert', 'crit'][b[1] - 1]})`;
+  return `<svg class="gauge" viewBox="0 0 76 76" width="${size}" height="${size}" role="img" aria-label="Health index ${hi} of 100, ${b[2]}">
+    <circle cx="38" cy="38" r="${r}" fill="none" stroke="var(--panel-3)" stroke-width="8"/>
+    <circle cx="38" cy="38" r="${r}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 38 38)"/>
+    <text x="38" y="42" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="19" font-weight="600" fill="var(--ink)">${hi}</text></svg>`;
+}

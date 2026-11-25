@@ -1,0 +1,1245 @@
+{
+ "meta": {
+  "circularNo": "MSETCL/CO/Tr.(O&M)/SE-I/EE-II/TE/No. 06961",
+  "date": "2024-10-18",
+  "title": "Guidelines for Test Frequency of various protection schemes & diagnostic testing of EHV equipment — Revision thereof",
+  "issuedBy": "Satish Chavan, Director (Operations)",
+  "ref": "Circular No. MSETCL/CO/Tr.(O&M)/SE-I/GTC/5157 dtd. 06/05/2014",
+  "pages": 5,
+  "x0": 150,
+  "x1": 1640,
+  "notesScan": {
+   "page": 5,
+   "y0": 775,
+   "y1": 905
+  }
+ },
+ "notes": [
+  "Where ever specific limiting values & actions are not suggested, same should be decided in consultation with S.E., PAC.",
+  "Identification of Major/Important substations should be done by respective zonal Chief Engineer in consultation with S.E., PAC & S.E. EHV (O&M).",
+  "If required, separate teams out of existing Engineers & Staff be created for each EHV (O&M) Circle to carry out certain activities. Necessary training to these teams to be imparted by S.E., PACs.",
+  "Diagnostic measurement activities except DGA, Oil parameter test & Furan to be carried out departmentally. While efforts should be made to make extensive use of available Portable kit for DGA measurement."
+ ],
+ "rows": [
+  {
+   "sr": 1,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Bushing – C & Tan δ (400 kV & 220 kV)",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [
+    "Capacitance: −5% to +10%",
+    "Tan δ: 0.7%",
+    "Rate of rise of Tan δ: 0.1% per year (max)",
+    "In case Tan δ or Capacitance values exceed above limits, follow-up measurement should be carried out for next two quarters & replacement decision to be taken on the basis of rate of change observed.",
+    "However, if Tan δ value is more than 1.0% at any time, replacement of bushing to be done immediately."
+   ],
+   "scan": {
+    "page": 2,
+    "y0": 175,
+    "y1": 270,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 175,
+    "gy1": 363
+   },
+   "test": "bushing",
+   "months": 12
+  },
+  {
+   "sr": 2,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Bushing – C & Tan δ (132 kV & below)",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "Capacitance: −5% to +10%",
+    "Tan δ: 0.7%",
+    "Rate of rise of Tan δ: 0.1% per year (max)",
+    "In case Tan δ or Capacitance values exceed above limits, follow-up measurement should be carried out for next two quarters & replacement decision to be taken on the basis of rate of change observed.",
+    "However, if Tan δ value is more than 1.0% at any time, replacement of bushing to be done immediately."
+   ],
+   "scan": {
+    "page": 2,
+    "y0": 270,
+    "y1": 363,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 175,
+    "gy1": 363
+   }
+  },
+  {
+   "sr": 3,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Winding – C & Tan δ (400 kV & 220 kV)",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [
+    "Measured values should be compared with factory test results or initial site commissioning values.",
+    "Any change in Capacitance of −5% to +10% or Tan δ more than 0.7%: further action to be decided in relation with Transformer test results & oil test results. This analysis of data & further action to be decided by S.E., TCC & S.E. EHV (O&M) jointly."
+   ],
+   "scan": {
+    "page": 2,
+    "y0": 363,
+    "y1": 439,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 363,
+    "gy1": 513
+   },
+   "test": "winding",
+   "months": 24
+  },
+  {
+   "sr": 4,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Winding – C & Tan δ (132 kV & below)",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "Measured values should be compared with factory test results or initial site commissioning values.",
+    "Any change in Capacitance of −5% to +10% or Tan δ more than 0.7%: further action to be decided in relation with Transformer test results & oil test results. This analysis of data & further action to be decided by S.E., TCC & S.E. EHV (O&M) jointly."
+   ],
+   "scan": {
+    "page": 2,
+    "y0": 439,
+    "y1": 513,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 363,
+    "gy1": 513
+   }
+  },
+  {
+   "sr": 5,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Winding Resistance",
+   "existing": "4 Yearly & as and when required",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [
+    "±5% difference between phases or from factory tests (resistance converted to 75 °C)."
+   ],
+   "scan": {
+    "page": 2,
+    "y0": 513,
+    "y1": 554,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 513,
+    "gy1": 554
+   },
+   "months": 48
+  },
+  {
+   "sr": 6,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "SFRA",
+   "existing": "5 Yearly & as and when required",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [
+    "Signature should be compared with factory test results or initial site commissioning signature.",
+    "±3 dB or more change in the following frequency ranges to be considered for further analysis: (i) 5 Hz–2 kHz (ii) 50 Hz–20 kHz (iii) 500 Hz–2 MHz (iv) 25 Hz–10 MHz"
+   ],
+   "scan": {
+    "page": 2,
+    "y0": 554,
+    "y1": 725,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 554,
+    "gy1": 725
+   },
+   "months": 60
+  },
+  {
+   "sr": 7,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "IR & PI measurement",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "Min. desired IR at 1 min @ 30 °C = 500 MΩ",
+    "PI: less than 1 – Dangerous · 1.25–2.0 – Fair · 2–4 – Good · above 4 – Excellent"
+   ],
+   "scan": {
+    "page": 2,
+    "y0": 725,
+    "y1": 849,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 725,
+    "gy1": 849
+   },
+   "months": 12
+  },
+  {
+   "sr": 8,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "DGA – ICT & Reactor",
+   "existing": "Quarterly for first year on commissioning & then subsequently ½ Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 2,
+    "y0": 849,
+    "y1": 911,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 849,
+    "gy1": 911
+   },
+   "test": "dga",
+   "months": 6
+  },
+  {
+   "sr": 9,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "DGA – Power Transformer",
+   "existing": "Quarterly for first year on commissioning & then subsequently ½ Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 2,
+    "y0": 911,
+    "y1": 973,
+    "hy0": 146,
+    "hy1": 175,
+    "gy0": 911,
+    "gy1": 973
+   },
+   "months": 6
+  },
+  {
+   "sr": 10,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Oil Parameter Test",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 3,
+    "y0": 134,
+    "y1": 196,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 134,
+    "gy1": 196
+   },
+   "test": "oil",
+   "months": 12
+  },
+  {
+   "sr": 11,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Excitation Current Measurement @ 10 kV",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team (220 kV & above) · O&M Team (132 kV & below)",
+   "limits": [],
+   "scan": {
+    "page": 3,
+    "y0": 196,
+    "y1": 279,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 196,
+    "gy1": 279
+   },
+   "months": 24
+  },
+  {
+   "sr": 12,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Cooling System Trial",
+   "existing": "½ Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 3,
+    "y0": 279,
+    "y1": 300,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 279,
+    "gy1": 300
+   },
+   "months": 6
+  },
+  {
+   "sr": 13,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Auxiliary Protection Trial",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 3,
+    "y0": 300,
+    "y1": 320,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 300,
+    "gy1": 320
+   },
+   "months": 12
+  },
+  {
+   "sr": 14,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Di-electric Frequency Response (DFR)",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [
+    "% Moisture by dry weight in paper (Wp): Dry 0.5–1.0% · Normal in operation < 2.0% · Wet 2.0–4.0% · Extremely wet > 4.5%"
+   ],
+   "scan": {
+    "page": 3,
+    "y0": 320,
+    "y1": 424,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 320,
+    "gy1": 424
+   },
+   "months": 24
+  },
+  {
+   "sr": 15,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Furan Analysis",
+   "existing": "As and when required",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 3,
+    "y0": 424,
+    "y1": 444,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 424,
+    "gy1": 444
+   }
+  },
+  {
+   "sr": 16,
+   "eq": "TRF",
+   "equipment": "Transformer, ICTs & Shunt Reactors",
+   "activity": "Tap Changer (OLTC) Continuity Test",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [],
+   "scan": {
+    "page": 3,
+    "y0": 444,
+    "y1": 485,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 444,
+    "gy1": 485
+   },
+   "months": 24
+  },
+  {
+   "sr": 17,
+   "eq": "LA",
+   "equipment": "Lightning Arrester",
+   "activity": "Leakage Current Measurement",
+   "existing": "½ Yearly (Before & After monsoon)",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "Third Harmonic Resistive Current component — For new LA: up to 30 µA",
+    "For LA in service: (a) up to 150 µA – Normal (b) 150–350 µA – Test for IR values stack-wise; if low in comparison, faulty stack to be replaced (c) beyond 350 µA – complete LA should be replaced.",
+    "Remark: For HV LAs on gantry structures, IR value test is not possible; hence IR values must be taken during TF outage by removing jumper."
+   ],
+   "scan": {
+    "page": 3,
+    "y0": 485,
+    "y1": 712,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 485,
+    "gy1": 712
+   },
+   "test": "la",
+   "months": 6,
+   "remarkAdded": true
+  },
+  {
+   "sr": 18,
+   "eq": "CT",
+   "equipment": "Current Transformer",
+   "activity": "C & Tan δ of 400 kV CTs",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team in association with 400 kV Testing Unit",
+   "limits": [
+    "Capacitance: −5% to +10%",
+    "Tan δ: 0.7%",
+    "Rate of rise of Tan δ: 0.1% per year (max)",
+    "In case Tan δ or Capacitance values exceed above limits, follow-up measurement should be carried out for next two quarters & replacement decision to be taken on the basis of rate of change observed & oil DGA results."
+   ],
+   "scan": {
+    "page": 3,
+    "y0": 712,
+    "y1": 774,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 712,
+    "gy1": 919
+   },
+   "test": "ct",
+   "kv": 400,
+   "months": 24
+  },
+  {
+   "sr": 19,
+   "eq": "CT",
+   "equipment": "Current Transformer",
+   "activity": "C & Tan δ of 220 kV CTs at Major/Important S/s",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team (CTs of Transformer & ICT bays) · O&M Team (CTs of all other bays)",
+   "limits": [
+    "Capacitance: −5% to +10%",
+    "Tan δ: 0.7%",
+    "Rate of rise of Tan δ: 0.1% per year (max)",
+    "In case Tan δ or Capacitance values exceed above limits, follow-up measurement should be carried out for next two quarters & replacement decision to be taken on the basis of rate of change observed & oil DGA results."
+   ],
+   "scan": {
+    "page": 3,
+    "y0": 774,
+    "y1": 877,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 712,
+    "gy1": 919
+   },
+   "test": "ct",
+   "kv": 220,
+   "months": 12
+  },
+  {
+   "sr": 20,
+   "eq": "CT",
+   "equipment": "Current Transformer",
+   "activity": "C & Tan δ of all other EHV CTs (66 kV to 220 kV)",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "Capacitance: −5% to +10%",
+    "Tan δ: 0.7%",
+    "Rate of rise of Tan δ: 0.1% per year (max)",
+    "In case Tan δ or Capacitance values exceed above limits, follow-up measurement should be carried out for next two quarters & replacement decision to be taken on the basis of rate of change observed & oil DGA results."
+   ],
+   "scan": {
+    "page": 3,
+    "y0": 877,
+    "y1": 919,
+    "hy0": 105,
+    "hy1": 134,
+    "gy0": 712,
+    "gy1": 919
+   },
+   "months": 24
+  },
+  {
+   "sr": 21,
+   "eq": "CVT",
+   "equipment": "Capacitive Voltage Transformer",
+   "activity": "C & Tan δ",
+   "existing": "3 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team in association with Testing Team",
+   "limits": [
+    "Capacitance: ±2%",
+    "Tan δ: 0.007 or +0.002 variation from factory test result or commissioning value.",
+    "In case Capacitance value exceeds above limit, follow-up measurement should be carried out yearly & replacement decision to be taken if value varies by ±6%.",
+    "In case Tan δ value exceeds above limit, follow-up measurement should be carried out yearly & replacement decision to be taken if value changes by +0.003 along with change in Capacitance & drift in secondary voltage."
+   ],
+   "scan": {
+    "page": 4,
+    "y0": 135,
+    "y1": 362,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 135,
+    "gy1": 362
+   },
+   "months": 36
+  },
+  {
+   "sr": 22,
+   "eq": "CVT",
+   "equipment": "Capacitive Voltage Transformer",
+   "activity": "Measurement of secondary voltage at C & R panels",
+   "existing": "Quarterly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team in association with Testing Team",
+   "limits": [
+    "CVT voltage ratio error: ±5% protection core · ±0.5% metering core"
+   ],
+   "scan": {
+    "page": 4,
+    "y0": 362,
+    "y1": 427,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 362,
+    "gy1": 427
+   },
+   "months": 3
+  },
+  {
+   "sr": 23,
+   "eq": "PT",
+   "equipment": "Potential Transformer",
+   "activity": "IR value, magnetizing current & primary winding resistance measurement",
+   "existing": "During Bus Outage",
+   "revised": "2 Yearly",
+   "changed": true,
+   "by": "Testing Team",
+   "limits": [],
+   "scan": {
+    "page": 4,
+    "y0": 427,
+    "y1": 489,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 427,
+    "gy1": 489
+   },
+   "months": 24
+  },
+  {
+   "sr": 24,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "Contact Resistance Measurement for EHV Breaker",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "400 kV: 50 µΩ",
+    "220 kV: 100 µΩ",
+    "132/33/22/11 kV: 100 µΩ"
+   ],
+   "scan": {
+    "page": 4,
+    "y0": 489,
+    "y1": 551,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 489,
+    "gy1": 613
+   },
+   "test": "cb_crm",
+   "months": 24
+  },
+  {
+   "sr": 25,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "Contact Resistance Measurement for HV Breaker",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "400 kV: 50 µΩ",
+    "220 kV: 100 µΩ",
+    "132/33/22/11 kV: 100 µΩ"
+   ],
+   "scan": {
+    "page": 4,
+    "y0": 551,
+    "y1": 613,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 489,
+    "gy1": 613
+   },
+   "months": 12
+  },
+  {
+   "sr": 26,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "Timing for EHV Breaker",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "Close time: 150 ms (400 kV, 220 kV and 132/33/22/11 kV)",
+    "Trip time: 400 kV 25 ms · 220 kV 35 ms · 132/33/22/11 kV 45 ms"
+   ],
+   "scan": {
+    "page": 4,
+    "y0": 613,
+    "y1": 634,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 613,
+    "gy1": 681
+   },
+   "test": "cb_timing",
+   "months": 24
+  },
+  {
+   "sr": 27,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "Timing for HV Breaker",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [
+    "Close time: 150 ms (400 kV, 220 kV and 132/33/22/11 kV)",
+    "Trip time: 400 kV 25 ms · 220 kV 35 ms · 132/33/22/11 kV 45 ms"
+   ],
+   "scan": {
+    "page": 4,
+    "y0": 634,
+    "y1": 681,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 613,
+    "gy1": 681
+   },
+   "months": 12
+  },
+  {
+   "sr": 28,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "DCRM of 400 kV",
+   "existing": "During commissioning & then 2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [],
+   "scan": {
+    "page": 4,
+    "y0": 681,
+    "y1": 722,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 681,
+    "gy1": 722
+   },
+   "months": 24
+  },
+  {
+   "sr": 29,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "DCRM of 220 kV Major/Important S/s",
+   "existing": "During commissioning & then as and when required",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [],
+   "scan": {
+    "page": 4,
+    "y0": 722,
+    "y1": 763,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 722,
+    "gy1": 763
+   }
+  },
+  {
+   "sr": 30,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "DCRM of all other EHV S/s",
+   "existing": "During commissioning & then as and when required",
+   "revised": "No change",
+   "changed": false,
+   "by": "Testing Team",
+   "limits": [],
+   "scan": {
+    "page": 4,
+    "y0": 763,
+    "y1": 804,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 763,
+    "gy1": 804
+   }
+  },
+  {
+   "sr": 31,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "Dew Point of SF6",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 4,
+    "y0": 804,
+    "y1": 825,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 804,
+    "gy1": 825
+   },
+   "months": 24
+  },
+  {
+   "sr": 32,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "IR measurement for EHV Breaker",
+   "existing": "2 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 4,
+    "y0": 825,
+    "y1": 867,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 825,
+    "gy1": 867
+   },
+   "months": 24
+  },
+  {
+   "sr": 33,
+   "eq": "CB",
+   "equipment": "Circuit Breaker",
+   "activity": "IR measurement for HV Breaker",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 4,
+    "y0": 867,
+    "y1": 908,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 867,
+    "gy1": 908
+   },
+   "months": 12
+  },
+  {
+   "sr": 34,
+   "eq": "RLY",
+   "equipment": "Relays",
+   "activity": "Busbar",
+   "existing": "1 Year after commissioning & subsequently after 3 yearly",
+   "revised": "The SOP for testing activities for relaying is part of Protection Manual & same is to be adopted.",
+   "changed": true,
+   "by": "Testing Team",
+   "limits": [
+    "The test procedures should include thorough functional scheme testing.",
+    "For Electromechanical/Static relays except Busbar, yearly testing to be carried."
+   ],
+   "scan": {
+    "page": 5,
+    "y0": 135,
+    "y1": 218,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 135,
+    "gy1": 342
+   }
+  },
+  {
+   "sr": 35,
+   "eq": "RLY",
+   "equipment": "Relays",
+   "activity": "LBB",
+   "existing": "1 Year after commissioning & subsequently after 3 yearly",
+   "revised": "The SOP for testing activities for relaying is part of Protection Manual & same is to be adopted.",
+   "changed": true,
+   "by": "Testing Team",
+   "limits": [
+    "The test procedures should include thorough functional scheme testing.",
+    "For Electromechanical/Static relays except Busbar, yearly testing to be carried."
+   ],
+   "scan": {
+    "page": 5,
+    "y0": 218,
+    "y1": 280,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 135,
+    "gy1": 342
+   }
+  },
+  {
+   "sr": 36,
+   "eq": "RLY",
+   "equipment": "Relays",
+   "activity": "Distance",
+   "existing": "2 Yearly",
+   "revised": "The SOP for testing activities for relaying is part of Protection Manual & same is to be adopted.",
+   "changed": true,
+   "by": "Testing Team",
+   "limits": [
+    "The test procedures should include thorough functional scheme testing.",
+    "For Electromechanical/Static relays except Busbar, yearly testing to be carried."
+   ],
+   "scan": {
+    "page": 5,
+    "y0": 280,
+    "y1": 300,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 135,
+    "gy1": 342
+   }
+  },
+  {
+   "sr": 37,
+   "eq": "RLY",
+   "equipment": "Relays",
+   "activity": "Differential",
+   "existing": "2 Yearly",
+   "revised": "The SOP for testing activities for relaying is part of Protection Manual & same is to be adopted.",
+   "changed": true,
+   "by": "Testing Team",
+   "limits": [
+    "The test procedures should include thorough functional scheme testing.",
+    "For Electromechanical/Static relays except Busbar, yearly testing to be carried."
+   ],
+   "scan": {
+    "page": 5,
+    "y0": 300,
+    "y1": 321,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 135,
+    "gy1": 342
+   }
+  },
+  {
+   "sr": 38,
+   "eq": "RLY",
+   "equipment": "Relays",
+   "activity": "Back-up",
+   "existing": "2 Yearly",
+   "revised": "The SOP for testing activities for relaying is part of Protection Manual & same is to be adopted.",
+   "changed": true,
+   "by": "Testing Team",
+   "limits": [
+    "The test procedures should include thorough functional scheme testing.",
+    "For Electromechanical/Static relays except Busbar, yearly testing to be carried."
+   ],
+   "scan": {
+    "page": 5,
+    "y0": 321,
+    "y1": 342,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 135,
+    "gy1": 342
+   }
+  },
+  {
+   "sr": 39,
+   "eq": "BAT",
+   "equipment": "Battery",
+   "activity": "Capacity Test",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 342,
+    "y1": 362,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 342,
+    "gy1": 362
+   },
+   "months": 12
+  },
+  {
+   "sr": 40,
+   "eq": "BAT",
+   "equipment": "Battery",
+   "activity": "Impedance Measurement",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 362,
+    "y1": 383,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 362,
+    "gy1": 383
+   },
+   "months": 12
+  },
+  {
+   "sr": 41,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "Line Signature test",
+   "existing": "Yearly & Line Break Down",
+   "revised": "As & when required",
+   "changed": true,
+   "by": "Line Maintenance Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 383,
+    "y1": 404,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 383,
+    "gy1": 404
+   }
+  },
+  {
+   "sr": 42,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "Fault Locator",
+   "existing": "Line Break Down",
+   "revised": "No change",
+   "changed": false,
+   "by": "Line Maintenance Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 404,
+    "y1": 425,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 404,
+    "gy1": 425
+   }
+  },
+  {
+   "sr": 43,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "PID for critical lines",
+   "existing": "3 Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Line Maintenance Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 425,
+    "y1": 445,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 425,
+    "gy1": 445
+   },
+   "months": 36
+  },
+  {
+   "sr": 44,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "PID for lines facing insulator failure problems",
+   "existing": "Immediately",
+   "revised": "No change",
+   "changed": false,
+   "by": "Line Maintenance Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 445,
+    "y1": 487,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 445,
+    "gy1": 487
+   }
+  },
+  {
+   "sr": 45,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "Thermoscanning of critical lines",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Line Maintenance Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 487,
+    "y1": 528,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 487,
+    "gy1": 528
+   },
+   "months": 12
+  },
+  {
+   "sr": 46,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "Tower Footing Resistance Measurement",
+   "existing": "3 Yearly during dry season",
+   "revised": "No change",
+   "changed": false,
+   "by": "Line Maintenance Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 528,
+    "y1": 569,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 528,
+    "gy1": 569
+   },
+   "months": 36
+  },
+  {
+   "sr": 47,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "Monkey Patrolling of critical lines",
+   "existing": "Yearly",
+   "revised": "No change",
+   "changed": false,
+   "by": "Line Maintenance Team",
+   "limits": [
+    "For monkey patrolling, maximum utilization of Drones is to be ensured."
+   ],
+   "scan": {
+    "page": 5,
+    "y0": 569,
+    "y1": 610,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 569,
+    "gy1": 651
+   },
+   "months": 12,
+   "remarkAdded": true
+  },
+  {
+   "sr": 48,
+   "eq": "LINE",
+   "equipment": "EHV Line",
+   "activity": "Monkey Patrolling of other lines",
+   "existing": "As and when required",
+   "revised": "Yearly",
+   "changed": true,
+   "by": "Line Maintenance Team",
+   "limits": [
+    "For monkey patrolling, maximum utilization of Drones is to be ensured."
+   ],
+   "scan": {
+    "page": 5,
+    "y0": 610,
+    "y1": 651,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 569,
+    "gy1": 651
+   },
+   "months": 12
+  },
+  {
+   "sr": 49,
+   "eq": "SS",
+   "equipment": "Substation",
+   "activity": "Thermoscanning of critical S/s",
+   "existing": "Monthly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 651,
+    "y1": 693,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 651,
+    "gy1": 693
+   },
+   "months": 1
+  },
+  {
+   "sr": 50,
+   "eq": "SS",
+   "equipment": "Substation",
+   "activity": "Thermoscanning of non-critical S/s",
+   "existing": "2 Monthly",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 693,
+    "y1": 734,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 693,
+    "gy1": 734
+   },
+   "months": 2
+  },
+  {
+   "sr": 51,
+   "eq": "SS",
+   "equipment": "Substation",
+   "activity": "Earth Resistance Measurement",
+   "existing": "Yearly & as and when required",
+   "revised": "No change",
+   "changed": false,
+   "by": "O&M Team",
+   "limits": [],
+   "scan": {
+    "page": 5,
+    "y0": 734,
+    "y1": 775,
+    "hy0": 106,
+    "hy1": 135,
+    "gy0": 734,
+    "gy1": 775
+   },
+   "months": 12
+  }
+ ],
+ "errata": [
+  {
+   "sr": 10,
+   "issue": "Paper-moisture (Wp) limits were attached to Oil Parameter Test; in the circular they belong to DFR (Sr 14)."
+  },
+  {
+   "sr": 14,
+   "issue": "DFR had no limits in the old JSON; circular lists Wp moisture bands."
+  },
+  {
+   "sr": 19,
+   "issue": "\"Note change in capacitance & drift in secondary voltage\" is a CVT (Sr 21) clause, not a CT clause. CT clause ends with \"…rate of change observed & oil DGA results\"."
+  },
+  {
+   "sr": 21,
+   "issue": "Clause 3 is about Capacitance (replace if varies by ±6%), not Tan δ."
+  },
+  {
+   "sr": 23,
+   "issue": "PT row had CB contact-resistance limits copied in; circular gives no limits for PT."
+  },
+  {
+   "sr": 26,
+   "issue": "Timing for EHV/HV breaker is done by O&M Team (old JSON said Testing Team)."
+  },
+  {
+   "sr": 27,
+   "issue": "Timing for HV breaker is O&M Team."
+  },
+  {
+   "sr": 29,
+   "issue": "DCRM 220 kV major S/s: \"During commissioning & then as and when required\" — no \"2 Yearly\"."
+  },
+  {
+   "sr": 30,
+   "issue": "DCRM other EHV S/s is done by Testing Team, frequency as and when required."
+  },
+  {
+   "sr": 34,
+   "issue": "Relay rows 34–38: revised frequency is \"SOP as per Protection Manual\"; clause 1 (thorough functional scheme testing) was missing."
+  },
+  {
+   "sr": 38,
+   "issue": "Back-up relay is 2 Yearly by Testing Team (old JSON: Yearly, O&M)."
+  },
+  {
+   "sr": 39,
+   "issue": "Sr 39 is Battery Capacity Test (old JSON had it under Relays)."
+  },
+  {
+   "sr": 40,
+   "issue": "Battery Impedance: Yearly, no change (old JSON wrongly said revised to \"as and when required\")."
+  },
+  {
+   "sr": 41,
+   "issue": "Line Signature test is the row revised to \"As & when required\" (old JSON marked it unchanged)."
+  },
+  {
+   "sr": 42,
+   "issue": "Fault Locator: existing frequency is \"Line Break Down\" only."
+  }
+ ]
+}
