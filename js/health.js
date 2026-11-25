@@ -1,8 +1,8 @@
 // Transformer Health Index — weighted-factor method in the spirit of CIGRE TB 761 and
 // Jahromi et al. (2009). Indicative only: weights and break-points are set here, openly,
 // so S.E. PAC can tune them. Each factor keeps the reading that drove its score.
-import { DB, recs, groupBy } from './data.js?v=20261125.1621';
-import { LIM } from './rules.js?v=20261125.1621';
+import { DB, recs, groupBy } from './data.js?v=20261125.1811';
+import { LIM } from './rules.js?v=20261125.1811';
 
 const lerp = (x, pts) => {           // piecewise-linear: pts = [[x,score],...] ascending x
   if (x <= pts[0][0]) return pts[0][1];
@@ -45,13 +45,13 @@ export function healthIndex(unit) {
   const w = latestBy(recs('winding', { unit }).filter(r => r.v.tand20 != null), r => r.ph + r.acting).sort((a, b) => b.v.tand20 - a.v.tand20)[0];
   if (w) f.winding = { score: lerp(w.v.tand20, [[0.3, 100], [0.5, 85], [0.7, 60], [1.0, 30], [1.5, 0]]), label: 'Winding insulation', why: `${w.ph !== '-' ? w.ph + '-ph ' : ''}${w.acting} tan δ₂₀ ${w.v.tand20.toFixed(3)} %`, date: w.date };
   // Bushings — worst measured tan δ, capped if rising > 0.1 %/yr
-  const bs = latestBy(recs('bushing', { unit }).filter(r => r.v.tand != null), r => r.pos + r.ph);
+  const bs = latestBy(recs('bushing', { unit }).filter(r => r.v.tand20 != null), r => r.pos + r.ph);
   if (bs.length) {
-    const b = bs.sort((a, b) => b.v.tand - a.v.tand)[0];
-    let sc = lerp(b.v.tand, [[0.4, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]);
+    const b = bs.sort((a, b) => b.v.tand20 - a.v.tand20)[0];
+    let sc = lerp(b.v.tand20, [[0.4, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]);
     const rising = DB.records.some(r => r.t === 'bushing' && r.unit === unit) && FIND_RISE(unit);
     if (rising) sc = Math.min(sc, 60);
-    f.bushing = { score: sc, label: 'Bushings', why: `${b.pos ? b.pos + ' ' : ''}${b.ph}-ph tan δ ${b.v.tand.toFixed(3)} %${rising ? ' · rising > 0.1 %/yr (capped at 60)' : ''}`, date: b.date };
+    f.bushing = { score: sc, label: 'Bushings', why: `${b.pos ? b.pos + ' ' : ''}${b.ph}-ph corrected tan δ ${b.v.tand20.toFixed(3)} %${rising ? ' · rising > 0.1 %/yr (capped at 60)' : ''}`, date: b.date };
   }
   const keys = Object.keys(f);
   if (!keys.length) return null;
@@ -80,7 +80,7 @@ export function gaugeSVG(hi, size = 76) {
 // CRM is scored against the fleet median of the same voltage class (healthy-fleet
 // baseline), because the circular's 400 kV 50 µΩ figure does not match per-pole
 // measurement (see finding); the circular limit is still shown on every chart.
-import { kvOf, done } from './data.js?v=20261125.1621';
+import { kvOf, done } from './data.js?v=20261125.1811';
 export const BAY_WEIGHTS = { cb_crm: 20, cb_timing: 20, ct: 30, la: 30 };
 const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 const latestPh = (t, unit) => latestBy(recs(t, { unit }).filter(done), r => r.ph);
@@ -89,12 +89,9 @@ export function bayHealth(unit) {
   const f = {}, kv = kvOf(unit);
   const crm = latestPh('cb_crm', unit).filter(r => r.v.R != null);
   if (crm.length) {
-    const fleet = med(latestBy(recs('cb_crm').filter(r => r.v.R != null && kvOf(r.unit) === kv), r => r.unit + r.ph).map(r => r.v.R));
-    const hi = crm.sort((a, b) => b.v.R - a.v.R)[0], vals = crm.map(r => r.v.R);
-    let sc = lerp(hi.v.R / fleet, [[1.0, 100], [1.2, 85], [1.5, 55], [2, 20], [3, 0]]);
-    const imb = (Math.max(...vals) - Math.min(...vals)) / Math.min(...vals);
-    if (imb > 0.25) sc = Math.min(sc, 70);
-    f.cb_crm = { score: sc, label: 'Breaker contacts', why: `max ${hi.v.R} µΩ (${hi.ph}-ph) vs ${kv} kV fleet median ${fleet.toFixed(0)} µΩ${imb > 0.25 ? ` · pole imbalance ${(imb * 100).toFixed(0)} %` : ''}`, date: hi.date };
+    const lim = { 400: 50, 220: 100 }[kv], hi = crm.sort((a, b) => b.v.R - a.v.R)[0];
+    const sc = lerp(hi.v.R / lim, [[0.8, 100], [1.0, 80], [1.2, 60], [1.5, 30], [2, 0]]);
+    f.cb_crm = { score: sc, label: 'Breaker contacts', why: `max ${hi.v.R} µΩ (${hi.ph}-ph) vs circular ${lim} µΩ`, date: hi.date };
   }
   const tm = latestPh('cb_timing', unit);
   if (tm.length) {
@@ -106,10 +103,10 @@ export function bayHealth(unit) {
     if (spread('close') > 5 || spread('open1') > 3.33) sc = Math.min(sc, 70);
     f.cb_timing = { score: sc, label: 'Breaker mechanism', why: `trip ${op.toFixed(1)} ms (limit ${trip}) · close ${cl ? cl.toFixed(1) : '—'} ms (limit 150)${spread('close') > 5 ? ` · close-pole spread ${spread('close').toFixed(1)} ms` : ''}`, date: tm[0].date };
   }
-  const c = latestPh('ct', unit).filter(r => r.v.tand != null);
+  const c = latestPh('ct', unit).filter(r => r.v.tand20 != null);
   if (c.length) {
-    const w = c.sort((a, b) => b.v.tand - a.v.tand)[0];
-    f.ct = { score: lerp(w.v.tand, [[0.3, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]), label: 'CT insulation', why: `${w.ph}-ph tan δ ${w.v.tand.toFixed(3)} % · C ${w.v.C ?? '—'} pF`, date: w.date };
+    const w = c.sort((a, b) => b.v.tand20 - a.v.tand20)[0];
+    f.ct = { score: lerp(w.v.tand20, [[0.3, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]), label: 'CT insulation', why: `${w.ph}-ph corrected tan δ ${w.v.tand20.toFixed(3)} % · C ${w.v.C ?? '—'} pF`, date: w.date };
   }
   const l = latestPh('la', unit).filter(r => r.v.Icorr != null);
   if (l.length) {

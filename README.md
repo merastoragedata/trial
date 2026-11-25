@@ -41,9 +41,19 @@ logged under **Data & sources** and kept out of the analysis.
 | `js/health.js` | Transformer Health Index and Bay Health Index (weighted factors, worst factor governs) |
 | `js/art.js` | Equipment illustrations with nameplates; site photos in `assets/photos/` replace them |
 | `js/sld.js` | Single-line diagrams: 400 kV one-and-a-half breaker, 220 kV double main + transfer |
+| `js/results.js` | Test-page sections: FY cards, ranking, yearly progress, sequence-wise results, pop-ups, norms drawer |
+| `js/edit.js` | Admin editing: overrides, spreadsheet formula engine, targets |
+| `tools/make_background.py` | Generates the substation-in-forest backdrop (`assets/bg/substation.svg`) |
 | `js/icons.js` | SVG icon set (IEC 60617-style equipment symbols) |
 | `js/app.js`, `js/ui.js` | Views, charts with limit zones, Duval Triangle, command palette (Ctrl K), circular viewer |
 | `vendor/` | Chart.js 4.4.1 (MIT), bundled so the portal also works on an intranet without internet |
+
+## Judgement rules
+
+- Every phase / bushing / winding insulation / oil sampling point is an independent unit with its own health.
+- Results are judged only against the MSETCL circular and industry standards. Units are compared with each other only within the same voltage class, rating and position (make where recorded), e.g. in the ranking.
+- Tan δ is plotted and judged as the value corrected to 20 °C; the measured value stays in the tables for record.
+- Every diagnostic graph shows the unit's own average to date and dotted reference lines every 20 % of that average.
 
 ## Scheduling rule
 

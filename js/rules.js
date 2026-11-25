@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1621';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1811';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -45,7 +45,6 @@ function tandSeries(t, keyFn, opt) {
         if (opt.rate && rate > LIM.rise) add({ ...base, sev: 'alert', recIds: [P.id, L.id], title: `Tan δ rising ${fmt(rate, 3)} %/yr (limit 0.1 %/yr)`, detail: `${label(L)}: ${fmt(P.v[opt.metric], 3)} % (${P.date}) → ${fmt(v, 3)} % (${L.date}).`, action: 'Follow-up measurement for next two quarters; decide on replacement from the observed rate of change.', basis: opt.basis + ' cl.3' });
         else if (opt.doubling && v >= 0.3 && v / P.v[opt.metric] >= 1.8) add({ ...base, sev: 'watch', recIds: [P.id, L.id], title: `Tan δ up ${fmt(v / P.v[opt.metric], 1)}× since last test`, detail: `${label(L)}: ${fmt(P.v[opt.metric], 3)} % → ${fmt(v, 3)} % (at 20 °C). Still inside 0.7 %, but the step change matters more than the absolute value.`, action: 'Correlate with oil moisture/DGA; schedule DFR (Sr 14) to separate moisture from contamination.', basis: 'IEEE C57.152 · trend' });
       }
-      if (opt.sister) sisterCheck(t, L, opt);
     }
     if (L.v.C != null && B.v.C != null && L !== B) {
       const dc = pctChange(B.v.C, L.v.C);
@@ -95,15 +94,6 @@ function crm() {
         title: `${over.length}/${rs.length} poles above circular ${lim} µΩ — systemic`, detail: `${kv} kV pole readings range ${fmt(Math.min(...rs.map(r => r.v.R)), 0)}–${fmt(Math.max(...rs.map(r => r.v.R)), 0)} µΩ. When nearly every healthy breaker "fails", the criterion usually doesn't match the measurement. Most likely the 50 µΩ is per interrupter (break), while Karjat measures across the full 2-break pole.`,
         action: 'Clarify basis with S.E. PAC. Adopt IEC 62271-1: ≤ 1.2 × manufacturer\'s value per pole, measured at ≥ 50 A DC (Karjat uses ~100 A ✓).', basis: 'MSETCL Sr 24 vs IEC 62271-1' });
     } else over.forEach(r => add({ t: 'cb_crm', unit: r.unit, ph: r.ph, date: r.date, sev: 'alert', recIds: [r.id], where: label(r), title: `CRM ${fmt(r.v.R, 1)} µΩ > ${lim} µΩ`, detail: '', action: 'Inspect / clean main contacts; re-measure.', basis: 'MSETCL Sr 24' }));
-    const med = median(rs.map(r => r.v.R));
-    for (const [, g] of groupBy(rs, r => r.unit + r.date)) {
-      const vals = g.map(r => r.v.R), mx = Math.max(...vals), mn = Math.min(...vals);
-      if (g.length >= 2 && (mx - mn) / mn > 0.25) {
-        const hi = g.find(r => r.v.R === mx);
-        add({ t: 'cb_crm', unit: hi.unit, ph: hi.ph, date: hi.date, sev: 'watch', recIds: g.map(r => r.id), where: unitName(hi.unit, true),
-          title: `Pole imbalance ${fmt((mx - mn) / mn * 100, 0)} % (${hi.ph}-ph ${fmt(mx, 1)} µΩ)`, detail: `Poles: ${g.map(r => `${r.ph} ${fmt(r.v.R, 1)}`).join(' · ')} µΩ; ${kv} kV fleet median ${fmt(med, 1)} µΩ.`, action: 'A single high pole points to contact wear / loose palm on that pole. Check with DCRM (Sr 28) at next outage.', basis: 'Field practice (pole comparison)' });
-      }
-    }
   }
   all.filter(r => r.v.R == null).forEach(r => add({ t: 'cb_crm', unit: r.unit, ph: r.ph, date: r.date, sev: 'info', recIds: [r.id], where: label(r), title: 'Test logged without a value', detail: `Remark: "${r.rem}".`, action: 'Enter the measured µΩ value in the source sheet.', basis: 'Data quality' }));
 }
@@ -235,9 +225,9 @@ export function schedule() {
 
 export function run() {
   FINDINGS = []; recSev.clear();
-  tandSeries('bushing', r => `${r.unit}|${r.pos}|${r.ph}`, { metric: 'tand', metricLabel: 'measured tan δ', basis: 'MSETCL Sr 1', hard: LIM.tandHard, hardAction: 'Replace bushing immediately (circular Sr 1 cl.5).', overAction: 'Follow-up measurement for next two quarters; replacement on rate of change.', rate: true, sister: true, cWatch: true });
+  tandSeries('bushing', r => `${r.unit}|${r.pos}|${r.ph}`, { metric: 'tand20', metricLabel: 'corrected tan δ @20 °C', basis: 'MSETCL Sr 1', hard: LIM.tandHard, hardAction: 'Replace bushing immediately (circular Sr 1 cl.5).', overAction: 'Follow-up measurement for next two quarters; replacement on rate of change.', rate: true, cWatch: true });
   tandSeries('winding', r => `${r.unit}|${r.ph}|${r.acting}`, { metric: 'tand20', metricLabel: 'tan δ at 20 °C', basis: 'MSETCL Sr 3', overAction: 'Decide with transformer test results & oil test results — S.E. TCC & S.E. EHV (O&M) jointly.', watchAbs: 0.5, watchStd: 'IEEE C57.152 new-unit 0.5 %', doubling: true });
-  tandSeries('ct', r => `${r.unit}|${r.ph}`, { metric: 'tand', metricLabel: 'measured tan δ', basis: 'MSETCL Sr 18/19', hard: LIM.tandHard, hardAction: 'Industry practice: replace CT at ≥ 1.0 % (CEA/POWERGRID); circular: follow-up two quarters.', overAction: 'Follow-up measurement for next two quarters; decide on rate of change & oil DGA.', rate: true, sister: true, watchAbs: 0.5, watchStd: 'IEC 61869-1 routine 0.5 %' });
+  tandSeries('ct', r => `${r.unit}|${r.ph}`, { metric: 'tand20', metricLabel: 'corrected tan δ @20 °C', basis: 'MSETCL Sr 18/19', hard: LIM.tandHard, hardAction: 'Industry practice: replace CT at ≥ 1.0 % (CEA/POWERGRID); circular: follow-up two quarters.', overAction: 'Follow-up measurement for next two quarters; decide on rate of change & oil DGA.', rate: true, watchAbs: 0.5, watchStd: 'IEC 61869-1 routine 0.5 %' });
   windingCross(); crm(); timing(); la(); dga();
   FINDINGS.sort((a, b) => SEV[b.sev] - SEV[a.sev] || b.date.localeCompare(a.date));
   return FINDINGS;

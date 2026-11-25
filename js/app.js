@@ -1,13 +1,13 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1621';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1621';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1621';
-import { IC, LOGO } from './icons.js?v=20261125.1621';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1621';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1621';
-import { art, skyline } from './art.js?v=20261125.1621';
-import { renderSections, bindResults, openElement, openNorms, NOUN } from './results.js?v=20261125.1621';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1621';
-import { refresh } from './data.js?v=20261125.1621';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1811';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1811';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1811';
+import { IC, LOGO } from './icons.js?v=20261125.1811';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1811';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1811';
+import { art, skyline } from './art.js?v=20261125.1811';
+import { renderSections, bindResults, openElement, openNorms, NOUN } from './results.js?v=20261125.1811';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1811';
+import { refresh } from './data.js?v=20261125.1811';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -375,23 +375,14 @@ function vTest(t, q) {
       <div class="th-body"><div class="eyebrow">${esc(T.eq)} · circular Sr ${T.sr}</div><h1>${esc(T.name)}</h1><p class="lede">${esc(TEST_ABOUT[t])}</p>
       <div class="actions" style="display:flex;gap:8px;margin-top:12px">${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button>${printBtn}</div></div></section>
     <div id="v4"></div>
-    <div class="sec-h mt-l"><h2>More analysis</h2><span class="note">earlier views, kept for reference · click to expand</span></div>
-    <details class="sec"><summary><span class="sec-t">Fleet overview</span><span class="dim">ranking by the key parameter, biggest movers</span><span class="caret">▾</span></summary><div class="sec-b">
-      <div class="grid g-7-5"><div class="card"><div class="card-h"><h3>Ranking · latest ${esc(KM[t].label)}</h3></div><div class="card-b"><div style="height:${Math.min(560, 46 + A.rank.length * 20)}px;position:relative"><canvas id="rankCv"></canvas></div><p class="note" style="margin:6px 0 0">${esc(KM[t].limitNote)}</p></div></div>
-      <div class="card"><div class="card-h"><h3>Biggest movers</h3><span class="sub">change since previous test</span></div>${moversTable(A.movers, t)}</div></div></div></details>
-    <details class="sec"><summary><span class="sec-t">Year-wise heat map</span><span class="dim">worst ${esc(KM[t].label)} per ${t === 'ct' || t.startsWith('cb') || t === 'la' ? 'bay' : 'unit'} per FY</span><span class="caret">▾</span></summary><div class="sec-b"><div class="card">${heatmap(t, A)}</div></div></details>
+    <div class="sec-h mt-l"><h2>More analysis</h2><span class="note">reference · click to expand</span></div>
     <details class="sec"><summary><span class="sec-t">Circular clause & industry practice</span><span class="caret">▾</span></summary><div class="sec-b"><div class="grid g2">${clauseCard(t === 'ct' ? 18 : T.sr, t)}${standardsCard(t)}</div></div></details>
     <details class="sec"><summary><span class="sec-t">Findings</span><span class="dim">${fs.length}</span><span class="caret">▾</span></summary><div class="sec-b"><div class="card">${findingList(fs)}</div></div></details>
-    <details class="sec" id="oldTrends"><summary><span class="sec-t">Trend charts & latest table (grouped)</span><span class="caret">▾</span></summary><div class="sec-b">
-      <div class="toolbar"><div class="chips">${t === 'dga' ? '' : chip('all', 'All')}${kvChips ? chip('400', '400 kV') + chip('220', '220 kV') : ''}${units.map(u => chip(u, unitName(u))).join('')}</div></div><div id="tb"></div></div></details>`;
+`;
   renderSections(t, $('#v4'));
   view().insertAdjacentHTML('beforeend', `<button class="fab-norms" data-norms title="Show the circular clause and industry standards for these results">${IC.norms}Norms & standards</button>`);
   $$('[data-norms]').forEach(b => b.onclick = () => openNorms(t));
-  let rankDone = false;
-  $$('details.sec').forEach(d => d.addEventListener('toggle', () => { if (d.open && !rankDone && $('#rankCv', d)) { rankDone = true; rankChart($('#rankCv'), t, A.rank); } }));
-  const body = renderTestBody(t, rs, false);
-  $('#tb').innerHTML = body.html; body.after($('#tb'));
-  if (q.get('u') && !['ICT1'].includes(q.get('u')) || (t === 'dga' && q.get('u'))) $('#oldTrends').open = true;
+
 }
 
 function vTests() {
@@ -512,9 +503,9 @@ const TEST_ABOUT = {
 };
 // key metric per test, used for ranking, heat map and movers
 const KM = {
-  bushing: { label: 'tan δ', unit: '%', dp: 3, get: r => r.v.tand, sub: r => `${r.pos} ${r.ph !== '-' ? r.ph : ''}`.trim() || 'Bushing', th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 % follow-up, 1.0 % replace immediately. Industry: 0.5 % for a new OIP bushing (IEEE C57.19.01).' },
+  bushing: { label: 'corrected tan δ', unit: '%', dp: 3, get: r => r.v.tand20, sub: r => `${r.pos} ${r.ph !== '-' ? r.ph : ''}`.trim() || 'Bushing', th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 % follow-up, 1.0 % replace immediately. Industry: 0.5 % for a new OIP bushing (IEEE C57.19.01).' },
   winding: { label: 'tan δ @20 °C', unit: '%', dp: 3, get: r => r.v.tand20, sub: r => `${r.ph}-ph ${r.acting}`, th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 %. IEEE C57.152: ≤ 0.5 % for a new unit.' },
-  ct: { label: 'tan δ', unit: '%', dp: 3, get: r => r.v.tand, sub: r => `${r.ph}-ph`, th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 % with 0.1 %/yr maximum rise. IEC 61869-1 routine limit 0.5 %.' },
+  ct: { label: 'corrected tan δ', unit: '%', dp: 3, get: r => r.v.tand20, sub: r => `${r.ph}-ph`, th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 % with 0.1 %/yr maximum rise. IEC 61869-1 routine limit 0.5 %.' },
   cb_crm: { label: 'contact resistance', unit: 'µΩ', dp: 1, get: r => r.v.R, sub: r => `${r.ph}-ph`, th: r => [[LIM.crm[kvOf(r.unit)], 'alert']], limitNote: 'Circular: 400 kV 50 µΩ, 220 kV 100 µΩ. Every 400 kV pole exceeds 50 µΩ, which suggests a per-break figure (see findings).' },
   cb_timing: { label: 'trip time', unit: 'ms', dp: 1, get: r => Math.max(r.v.open1 ?? 0, r.v.open2 ?? 0) || null, sub: r => `${r.ph}-ph`, th: r => [[LIM.trip[kvOf(r.unit)], 'alert'], [LIM.trip[kvOf(r.unit)] * 0.92, 'watch']], limitNote: 'Circular trip limit: 400 kV 25 ms, 220 kV 35 ms (max of TC1 / TC2 shown). Watch from 92 % of limit.' },
   la: { label: 'Icorr', unit: 'µA', dp: 0, get: r => r.v.Icorr, sub: r => `${r.ph}-ph`, th: [[350, 'critical'], [150, 'alert']], limitNote: 'Circular: up to 150 µA normal · 150–350 µA stack-wise IR test · beyond 350 µA replace.' },
