@@ -38,11 +38,16 @@ logged under **Data & sources** and kept out of the analysis.
 | `assets/circular/` | Scanned circular pages, rotated upright |
 | `js/data.js` | Data layer. The single place to swap JSON for a database |
 | `js/rules.js` | Engineering rules |
-| `js/health.js` | Transformer Health Index (weighted factors, worst factor governs) |
+| `js/health.js` | Transformer Health Index and Bay Health Index (weighted factors, worst factor governs) |
+| `js/art.js` | Equipment illustrations with nameplates; site photos in `assets/photos/` replace them |
 | `js/sld.js` | Single-line diagrams: 400 kV one-and-a-half breaker, 220 kV double main + transfer |
 | `js/icons.js` | SVG icon set (IEC 60617-style equipment symbols) |
 | `js/app.js`, `js/ui.js` | Views, charts with limit zones, Duval Triangle, command palette (Ctrl K), circular viewer |
 | `vendor/` | Chart.js 4.4.1 (MIT), bundled so the portal also works on an intranet without internet |
+
+## Scheduling rule
+
+One due date per asset per test, from the asset's latest **completed** test (a dated row without a measurement does not count). Phases or sampling points missed in the latest campaign are listed as "not covered" instead of getting their own due date. LA follows pre-monsoon (by 31 May) and post-monsoon (by 30 Nov) windows.
 
 ## Roadmap
 

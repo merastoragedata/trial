@@ -203,6 +203,27 @@ if __name__ == '__main__':
         if why: ISSUES.append({'src': r['src'], 'field': 'row', 'text': f'Rejected ({why}) - looks like a spreadsheet drag-fill artefact', 'rejected': True})
         else: kept.append(r)
     out[:] = kept
+
+    # --- calculation audit -------------------------------------------------
+    # TDCG: recompute from the six combustible gases; never trust the sheet column
+    for r in out:
+        if r['t'] != 'dga': continue
+        v = r['v']; g = ['H2', 'CH4', 'C2H2', 'C2H4', 'C2H6', 'CO']
+        if all(v.get(x) is not None for x in g):
+            s = round(sum(v[x] for x in g), 1)
+            if v.get('TDCG') is not None and abs(s - v['TDCG']) > 1:
+                ISSUES.append({'src': r['src'], 'field': 'TDCG', 'text': f"Sheet TDCG {v['TDCG']:g} ppm but the six combustible gases sum to {s:g} ppm - portal uses the computed value", 'calc': True})
+            v['TDCG_sheet'] = v.get('TDCG'); v['TDCG'] = s
+    # FY session label must match the test date (FY runs 1 Apr - 31 Mar)
+    for r in out:
+        if r['ses'] and r['ses'] != session_of(r['date']):
+            ISSUES.append({'src': r['src'], 'field': 'SESSION', 'text': f"Labelled {r['ses']} but tested {r['date']} (FY {session_of(r['date'])}) - portal uses the date", 'calc': True})
+            r['ses'] = session_of(r['date'])
+    # temperature-correction table must cover every whole degree used
+    cft = sorted(int(num(a)) for a, b in wb['Correction Factor'].iter_rows(min_row=2, max_col=2, values_only=True) if num(a) is not None and num(b) is not None)
+    gaps = [t for t in range(cft[0], cft[-1] + 1) if t not in cft]
+    if gaps:
+        ISSUES.append({'src': 'Correction Factor', 'field': 'K table', 'text': f"No correction factor for {', '.join(map(str, gaps))} °C - a test at these oil temperatures returns #N/A in the sheet", 'calc': True})
     fy = wb['CURRENT FY']
     for r in out:
         if r['t'] == 'ct' and r['v'].get('corr') is not None:
