@@ -10,6 +10,7 @@ LOGIN: owner Ashish is admin. Each person registers once: name from dropdown, 4-
 SHARED STATE (Supabase project yatra-portal-2026 ref brsvownxzmdvmiqmutuj, ap-south-1, SB filled in v5; tables created): keys links (Photos album + Drive folder, admin editable in People), auth, paid, todo, swaps, delay, exp, pm, img_<id>, loc_<p>, ll_<p>, rd_<p>, ty_<p> in table yatra_kv; chat in table yatra_chat. Without Supabase everything works per phone only. SQL: create table public.yatra_kv(key text primary key, val jsonb, updated_at timestamptz default now()); create table public.yatra_chat(id bigserial primary key, who text, txt text, ts timestamptz default now(), rep bigint, kind text default 't', data text, rx jsonb default '{}', del boolean default false); alter table public.yatra_kv enable row level security; alter table public.yatra_chat enable row level security; create policy "all" on public.yatra_kv for all to anon using(true) with check(true); create policy "all" on public.yatra_chat for all to anon using(true) with check(true); grant select,insert,update,delete on public.yatra_kv to anon; grant select,insert,update on public.yatra_chat to anon; grant usage,select on sequence public.yatra_chat_id_seq to anon;  (explicit grants needed after the 30 Oct 2026 Data API change). Then fill SB.url and SB.key.
 DONE (v9, 10 Nov 2026): Expenses use team settlement only (Team Suresh = Suresh, Divya, Harmangal, Saloniya; Team Ashish = Ashish, Krati, Shanti, Atul, Vinit; each team's balance = paid to vendors + sent to other team - received from other team - combined shares; only the net team-to-team amount is payable, any member to any member; person balances, 'if someone has not paid' and group tables removed; reports show team settlement). Nagpur-to-Trivandrum 'at a glance' block removed from Trip. Today = Now and Next temple cards (my events first, all other travellers collapsed); old Next strip, Where-is-my-train button and co-passenger block removed from Today and Alarms. Where-is-my-train floating button only on the Where is my train page and draggable. RailRadar removed everywhere; GPS first, then timetable and typed delay. Map page = Now card (live status, stoppages with ETA including delay, Where is my train link beside stoppages, GPS switch), Next card, then the map at the bottom with Train and Stay/places kept apart. Alarm ringtone is a dropdown. Checklist tab sits between Chat and Pilgrims. Trip Trains/Stays cards remember open state until the trip starts; after it starts only the running card is open. DONE (v6): originals open in an in-app viewer using scanner-style cropped images in scans/ (screenshots) and page images of every PDF; PWA (manifest.webmanifest, sw.js, icons/) with install card; Web Push through Supabase edge functions notify and tick (pg_cron every minute) with tables yatra_push and yatra_secrets (VAPID keys, notify key); chat mute; change/delay/chat notifications; Alarms page (auto per-user alarms with editable time, admin priority and normal alarms); admin list (only Ashish grants admin; only admins change who-paid); Hindi toggle (post-pass dictionary HI/HIR/HIT); history/back button; opens on Today; 3-day weather; Today-only scene, thin theme strip elsewhere; flowchart first with pending nodes and tap-through cards; NOW/NEXT highlighting. DONE (v5): SB filled; animated place-theme band under the header for all 6 themes; Trip tab Flowchart and Route map views; Who-pays-whom flow in Expenses. DONE (v4): splash and Tirumala emblems (namam, shankh, chakra) animated; six place themes (Tirumala, Madurai, Rameswaram, Kanyakumari, Padmanabhaswamy, Kovalam); login/register/forgot PIN/admin reset; Today landing page with only the current activity expanded and two buttons (Photos, Chat with unread badge); pages Today, Trip, Expenses/Payments, Trains, Stays, People, To do, then Drive link; trains as cards with nearby co-passengers and detailed coach/compartment view with station segments and break-journey halts; stays as cards with detailed room view; ticket card shares only that image; complete ticket list share at top and bottom of Trains; multi-payer expenses, equal/individual split, payments between people; Excel (.xlsx built in browser) and PDF account reports with place colours and green payment rows; chat with replies, reactions, photos, voice notes, location, search, read ticks, typing, unread count (needs Supabase); live location by Google Maps share links; seat swap; calendar alarms.
 DONE (v7.0): Pilgrims tab after Today (shared keys pil_<id> = mob, age, bg, addr, aa (Aadhaar, masked for others in UI only), cond, e1/e2 {n,p}, ph, meds[{n,d}]; img_med_<id> = medicine photos aligned to meds, max 10; photo viewer with download/WhatsApp share/delete; first-login prompt on Today); magazine: Wikipedia/Commons images upgraded to 1280-1600px, up to 24 per place, more sections with photos, extra 'More about' text from Wikipedia. DONE (v7.1): Today weather = 7 days by each person's itinerary place (before first train: origin; after last: final destination), Weather tab (place dropdown, current details, AQI, sea waves, 24h, 8-day, Windy animated map with rain/wind/clouds/temp/waves/pressure layers). DONE (v7.2): Phrases tab (Malayalam 54 phrases: Hindi source, native script, auto Devanagari + Latin transliteration, device TTS with Google TTS fallback, Show-to-stranger full screen, Google Translate intent button, default language by itinerary place); YatraTube place chips + YouTube search, admin-only add/remove. DONE (v7.3-7.4): class clash fix (.pc scoped to .pal), header ellipsis, pil_ sync via pull wrapper, img_med_ excluded from persist; Tamil/Telugu/Odia phrase sets (PHX, same order as Malayalam list, need native-speaker check); light polish CSS. DONE (v7.5): audio pipeline = shared neural audio pack (admin generates once via Google Cloud TTS key; key kept only in admin's localStorage; stored in kv key img_phaud_<lang>, cached via Cache API) > best on-device voice > Google Translate TTS; playback is synchronous inside tap (iOS-safe). NEXT: hand-picked magazine photos, native-speaker review of phrases. DONE (v6.1 bug-fix round): banner no longer peeks as a black strip; chat photo viewer (swipe, pinch, download), custom voice player on a global Audio (survives chat refresh), chat polls without media and caches it, seen-by Info sheet, chat keeps bottom nav, modal/nav z-order and nav-height padding, safer notification enable with real error messages and server-save check, alarm sound fallback, train delay shifts alarms and notifies, save() no longer stores chat images. DONE (v6.2): Trains and Stays now live inside Trip (segments Trains / Stays, all features kept) and their nav tabs are gone; new Map tab (MapLibre + OpenFreeMap tiles, 2D/3D toggle, timetable-based moving trains via ROUTES/ST_XY tables, delay +/- buttons, time slider and play); Today scene runs full-bleed under the header with the Now/Next card inside it; expenses page bottom sections are cards with bordered tables; Excel/PDF headers align with their columns, borders added, no place names in report titles. DONE (v6.3): sw.js v7 + clear error if sw.js missing; chat bubbles left/right; Delete for me / remove deleted placeholder (local); Aa text size (zoom 100-170%); report tables dotted column dividers and column-aware alignment (text left, short codes centred, amounts right, headers match); Not your train / Not your ticket notices and roomier coach plan; auto theme follows itinerary; pre-trip scene = train/station. PENDING DECISIONS: E2E private chat design, Hindi/English mixing, itinerary scene animations, train halts source, India-style route map. DONE (v6.4/6.5): movie-style itinerary scene before/after the trip (fixed to plan during the trip), desktop zoom 1.2 with uniform flowchart width, Hindi header resets; map uses published halts (HT table: 11756 via Chhindwara and 12626 verified, others still major stations) with stop times and At/Between status; end-to-end encrypted chat (ECDH keys wrapped by PIN, group key wrapped per member by Ashish, private 1-to-1 chats). Needs SQL: alter table public.yatra_chat add column if not exists to_u text; add column if not exists enc boolean default false. DONE (v6.7): timetable-driven Map (Train_Timetables_v3.xlsx embedded as TT; coordinates by station code + optional Overpass refine; Now&Next / Full journey views; persistent map, no re-init blinking; map text labels use collision-free symbol layer); per-user auth records (kv keys auth_<id>), login pulls DB first; kids accounts ay/an/sh/rg (PIN 1234 seeded once after a successful DB pull) landing on Games; 25 offline games; update banner + persistent storage; full names; Swap seats button visible. DONE (v6.8): Videos page (YouTube-style, shared list in kv key videos, opens YouTube app), places to visit on flowchart. DONE (v6.9): Today redesign: header palette, NOW/NEXT card, circular place cards (theme follows the centred card, follows the current stop on the trip), full magazine per place in English/Hindi with live Wikipedia/Commons images. NOT YET: full Hindi for every app screen. NEXT: per-day weather/animation polish, review responsiveness on real devices, Hindi, refine routes with exact intermediate timetable stops if wanted.
+DONE (v-FX, 25 Nov 2026): smooth effects + speed governor appended at the very end of the file (style#fxcss + one script, own localStorage key yatra_perf only). html[data-perf]=high|mid|low chosen from phone memory/CPU, Data Saver, reduced-motion; frame times measured after load, tab change and scroll: if the phone lags it steps down and remembers for 7 days; battery under 20% and not charging = low for that session. All tiers pause looping animations that are off screen; low pauses all looping decorations and removes blur. Effects (high/mid only, transform/opacity): tab content fades up in a stagger, cards below the fold reveal on scroll, bottom sheets slide up, details fade open, buttons press-scale. Console override: FX.set('high'|'mid'|'low'|'auto'), FX.info().
 NOT DONE: Supabase switched on and tested; real push notifications (needs server; calendar alarms instead); Hindi; fetching photos from Google Photos (Google does not allow it for shared albums: the button opens the album); WhatsApp-only features (calls, end-to-end encryption, status); family info cards with verified Hindi video links; food stops; coach orders for other trains (owner will send screenshots); detailed itinerary (owner will send); NITR voucher 6006386739 PDF (upload was overwritten, ask owner to re-send); unverified Where Is My Train package name com.whereismytrain.android.
 OPEN DECISIONS: TVC to Kanyakumari (16649 or road); Madurai to Rameswaram (16343 or 56711); Tirupati to Kanchipuram (16204, or Arakkonam by train then road); accommodation for TVC night 30 Nov, Madurai, Rameswaram, Tirupati, Kanchipuram; Atul Jabalpur to Itarsi ticket; Vinit cancellations; one duplicate Trichy to Tirupati set.
 V7 PHASE 1 (5 Nov 2026): one-row header (Aa, हिं, theme button, avatar; title always visible); sheets with close bar; ticket-card letter-spacing bug fixed (.tk); Today: Photos/Chat buttons restored (games CSS .bigb override neutralised), story cards above notification card; carousel no longer changes theme, auto theme only during trip by itinerary; past events fold; either/or journeys dropdown (ST.choice, ST.opts; admin only; shared keys); expense form all options in 2 columns, split-how dropdown default Nil; text size 80-170% via --fs on every font-size; per-user prefs pf_<user> (install/notification choices, background) sync via kv once Supabase is live; backgrounds (presets + own photo, photo local); calmer shankh/train animations. ORIGINAL FILES NOW OPEN FROM GOOGLE DRIVE: DRV map (path -> Drive file id) is baked into the script from folder 1LIZ-maFCtxpuACoplwml-FHN4zhlHduI (tickets/, stays/, reference/); viewer = Drive /preview iframe. New files added to Drive need their ids added to DRV. NEXT: phase 2 map, phase 3 games.
@@ -4436,4 +4437,96 @@ details.nnoth{margin:8px 0}
 details.mcard>summary{cursor:pointer;list-style:none;padding:2px 0}details.mcard>summary::-webkit-details-marker{display:none}details.mcard>summary::after{content:' ▾';opacity:.6}
 .mklg{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;margin:8px 0}.mklg i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;animation:nnp 1.3s infinite}
 `;document.head.appendChild(s)})();
-</script></body></html>
+</script>
+<!-- ===== v-FX: smooth effects + automatic speed governor (self-contained; uses only localStorage key "yatra_perf") ===== -->
+<style id="fxcss">
+/* tiers: html[data-perf=high|mid|low]. Effects animate transform/opacity only. */
+@keyframes fxUp{from{opacity:0;transform:translate3d(0,14px,0)}}
+@keyframes fxFade{from{opacity:0}}
+@keyframes fxSheet{from{transform:translate3d(0,40px,0);opacity:0}}
+.fx-in{animation:fxUp .42s cubic-bezier(.2,.8,.2,1) backwards;animation-delay:var(--fxd,0ms)}
+.fx-wait{opacity:0}
+html[data-perf=mid] .fx-in{animation-duration:.3s}
+html:not([data-perf=low]) :is(.btns button,button.p,.bigb,a.btn,.chips button,nav button){transition:transform .12s ease}
+html:not([data-perf=low]) :is(.btns button,button.p,.bigb,a.btn,.chips button,nav button):active{transform:scale(.95)}
+html[data-perf=high] .modal.show,html[data-perf=mid] .modal.show{animation:fxFade .2s ease}
+html[data-perf=high] .modal.show .sheet,html[data-perf=mid] .modal.show .sheet{animation:fxSheet .3s cubic-bezier(.2,.8,.2,1)}
+html[data-perf=high] details[open].fx-open>:not(summary),html[data-perf=mid] details[open].fx-open>:not(summary){animation:fxUp .28s cubic-bezier(.2,.8,.2,1)}
+/* low: no new effects, no blur/glass, lighter shadows */
+html[data-perf=low] *,html[data-perf=low] ::before,html[data-perf=low] ::after{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;scroll-behavior:auto!important}
+html[data-perf=low] .fx-in{animation:none}
+html[data-perf=low] .fx-wait{opacity:1}
+@media (prefers-reduced-motion:reduce){.fx-in,.modal.show,.modal.show .sheet{animation:none!important}.fx-wait{opacity:1}}
+@media print{.fx-wait{opacity:1!important}.fx-in{animation:none!important}}
+</style>
+<script>
+/* Speed governor: picks a tier from the phone's hardware, then watches real frame times
+   (after load, tab changes and scrolling). If the phone lags it steps down
+   high -> mid -> low and remembers it for 7 days. Low pauses looping decorations.
+   Looping animations that are off screen are always paused (saves battery on every phone).
+   Manual override from the browser console: FX.set('high'|'mid'|'low'|'auto'). */
+(function(){
+const K='yatra_perf',R=['low','mid','high'],DAY=864e5;
+const ls={g(){try{return JSON.parse(localStorage.getItem(K)||'null')}catch(e){return null}},s(v){try{localStorage.setItem(K,JSON.stringify(v))}catch(e){}}};
+const mm=q=>{try{return matchMedia(q).matches}catch(e){return false}};
+function hw(){const n=navigator,c=n.connection||{},mem=n.deviceMemory||4,cpu=n.hardwareConcurrency||4;
+ if(mm('(prefers-reduced-motion: reduce)')||c.saveData||/(^|-)2g$/.test(c.effectiveType||''))return 'low';
+ if(mem<=2||cpu<=2)return 'low';if(mem<=3||cpu<=4)return 'mid';return 'high'}
+let st=ls.g();
+if(!st||st.v!==1||(st.why==='lag'&&Date.now()-st.t>7*DAY))st={v:1,tier:hw(),why:'hw',t:Date.now()};
+if(st.why==='hw')st.tier=hw();
+let tier=st.tier,sessLow=false;const root=document.documentElement;
+function apply(){root.dataset.perf=sessLow?'low':tier;anim()}
+function setTier(t,why){if(!R.includes(t))return;tier=t;st={v:1,tier:t,why:why,t:Date.now()};ls.s(st);apply()}
+/* battery saver: low battery and not charging -> low for this session only */
+try{navigator.getBattery&&navigator.getBattery().then(b=>{const f=()=>{const w=b.level<.2&&!b.charging;if(w!==sessLow){sessLow=w;apply()}};f();b.addEventListener('levelchange',f);b.addEventListener('chargingchange',f)}).catch(()=>{})}catch(e){}
+
+/* --- frame-time sampler --- */
+let samp=null,strikes=0,good=0;
+function sample(ms){if(samp||document.hidden)return;const d=[];let last=0,end=performance.now()+ms;
+ samp=1;const f=t=>{if(last)d.push(t-last);last=t;if(t<end&&!document.hidden)requestAnimationFrame(f);else{samp=null;judge(d)}};requestAnimationFrame(f)}
+function judge(d){if(d.length<6)return;const s=d.slice().sort((a,b)=>a-b),med=s[s.length>>1],jank=d.filter(x=>x>40).length/d.length;
+ if(med>26||jank>.15){good=0;if(++strikes>=2){strikes=0;const i=R.indexOf(tier);if(i>0)setTier(R[i-1],'lag')}}
+ else{strikes=Math.max(0,strikes-1);
+  /* only step back up if the tier came from hardware guesses, never after measured lag */
+  if((st.why==='hw'||st.why==='fast')&&med<18&&jank<.03&&++good>=4){good=0;const i=R.indexOf(tier);if(i<2)setTier(R[i+1],'fast')}}}
+let scT=0;addEventListener('scroll',()=>{const n=Date.now();if(n-scT>4000){scT=n;sample(1200)}},{passive:true});
+
+/* --- looping animations: pause off screen always, pause all on low --- */
+const io='IntersectionObserver' in window?new IntersectionObserver(es=>{for(const e of es){e.target.__fxv=e.isIntersecting;ctl(e.target)}}):null;
+function loops(el){return (el.__fxa||[]).filter(a=>a.playState!=='finished')}
+function ctl(el){const lowNow=root.dataset.perf==='low';for(const a of loops(el)){try{(lowNow||el.__fxv===false)?a.pause():a.play()}catch(e){}}}
+function anim(){if(!document.getAnimations)return;const seen=new Set();
+ for(const a of document.getAnimations()){const el=a.effect&&a.effect.target;if(!el||!(el instanceof Element))continue;
+  let it=1;try{it=a.effect.getComputedTiming().iterations}catch(e){}if(it!==Infinity)continue;
+  if(!seen.has(el)){seen.add(el);el.__fxa=[]}el.__fxa.push(a);
+  if(io&&!el.__fxo){el.__fxo=1;io.observe(el)}}
+ seen.forEach(ctl)}
+let aT=0;function animSoon(){clearTimeout(aT);aT=setTimeout(anim,250)}
+
+/* --- entrance + scroll reveal on tab change --- */
+const SEL='#v>*,#v .card,#v .ev,#v .leg,#v details.d,#v .hero,#v .two,#v .bigb,#v .plan,#v .nnflow,#v .nnfn,#v .pil>*';
+let lastTab=null,rio=null;
+function enter(){const v=document.getElementById('v');if(!v)return;const p=root.dataset.perf;if(p==='low'||mm('(prefers-reduced-motion: reduce)'))return;
+ const lay=el=>el.getClientRects().length>0;
+ const els=[...v.querySelectorAll(SEL)].filter(el=>lay(el)&&![...el.querySelectorAll(SEL)].some(lay));
+ const vh=innerHeight;let k=0;if(rio)rio.disconnect();
+ rio='IntersectionObserver' in window?new IntersectionObserver(es=>{for(const e of es)if(e.isIntersecting){rio.unobserve(e.target);show(e.target,0)}},{rootMargin:'0px 0px -8% 0px'}):null;
+ for(const el of els.slice(0,80)){const r=el.getBoundingClientRect();if(!r.height)continue;
+  if(r.top<vh){if(k<14)show(el,k++*45)}else if(rio){el.classList.add('fx-wait');rio.observe(el)}}}
+function show(el,delay){el.classList.remove('fx-wait');el.style.setProperty('--fxd',delay+'ms');el.classList.add('fx-in');
+ el.addEventListener('animationend',function h(e){if(e.target!==el)return;el.classList.remove('fx-in');el.style.removeProperty('--fxd');el.removeEventListener('animationend',h)})}
+function onRender(){let t=null;try{t=ST.tab}catch(e){}
+ if(t!==lastTab){lastTab=t;requestAnimationFrame(()=>{enter();sample(1500)})}animSoon()}
+document.addEventListener('toggle',e=>{const d=e.target;if(d&&d.tagName==='DETAILS'&&d.open&&root.dataset.perf!=='low'){d.classList.remove('fx-open');void d.offsetWidth;d.classList.add('fx-open')}},true);
+
+function start(){apply();const v=document.getElementById('v');
+ if(v&&'MutationObserver' in window)new MutationObserver(onRender).observe(v,{childList:true});
+ const md=document.getElementById('md');if(md&&'MutationObserver' in window)new MutationObserver(animSoon).observe(md,{attributes:true,attributeFilter:['class']});
+ onRender();setTimeout(()=>sample(2500),1200);setInterval(animSoon,10000)}
+apply();
+if(document.readyState==='loading')addEventListener('DOMContentLoaded',start);else start();
+window.FX={get tier(){return root.dataset.perf},set(t){if(t==='auto'){st={v:1,tier:hw(),why:'hw',t:Date.now()};ls.s(st);tier=st.tier;apply()}else setTier(t,'manual')},info(){return {tier:root.dataset.perf,saved:st,hw:hw(),battLow:sessLow}}};
+})();
+</script>
+</body></html>
