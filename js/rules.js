@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1917';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1955';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -26,7 +26,15 @@ function add(f) {
 const sorted = (a) => [...a].sort((x, y) => x.date.localeCompare(y.date));
 const median = (a) => { const s = [...a].sort((x, y) => x - y); const m = s.length >> 1; return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : NaN; };
 const pctChange = (a, b) => (b - a) / a * 100;
-const label = (r) => [unitName(r.unit), r.pos, r.ph && r.ph !== '-' ? r.ph + '-ph' : '', r.acting].filter(Boolean).join(' · ');
+// full name of a measured element, e.g. "ICT1, Yph, LV Bushing 3.1" · "Bay 404, Rph, CT"
+export const shortUnit = (u) => isTF(u) ? (unitName(u)).replace(/^ICT (\d)$/, 'ICT$1') : unitName(u);
+const PART = { ct: 'CT', la: 'LA', cb_crm: 'CB pole', cb_timing: 'CB pole' };
+const label = (r) => {
+  const ph = /^[RYB]$/.test(r.ph) ? r.ph + 'ph' : '';
+  const part = r.t === 'bushing' ? (r.ph === 'N' ? 'Neutral Bushing' : r.pos ? (r.pos.startsWith('LV-') ? `LV Bushing ${r.pos.slice(3)}` : `${r.pos} Bushing`) : 'Bushing')
+    : r.t === 'winding' ? r.acting : r.t === 'dga' ? (r.pos === 'OLTC' ? 'OLTC' : `Main tank (${(r.pos || '').toLowerCase()} sample)`) : PART[r.t] || r.pos;
+  return [shortUnit(r.unit), ph, part].filter(Boolean).join(', ');
+};
 
 // ---------------------------------------------------------------- tan δ family
 function tandSeries(t, keyFn, opt) {
@@ -172,7 +180,7 @@ function dga() {
     const prevD = [...new Set(s.map(r => r.date))].filter(d => d < Ld).pop(), Ps = s.filter(r => r.date === prevD);
     mark(s.map(r => r.id), 'ok');
     const tank = L.pos === 'OLTC' ? 'OLTC' : 'main tank';
-    const where = `${unitName(L.unit)}${L.ph !== '-' ? ' · ' + L.ph + '-phase unit' : ''} · ${tank}${tank === 'main tank' ? ` (${Ls.map(r => r.pos.toLowerCase()).join(' + ')} sample${Ls.length > 1 ? 's' : ''})` : ''}`;
+    const where = `${shortUnit(L.unit)}${L.ph !== '-' ? ', ' + L.ph + 'ph' : ''}, ${tank === 'main tank' ? 'Main tank' : 'OLTC'}${tank === 'main tank' ? ` (${Ls.map(r => r.pos.toLowerCase()).join(' + ')} sample${Ls.length > 1 ? 's' : ''})` : ''}`;
     const base = { t: 'dga', unit: L.unit, ph: L.ph, pos: tank, date: Ld, recIds: Ls.map(r => r.id), where };
     const v = merge(Ls), pv = Ps.length ? merge(Ps) : null;
     if (L.pos === 'OLTC') {
@@ -219,7 +227,7 @@ export function oltcCorrelation(unit, ph) {
 function oltcRule() {
   for (const [k] of groupBy(recsOK('dga').filter(r => r.pos === 'OLTC'), r => r.unit + '|' + r.ph)) {
     const [u, ph] = k.split('|'); const c = oltcCorrelation(u, ph); if (!c || c.verdict === 'ok') continue;
-    add({ t: 'dga', unit: u, ph, pos: 'OLTC ↔ main tank', date: c.L.d, sev: c.verdict, recIds: [], where: `${unitName(u)}${ph !== '-' ? ' · ' + ph + '-phase unit' : ''} · OLTC ↔ main tank`,
+    add({ t: 'dga', unit: u, ph, pos: 'OLTC ↔ main tank', date: c.L.d, sev: c.verdict, recIds: [], where: `${shortUnit(u)}${ph !== '-' ? ', ' + ph + 'ph' : ''}, OLTC ↔ Main tank`,
       title: c.verdict === 'alert' ? 'OLTC oil may be reaching the main tank' : 'Acetylene in main tank — not the OLTC-leak pattern', detail: c.text, action: c.lag || 'Sample OLTC and main tank on the same day; compare C₂H₂/H₂.', basis: 'IEC 60599 (OLTC contamination)' });
   }
 }
@@ -233,7 +241,7 @@ function tankDiff() {
     const d = dates.at(-1), t = T.find(r => r.date === d), b = B.find(r => r.date === d);
     const bad = ['H2', 'CH4', 'C2H4', 'C2H6', 'CO'].filter(k => { const x = t.v[k], y = b.v[k]; if (x == null || y == null) return false; const m = Math.max(x, y); return m >= 20 && Math.abs(x - y) / m > 0.5; });
     const acet = (t.v.C2H2 > 0) !== (b.v.C2H2 > 0);
-    if (bad.length || acet) add({ t: 'dga', unit: t.unit, ph: t.ph, pos: 'main tank', date: d, sev: 'watch', recIds: [t.id, b.id], where: `${unitName(t.unit)}${t.ph !== '-' ? ' · ' + t.ph + '-phase unit' : ''} · main tank (top vs bottom)`,
+    if (bad.length || acet) add({ t: 'dga', unit: t.unit, ph: t.ph, pos: 'main tank', date: d, sev: 'watch', recIds: [t.id, b.id], where: `${shortUnit(t.unit)}${t.ph !== '-' ? ', ' + t.ph + 'ph' : ''}, Main tank (top vs bottom)`,
       title: `Top and bottom samples disagree (${[...bad, ...(acet ? ['C2H2 in one only'] : [])].join(', ')})`,
       detail: bad.map(k => `${k} top ${fmt(t.v[k], 0)} vs bottom ${fmt(b.v[k], 0)} ppm`).join(' · ') + (acet ? ` · C2H2 top ${fmt(t.v.C2H2, 1)} / bottom ${fmt(b.v.C2H2, 1)}` : ''),
       action: 'Both points sample one tank; gases are normally near-uniform. Re-sample top and bottom together (IEC 60567 procedure, flushed valve, gas-tight syringe). If the gap persists, suspect a localised fault near the sampling point with the higher gases.', basis: 'IEC 60567 · same-tank comparison' });

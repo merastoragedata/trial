@@ -1,13 +1,13 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1917';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1917';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1917';
-import { IC, LOGO } from './icons.js?v=20261125.1917';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1917';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1917';
-import { art, skyline } from './art.js?v=20261125.1917';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName } from './results.js?v=20261125.1917';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1917';
-import { refresh } from './data.js?v=20261125.1917';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1955';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1955';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1955';
+import { IC, LOGO } from './icons.js?v=20261125.1955';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1955';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1955';
+import { art, skyline } from './art.js?v=20261125.1955';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName } from './results.js?v=20261125.1955';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1955';
+import { refresh } from './data.js?v=20261125.1955';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -486,7 +486,7 @@ function vElement(t, u, sub) {
   const T = TESTS[t]; if (!T) return vNotFound();
   const ph = sub && sub.split('|')[0];
   const pu = sub && /^[RYB]$/.test(ph) && /^(ICT1|ICT2)$/.test(u) && ['bushing', 'winding', 'dga'].includes(t);
-  setCrumbs([['Tests', '#/tests'], [T.name, `#/test/${t}`], [unitName(u), `#/el/${t}/${encodeURIComponent(u)}`], ...(pu ? [[`${ph}-phase unit`, `#/el/${t}/${encodeURIComponent(u)}/${ph}`]] : []), ...(sub && sub.includes('|') ? [[elemLabel(t, u, sub).replace(/^[RYB]-phase unit · /, '')]] : [])]);
+  setCrumbs([['Tests', '#/tests'], [T.name, `#/test/${t}`], [unitName(u), `#/el/${t}/${encodeURIComponent(u)}`], ...(pu ? [[`${ph}-phase unit`, `#/el/${t}/${encodeURIComponent(u)}/${ph}`]] : []), ...(sub && sub.includes('|') ? [[fullName(t, u, sub, true)]] : [])]);
   if (!sub) $('#crumbs').lastElementChild.outerHTML = `<b>${esc(unitName(u))}</b>`;
   renderElementPage(t, u, sub, view());
   normsFab(t);
