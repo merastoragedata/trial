@@ -1,8 +1,8 @@
 // Transformer Health Index — weighted-factor method in the spirit of CIGRE TB 761 and
 // Jahromi et al. (2009). Indicative only: weights and break-points are set here, openly,
 // so S.E. PAC can tune them. Each factor keeps the reading that drove its score.
-import { DB, recs, groupBy } from './data.js?v=20261125.1848';
-import { LIM } from './rules.js?v=20261125.1848';
+import { DB, recs, groupBy } from './data.js?v=20261125.1917';
+import { LIM } from './rules.js?v=20261125.1917';
 
 const lerp = (x, pts) => {           // piecewise-linear: pts = [[x,score],...] ascending x
   if (x <= pts[0][0]) return pts[0][1];
@@ -14,6 +14,7 @@ const lerp = (x, pts) => {           // piecewise-linear: pts = [[x,score],...] 
 };
 const latestBy = (rs, key) => [...groupBy(rs, key).values()].map(s => s.sort((a, b) => a.date.localeCompare(b.date)).at(-1));
 
+const recsOK = (t, f) => recs(t, f).filter(r => !r.excluded);
 export const HI_WEIGHTS = { dga: 30, oil: 15, winding: 25, bushing: 30 };
 export const HI_BANDS = [[85, 1, 'Very good', 'Normal ageing — continue routine tests'], [70, 2, 'Good', 'Routine tests at circular frequency'], [50, 3, 'Fair', 'Increase monitoring; plan investigation'], [30, 4, 'Poor', 'Plan corrective action / outage'], [0, 5, 'Very poor', 'Immediate risk assessment']];
 export const band = (hi) => HI_BANDS.find(b => hi >= b[0]);
@@ -24,7 +25,7 @@ const ratioScore = (r) => lerp(r, [[0.5, 100], [1, 70], [2, 40], [4, 10], [8, 0]
 export function healthIndex(unit) {
   const f = {};
   // DGA — weighted gas-ratio score on the worst main-tank sample
-  const dga = latestBy(recs('dga', { unit }).filter(r => r.pos !== 'OLTC'), r => r.ph + r.pos);
+  const dga = latestBy(recsOK('dga', { unit }).filter(r => r.pos !== 'OLTC'), r => r.ph + r.pos);
   if (dga.length) {
     const scored = dga.map(r => {
       let sw = 0, ss = 0, worstG = null, worstR = 0;
@@ -42,10 +43,10 @@ export function healthIndex(unit) {
   }).sort((a, b) => a.s - b.s)[0];
   if (oil) f.oil = { score: oil.s, label: 'Oil quality', why: `BDV ${oil.r.v.BDV ?? '—'} kV · water ${oil.r.v.H2O ?? '—'} ppm (${oil.r.ph !== '-' ? oil.r.ph + '-ph ' : ''}${oil.r.pos})`, date: oil.r.date };
   // Winding insulation — worst tan δ @20 °C of latest test
-  const w = latestBy(recs('winding', { unit }).filter(r => r.v.tand20 != null), r => r.ph + r.acting).sort((a, b) => b.v.tand20 - a.v.tand20)[0];
+  const w = latestBy(recsOK('winding', { unit }).filter(r => r.v.tand20 != null), r => r.ph + r.acting).sort((a, b) => b.v.tand20 - a.v.tand20)[0];
   if (w) f.winding = { score: lerp(w.v.tand20, [[0.3, 100], [0.5, 85], [0.7, 60], [1.0, 30], [1.5, 0]]), label: 'Winding insulation', why: `${w.ph !== '-' ? w.ph + '-ph ' : ''}${w.acting} tan δ₂₀ ${w.v.tand20.toFixed(3)} %`, date: w.date };
   // Bushings — worst measured tan δ, capped if rising > 0.1 %/yr
-  const bs = latestBy(recs('bushing', { unit }).filter(r => r.v.tand20 != null), r => r.pos + r.ph);
+  const bs = latestBy(recsOK('bushing', { unit }).filter(r => r.v.tand20 != null), r => r.pos + r.ph);
   if (bs.length) {
     const b = bs.sort((a, b) => b.v.tand20 - a.v.tand20)[0];
     let sc = lerp(b.v.tand20, [[0.4, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]);
@@ -80,10 +81,10 @@ export function gaugeSVG(hi, size = 76) {
 // CRM is scored against the fleet median of the same voltage class (healthy-fleet
 // baseline), because the circular's 400 kV 50 µΩ figure does not match per-pole
 // measurement (see finding); the circular limit is still shown on every chart.
-import { kvOf, done } from './data.js?v=20261125.1848';
+import { kvOf, done } from './data.js?v=20261125.1917';
 export const BAY_WEIGHTS = { cb_crm: 20, cb_timing: 20, ct: 30, la: 30 };
 const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
-const latestPh = (t, unit) => latestBy(recs(t, { unit }).filter(done), r => r.ph);
+const latestPh = (t, unit) => latestBy(recsOK(t, { unit }).filter(done), r => r.ph);
 
 export function bayHealth(unit) {
   const f = {}, kv = kvOf(unit);

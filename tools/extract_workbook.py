@@ -209,6 +209,29 @@ if __name__ == '__main__':
         else: kept.append(r)
     out[:] = kept
 
+    # --- LA results printed in the PDF of the sheet (220 kV side + latest 400 kV campaigns)
+    # The .xlsx export lacks them; tools/import_pdf_la.py reads them into data/la_pdf.json.
+    import os as _os
+    pdf_la = _os.path.join(_os.path.dirname(dst) or '.', 'la_pdf.json')
+    PDF_NAMES = {}
+    if _os.path.exists(pdf_la):
+        PL = json.load(open(pdf_la)); PDF_NAMES = PL.get('names', {})
+        SINGLE = {'400', '200'}
+        for r in out:                                   # spare-ICT LAs are single-phase units
+            if r['t'] == 'la' and r['unit'] in SINGLE: r['ph'] = '-'
+        have = {(r['unit'], r['ph'], r['date']) for r in out if r['t'] == 'la'}
+        added = 0
+        for r in PL['rows']:
+            k = (r['unit'], r['ph'], r['date'])
+            POP.setdefault('la', set()).add((r['unit'], r['ph']))
+            if k in have: continue
+            if not r['v'] and not r['rem']: continue
+            out.append({'t': 'la', 'unit': r['unit'], 'pos': '', 'ph': r['ph'], 'date': r['date'], 'ses': session_of(r['date']),
+                        'season': r['season'], 'v': r['v'], 'rem': r['rem'], 'src': r['src']}); have.add(k); added += 1
+        POP['la'] = {(u, '-' if u in SINGLE else ph) for u, ph in POP['la'] if not (u in SINGLE and ph != '-') or True}
+        POP['la'] = {(u, ph) for u, ph in POP['la'] if not (u in SINGLE and ph != '-')}
+        ISSUES.append({'src': 'PDF of the sheet', 'field': 'LA', 'text': f'{added} LA readings (220 kV side incl. bay 200 spare ICT IV, and the Nov 2026 400 kV campaign) are only in the PDF print of the sheet; imported from the PDF', 'calc': True})
+
     # --- copied rows: identical readings in many different sampling points / elements on one date
     # Different tanks / phases cannot return identical multi-parameter readings, so such rows are
     # template or pasted data. They are kept (visible, greyed) but flagged and excluded from analysis.
@@ -263,7 +286,7 @@ if __name__ == '__main__':
         'substation': {'id': 'karjat', 'name': '400 kV Karjat Substation', 'org': 'MSETCL',
                        'fy': txt(fy['B7'].value), 'source': src.split('/')[-1],
                        'extracted': datetime.date.today().isoformat()},
-        'bays': bay_names(wb),
+        'bays': {'200': '220 kV SPARE ICT IV', **bay_names(wb)},
         'units': {'ICT1': {**dmeta.get('ICT1', {}), 'name': 'ICT 1', 'rating': '501 MVA 400/220 kV (3 × 1-ph)', 'bay': '403'},
                   'ICT2': {**dmeta.get('ICT2', {}), 'name': 'ICT 2', 'rating': '501 MVA 400/220 kV (3 × 1-ph)', 'bay': '406'},
                   'SPARE_ICT': {**dmeta.get('SPARE_ICT', {}), 'name': 'Spare ICT', 'rating': '167 MVA 400/220 kV 1-ph', 'bay': '400'},

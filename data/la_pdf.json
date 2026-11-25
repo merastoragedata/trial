@@ -1,0 +1,5078 @@
+{
+"rows": [
+{
+"date": "2023-07-18",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 16.0,
+"Itotal": 749.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 12.0,
+"Itotal": 1630.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 9.0,
+"Itotal": 1123.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-11-16",
+"season": "Post Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 3.0,
+"Itotal": 135.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-07-18",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 10.0,
+"Itotal": 641.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 14.0,
+"Itotal": 4842.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 54.0,
+"Icorr": 88.0,
+"Itotal": 10881.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-11-16",
+"season": "Post Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 1.0,
+"Itotal": 2074.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-07-18",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 10.0,
+"Itotal": 762.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 12.0,
+"Icorr": 17.0,
+"Itotal": 985.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {},
+"rem": "| | |",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 21.0,
+"Itotal": 1270.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-11-16",
+"season": "Post Monsoon",
+"v": {
+"Ith": 46.0,
+"Icorr": 14.0,
+"Itotal": 2857.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "401",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 4.0,
+"Itotal": 595.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 111.0,
+"Icorr": 147.0,
+"Itotal": 2629.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 29.0,
+"Icorr": 29.0,
+"Itotal": 756.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 126.0,
+"Icorr": 157.0,
+"Itotal": 14254.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 21.0,
+"Icorr": 28.0,
+"Itotal": 9916.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 31.0,
+"Icorr": 54.0,
+"Itotal": 4284.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 57.0,
+"Icorr": 84.0,
+"Itotal": 7209.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 1.0,
+"Itotal": 800.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 4.0,
+"Itotal": 666.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 130.0,
+"Icorr": 205.0,
+"Itotal": 3271.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 17.0,
+"Icorr": 18.0,
+"Itotal": 1299.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 89.0,
+"Icorr": 111.0,
+"Itotal": 4827.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 129.0,
+"Icorr": 198.0,
+"Itotal": 7965.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 86.0,
+"Icorr": 150.0,
+"Itotal": 3145.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 37.0,
+"Itotal": 1687.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 15.0,
+"Icorr": 4.0,
+"Itotal": 1230.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 9.0,
+"Itotal": 633.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 135.0,
+"Icorr": 275.0,
+"Itotal": 2533.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 131.0,
+"Icorr": 136.0,
+"Itotal": 1254.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE ICT Shut down",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 134.0,
+"Icorr": 207.0,
+"Itotal": 6710.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 21.0,
+"Icorr": 37.0,
+"Itotal": 2844.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 36.0,
+"Icorr": 53.0,
+"Itotal": 3060.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 20.0,
+"Icorr": 5.0,
+"Itotal": 1672.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "403",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 571.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 5.0,
+"Itotal": 1564.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 91.0,
+"Icorr": 93.0,
+"Itotal": 6131.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 44.0,
+"Icorr": 51.0,
+"Itotal": 882.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 12.0,
+"Itotal": 1110.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 56.0,
+"Icorr": 100.0,
+"Itotal": 3477.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 5.0,
+"Itotal": 1035.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 1.0,
+"Itotal": 1222.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 5.0,
+"Itotal": 512.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 8.0,
+"Itotal": 339.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 72.0,
+"Icorr": 73.0,
+"Itotal": 7412.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 79.0,
+"Icorr": 99.0,
+"Itotal": 3212.0
+},
+"rem": "",
+"src": "PDF p.66",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 18.0,
+"Icorr": 27.0,
+"Itotal": 2942.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 18.0,
+"Icorr": 31.0,
+"Itotal": 3192.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 22.0,
+"Itotal": 3958.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 2.0,
+"Itotal": 378.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 10.0,
+"Itotal": 559.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 7.0,
+"Itotal": 1442.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 35.0,
+"Icorr": 36.0,
+"Itotal": 8275.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 61.0,
+"Icorr": 76.0,
+"Itotal": 3749.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 43.0,
+"Icorr": 65.0,
+"Itotal": 2918.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 67.0,
+"Icorr": 119.0,
+"Itotal": 3302.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 15.0,
+"Itotal": 868.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 58.0,
+"Icorr": 13.0,
+"Itotal": 4355.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "404",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 7.0,
+"Itotal": 612.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 8.0,
+"Itotal": 796.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 64.0,
+"Icorr": 66.0,
+"Itotal": 1578.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 91.0,
+"Icorr": 116.0,
+"Itotal": 7174.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 30.0,
+"Icorr": 46.0,
+"Itotal": 2161.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 12.0,
+"Icorr": 21.0,
+"Itotal": 943.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 28.0,
+"Itotal": 595.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 33.0,
+"Icorr": 8.0,
+"Itotal": 3646.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 7.0,
+"Itotal": 576.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 28.0,
+"Icorr": 37.0,
+"Itotal": 845.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 31.0,
+"Icorr": 33.0,
+"Itotal": 1064.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 36.0,
+"Icorr": 46.0,
+"Itotal": 1977.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 41.0,
+"Icorr": 63.0,
+"Itotal": 5414.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 35.0,
+"Icorr": 62.0,
+"Itotal": 4819.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 24.0,
+"Icorr": 36.0,
+"Itotal": 1251.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 5.0,
+"Itotal": 1105.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 7.0,
+"Itotal": 599.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 130.0,
+"Icorr": 145.0,
+"Itotal": 2927.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 131.0,
+"Icorr": 146.0,
+"Itotal": 1254.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 39.0,
+"Icorr": 50.0,
+"Itotal": 5476.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 9.0,
+"Itotal": 1681.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 2.0,
+"Icorr": 4.0,
+"Itotal": 907.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 15.0,
+"Icorr": 23.0,
+"Itotal": 1863.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 3.0,
+"Itotal": 957.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "406",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 499.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 32.0,
+"Icorr": 42.0,
+"Itotal": 1682.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 15.0,
+"Icorr": 16.0,
+"Itotal": 4601.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 38.0,
+"Icorr": 68.0,
+"Itotal": 6268.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 13.0,
+"Itotal": 245.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 32.0,
+"Icorr": 56.0,
+"Itotal": 1910.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 46.0,
+"Icorr": 76.0,
+"Itotal": 6835.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 31.0,
+"Icorr": 7.0,
+"Itotal": 3739.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 532.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 30.0,
+"Icorr": 80.0,
+"Itotal": 246.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 17.0,
+"Itotal": 303.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 54.0,
+"Icorr": 67.0,
+"Itotal": 2425.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 46.0,
+"Icorr": 69.0,
+"Itotal": 4301.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 50.0,
+"Icorr": 87.0,
+"Itotal": 4903.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 76.0,
+"Icorr": 125.0,
+"Itotal": 8208.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 3.0,
+"Itotal": 1427.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 8.0,
+"Itotal": 523.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 10.0,
+"Itotal": 3620.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 84.0,
+"Icorr": 84.0,
+"Itotal": 6334.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 90.0,
+"Icorr": 112.0,
+"Itotal": 7147.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 30.0,
+"Itotal": 896.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 30.0,
+"Icorr": 51.0,
+"Itotal": 3933.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 9.0,
+"Itotal": 1491.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 2.0,
+"Itotal": 1394.0
+},
+"rem": "",
+"src": "PDF p.67",
+"unit": "407",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 543.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 21.0,
+"Itotal": 1719.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 33.0,
+"Icorr": 34.0,
+"Itotal": 2495.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 27.0,
+"Icorr": 34.0,
+"Itotal": 2594.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 34.0,
+"Icorr": 51.0,
+"Itotal": 2656.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 14.0,
+"Icorr": 24.0,
+"Itotal": 2789.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 15.0,
+"Itotal": 442.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 2.0,
+"Itotal": 558.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 8.0,
+"Itotal": 470.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 12.0,
+"Itotal": 533.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 65.0,
+"Icorr": 66.0,
+"Itotal": 7664.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 39.0,
+"Icorr": 49.0,
+"Itotal": 3812.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 8.0,
+"Itotal": 534.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 18.0,
+"Icorr": 31.0,
+"Itotal": 1259.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 11.0,
+"Itotal": 611.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 2.0,
+"Itotal": 563.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 8.0,
+"Itotal": 546.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 30.0,
+"Itotal": 796.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 19.0,
+"Itotal": 2279.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 20.0,
+"Itotal": 624.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 29.0,
+"Itotal": 1226.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 32.0,
+"Itotal": 1822.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 15.0,
+"Itotal": 263.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 3.0,
+"Itotal": 682.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "410",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 491.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 5.0,
+"Itotal": 336.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 12.0,
+"Icorr": 10.0,
+"Itotal": 2286.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 12.0,
+"Icorr": 15.0,
+"Itotal": 885.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 24.0,
+"Itotal": 536.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 23.0,
+"Itotal": 1345.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 43.0,
+"Icorr": 71.0,
+"Itotal": 2504.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 2.0,
+"Itotal": 317.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "R",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 434.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 12.0,
+"Itotal": 384.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 27.0,
+"Icorr": 28.0,
+"Itotal": 4087.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 20.0,
+"Itotal": 1627.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 18.0,
+"Icorr": 28.0,
+"Itotal": 1464.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 43.0,
+"Itotal": 1874.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 52.0,
+"Icorr": 86.0,
+"Itotal": 2430.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 3.0,
+"Itotal": 309.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "Y",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 593.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 2.0,
+"Icorr": 3.0,
+"Itotal": 1293.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 10.0,
+"Itotal": 5227.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 9.0,
+"Itotal": 2458.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 24.0,
+"Itotal": 2314.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 15.0,
+"Itotal": 3325.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 12.0,
+"Icorr": 20.0,
+"Itotal": 2450.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 24.0,
+"Icorr": 5.0,
+"Itotal": 3010.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "413",
+"ph": "B",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NA NA NA Spare ICT was not charged",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 75.0,
+"Icorr": 98.0,
+"Itotal": 245.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 56.0,
+"Icorr": 56.0,
+"Itotal": 816.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 82.0,
+"Icorr": 102.0,
+"Itotal": 7863.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 39.0,
+"Itotal": 559.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 55.0,
+"Icorr": 97.0,
+"Itotal": 1874.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2026-04-30",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 6.0,
+"Itotal": 808.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2026-11-12",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 2.0,
+"Itotal": 1054.0
+},
+"rem": "",
+"src": "PDF p.68",
+"unit": "400",
+"ph": "-",
+"kv": 400
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 10.0,
+"Itotal": 648.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 33.0,
+"Itotal": 1586.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 20.0,
+"Icorr": 19.0,
+"Itotal": 1294.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 44.0,
+"Icorr": 53.0,
+"Itotal": 10699.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 45.0,
+"Icorr": 71.0,
+"Itotal": 9077.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 30.0,
+"Icorr": 45.0,
+"Itotal": 7441.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 28.0,
+"Itotal": 8754.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 18.0,
+"Icorr": 4.0,
+"Itotal": 974.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 7.0,
+"Itotal": 581.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 31.0,
+"Icorr": 41.0,
+"Itotal": 3412.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 7.0,
+"Itotal": 2482.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 105.0,
+"Icorr": 125.0,
+"Itotal": 10239.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 74.0,
+"Icorr": 114.0,
+"Itotal": 11933.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 74.0,
+"Icorr": 111.0,
+"Itotal": 7963.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 26.0,
+"Icorr": 39.0,
+"Itotal": 2503.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 24.0,
+"Icorr": 6.0,
+"Itotal": 1640.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 11.0,
+"Itotal": 599.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 55.0,
+"Icorr": 72.0,
+"Itotal": 4830.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 18.0,
+"Itotal": 2122.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 11.0,
+"Itotal": 4743.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 44.0,
+"Icorr": 68.0,
+"Itotal": 14531.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 57.0,
+"Icorr": 85.0,
+"Itotal": 9597.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 82.0,
+"Icorr": 125.0,
+"Itotal": 13674.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 75.0,
+"Icorr": 20.0,
+"Itotal": 9812.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "203",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 8.0,
+"Itotal": 599.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 36.0,
+"Icorr": 48.0,
+"Itotal": 3617.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 26.0,
+"Icorr": 24.0,
+"Itotal": 2489.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 124.0,
+"Icorr": 187.0,
+"Itotal": 15631.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 48.0,
+"Icorr": 75.0,
+"Itotal": 13796.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 33.0,
+"Icorr": 50.0,
+"Itotal": 3137.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 30.0,
+"Icorr": 45.0,
+"Itotal": 13161.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 28.0,
+"Icorr": 7.0,
+"Itotal": 1751.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 8.0,
+"Itotal": 617.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 38.0,
+"Icorr": 50.0,
+"Itotal": 716.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 21.0,
+"Icorr": 20.0,
+"Itotal": 1648.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 17.0,
+"Icorr": 20.0,
+"Itotal": 1005.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 105.0,
+"Icorr": 164.0,
+"Itotal": 2866.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 61.0,
+"Icorr": 92.0,
+"Itotal": 2529.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 68.0,
+"Icorr": 102.0,
+"Itotal": 2600.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 42.0,
+"Icorr": 11.0,
+"Itotal": 2494.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 11.0,
+"Itotal": 618.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 14.0,
+"Icorr": 18.0,
+"Itotal": 758.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 10.0,
+"Itotal": 576.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE ICT Shut down",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 42.0,
+"Icorr": 66.0,
+"Itotal": 9765.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 59.0,
+"Icorr": 88.0,
+"Itotal": 4827.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 28.0,
+"Itotal": 1961.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 39.0,
+"Icorr": 10.0,
+"Itotal": 2001.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "204",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 13.0,
+"Itotal": 740.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 11.0,
+"Itotal": 776.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 20.0,
+"Itotal": 650.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 11.0,
+"Itotal": 868.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 12.0,
+"Itotal": 759.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 13.0,
+"Itotal": 730.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 14.0,
+"Icorr": 23.0,
+"Itotal": 1027.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 3.0,
+"Itotal": 444.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 13.0,
+"Itotal": 613.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 7.0,
+"Itotal": 217.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 8.0,
+"Itotal": 414.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 5.0,
+"Itotal": 857.0
+},
+"rem": "",
+"src": "PDF p.69",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 17.0,
+"Icorr": 23.0,
+"Itotal": 219.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 16.0,
+"Itotal": 447.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 11.0,
+"Itotal": 611.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 2.0,
+"Itotal": 235.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 16.0,
+"Itotal": 716.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 13.0,
+"Itotal": 533.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 1.0,
+"Icorr": 1.0,
+"Itotal": 95.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 9.0,
+"Itotal": 577.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 4.0,
+"Itotal": 992.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 16.0,
+"Itotal": 443.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 14.0,
+"Icorr": 23.0,
+"Itotal": 55.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 3.0,
+"Itotal": 754.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "205",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 9.0,
+"Itotal": 688.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 5.0,
+"Itotal": 977.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 11.0,
+"Itotal": 888.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 12.0,
+"Itotal": 689.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 12.0,
+"Icorr": 16.0,
+"Itotal": 758.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 20.0,
+"Itotal": 588.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 18.0,
+"Itotal": 292.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 14.0,
+"Icorr": 3.0,
+"Itotal": 766.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 10.0,
+"Itotal": 496.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 27.0,
+"Icorr": 37.0,
+"Itotal": 176.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 14.0,
+"Icorr": 15.0,
+"Itotal": 1049.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 13.0,
+"Itotal": 96.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 12.0,
+"Icorr": 16.0,
+"Itotal": 468.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 21.0,
+"Icorr": 31.0,
+"Itotal": 324.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 13.0,
+"Itotal": 367.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 3.0,
+"Itotal": 581.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 74.0,
+"Icorr": 106.0,
+"Itotal": 1062.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 22.0,
+"Itotal": 310.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 15.0,
+"Icorr": 16.0,
+"Itotal": 1473.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 13.0,
+"Icorr": 16.0,
+"Itotal": 675.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 11.0,
+"Itotal": 732.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 16.0,
+"Itotal": 588.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 15.0,
+"Icorr": 25.0,
+"Itotal": 630.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 15.0,
+"Icorr": 4.0,
+"Itotal": 758.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "206",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 22.0,
+"Icorr": 27.0,
+"Itotal": 938.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 15.0,
+"Icorr": 20.0,
+"Itotal": 1236.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 41.0,
+"Icorr": 61.0,
+"Itotal": 764.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 31.0,
+"Icorr": 51.0,
+"Itotal": 1757.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 20.0,
+"Icorr": 5.0,
+"Itotal": 191.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 24.0,
+"Icorr": 30.0,
+"Itotal": 903.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 26.0,
+"Icorr": 34.0,
+"Itotal": 1728.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 10.0,
+"Itotal": 789.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 47.0,
+"Icorr": 76.0,
+"Itotal": 1360.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 1.0,
+"Itotal": 568.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 26.0,
+"Icorr": 31.0,
+"Itotal": 880.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 17.0,
+"Icorr": 22.0,
+"Itotal": 1975.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 31.0,
+"Icorr": 47.0,
+"Itotal": 974.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 37.0,
+"Icorr": 60.0,
+"Itotal": 2677.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 1.0,
+"Itotal": 550.0
+},
+"rem": "",
+"src": "PDF p.70",
+"unit": "209",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 50.0,
+"Icorr": 61.0,
+"Itotal": 1002.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 20.0,
+"Icorr": 26.0,
+"Itotal": 2037.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 30.0,
+"Icorr": 45.0,
+"Itotal": 981.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 33.0,
+"Icorr": 54.0,
+"Itotal": 839.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 1.0,
+"Itotal": 576.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 30.0,
+"Itotal": 349.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 23.0,
+"Icorr": 30.0,
+"Itotal": 1589.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 31.0,
+"Icorr": 47.0,
+"Itotal": 754.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 28.0,
+"Icorr": 45.0,
+"Itotal": 702.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 23.0,
+"Icorr": 6.0,
+"Itotal": 1154.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 20.0,
+"Icorr": 24.0,
+"Itotal": 1730.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 21.0,
+"Itotal": 3023.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 18.0,
+"Icorr": 27.0,
+"Itotal": 2023.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 32.0,
+"Icorr": 52.0,
+"Itotal": 1850.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 4.0,
+"Icorr": 1.0,
+"Itotal": 486.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "210",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 19.0,
+"Icorr": 24.0,
+"Itotal": 666.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 21.0,
+"Icorr": 28.0,
+"Itotal": 866.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 33.0,
+"Icorr": 50.0,
+"Itotal": 676.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 41.0,
+"Itotal": 606.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 28.0,
+"Icorr": 7.0,
+"Itotal": 394.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 10.0,
+"Icorr": 12.0,
+"Itotal": 979.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 14.0,
+"Itotal": 1511.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 9.0,
+"Itotal": 636.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 26.0,
+"Icorr": 42.0,
+"Itotal": 1201.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 17.0,
+"Icorr": 4.0,
+"Itotal": 619.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 17.0,
+"Icorr": 21.0,
+"Itotal": 513.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 17.0,
+"Icorr": 22.0,
+"Itotal": 300.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 32.0,
+"Icorr": 48.0,
+"Itotal": 684.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 34.0,
+"Icorr": 55.0,
+"Itotal": 2380.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 7.0,
+"Itotal": 321.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "211",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 26.0,
+"Icorr": 32.0,
+"Itotal": 1017.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 10.0,
+"Itotal": 1539.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 10.0,
+"Itotal": 1163.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 16.0,
+"Icorr": 26.0,
+"Itotal": 3411.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 5.0,
+"Icorr": 2.0,
+"Itotal": 673.0
+},
+"rem": "",
+"src": "PDF p.71",
+"unit": "212",
+"ph": "R",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 11.0,
+"Itotal": 883.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 9.0,
+"Itotal": 1239.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 9.0,
+"Itotal": 993.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 14.0,
+"Icorr": 23.0,
+"Itotal": 2326.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 7.0,
+"Icorr": 2.0,
+"Itotal": 654.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "Y",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NO VALUE NO VALUE NO VALUE",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 13.0,
+"Itotal": 362.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 12.0,
+"Itotal": 555.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 32.0,
+"Icorr": 48.0,
+"Itotal": 277.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 25.0,
+"Icorr": 41.0,
+"Itotal": 189.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 6.0,
+"Icorr": 2.0,
+"Itotal": 598.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "212",
+"ph": "B",
+"kv": 220
+},
+{
+"date": "2023-06-21",
+"season": "Pre Monsoon",
+"v": {},
+"rem": "NA NA NA",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+},
+{
+"date": "2023-10-27",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 12.0,
+"Itotal": 997.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+},
+{
+"date": "2024-05-22",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 10.0,
+"Itotal": 740.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+},
+{
+"date": "2024-12-22",
+"season": "Post Monsoon",
+"v": {
+"Ith": 99.0,
+"Icorr": 118.0,
+"Itotal": 13158.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+},
+{
+"date": "2025-05-08",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 11.0,
+"Icorr": 17.0,
+"Itotal": 3258.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+},
+{
+"date": "2025-11-04",
+"season": "Post Monsoon",
+"v": {
+"Ith": 9.0,
+"Icorr": 13.0,
+"Itotal": 2491.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+},
+{
+"date": "2026-05-01",
+"season": "Pre Monsoon",
+"v": {
+"Ith": 3.0,
+"Icorr": 5.0,
+"Itotal": 2330.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+},
+{
+"date": "2026-11-11",
+"season": "Post Monsoon",
+"v": {
+"Ith": 8.0,
+"Icorr": 2.0,
+"Itotal": 1197.0
+},
+"rem": "",
+"src": "PDF p.72",
+"unit": "200",
+"ph": "-",
+"kv": 220
+}
+],
+"names": {
+"403": "400/220 kV 501",
+"404": "400 kV KARJAT -",
+"406": "400/220 kV 501",
+"407": "400 kV KARJAT -",
+"410": "400 kV KARJAT -",
+"413": "400 kV KARJAT -",
+"400": "400/220 kV 167 T",
+"203": "220 kV ICT 2 IV",
+"204": "220 kV ICT 1 IV",
+"205": "220 kV KARJAT -",
+"206": "220 kV KARJAT -",
+"209": "220 kV KARJAT -",
+"210": "220 kV KARJAT -",
+"211": "220 kV KARJAT -",
+"212": "220 kV KARJAT -",
+"200": "220 kV SPARE"
+}
+}

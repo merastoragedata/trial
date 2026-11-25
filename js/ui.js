@@ -1,6 +1,6 @@
 // Small DOM, chart and circular-viewer helpers.
-import { DB, fmtDate, toDate } from './data.js?v=20261125.1848';
-import { SEV_LABEL } from './rules.js?v=20261125.1848';
+import { DB, fmtDate, toDate } from './data.js?v=20261125.1917';
+import { SEV_LABEL } from './rules.js?v=20261125.1917';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Shape-coded status (readable without colour): ◆ critical · ▲ alert · ● watch · ✓ normal · i info · – no data
@@ -129,7 +129,7 @@ export function lineChart(canvas, o) {
       pointBorderColor: s.points.map(p => sc[sev(p)] || col),
     };
   });
-  // round grid step near 20 % of the element's own average; dotted least-squares trend
+  // round grid step near 20 % of the element's own average
   let ystep = null, ymin, ymax;
   if (o.stepRef && o.series.length >= 1) {
     const ys0 = o.series[0].points.map(p => p.y).filter(y => y != null), ys = o.series.flatMap(se => se.points.map(p => p.y)).filter(y => y != null);
@@ -140,10 +140,6 @@ export function lineChart(canvas, o) {
     while ((hi - lo) / ystep > 9) ystep = niceStep(ystep * 2.2);
     ymin = Math.floor(lo / ystep) * ystep - (lo % ystep === 0 ? ystep : 0); ymax = Math.ceil(hi / ystep) * ystep + (hi % ystep === 0 ? ystep : 0);
     if (o.zero && ymin < 0 && Math.min(...ys) >= 0) ymin = 0;
-    for (const se of o.series) {
-      const tr = trendLine(se.points.filter(p => p.y != null)); if (!tr) continue;
-      ds.push({ label: `${o.series.length > 1 ? se.label + ' ' : ''}trend ${tr.perYear >= 0 ? '+' : ''}${+tr.perYear.toPrecision(2)}/yr`, trendIdx: o.series.indexOf(se), data: tr.pts, borderColor: se.color || EXTRA[0], borderDash: [2, 4], borderWidth: 1.6, pointRadius: 0, pointHoverRadius: 0, fill: false, isRef: true, isTrend: true });
-    }
   }
   for (const l of o.limits || []) {
     ds.push({ label: l.label, data: [{ x: xmin - pad, y: l.y }, { x: xmax + pad, y: l.y }], borderColor: l.color || css('--crit'),
