@@ -1,9 +1,11 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
+export const BUILD = '20261125.1527';  // set by tools/stamp_version.py
+
 const JSON_SOURCE = {
   async load() {
-    const get = (p) => fetch(p, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(p + ' ' + r.status); return r.json(); });
+    const get = (p) => fetch(`${p}?v=${BUILD}`, { cache: 'no-cache' }).then(r => { if (!r.ok) throw new Error(p + ' ' + r.status); return r.json(); });
     const [site, norms, standards] = await Promise.all([get('data/karjat.json'), get('data/norms.json'), get('data/standards.json')]);
     return { site, norms, standards };
   }

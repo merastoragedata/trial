@@ -6,13 +6,30 @@
 <title>EHV Diagnostic Portal</title>
 <meta name="description" content="Condition monitoring for EHV substation equipment: diagnostic test health, MSETCL 2024 test-frequency norms and industry-standard comparison.">
 <meta name="theme-color" content="#0b1726">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
+<script>
+/* Remove any service worker / caches left by the previous app at this address
+   (Yatra Portal), then reload once so the current version is shown. */
+(function () {
+  try {
+    var done = sessionStorage.getItem('sw-cleaned');
+    var jobs = [];
+    if ('serviceWorker' in navigator) jobs.push(navigator.serviceWorker.getRegistrations().then(function (rs) { return Promise.all(rs.map(function (r) { return r.unregister(); })).then(function () { return rs.length; }); }));
+    if (window.caches) jobs.push(caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.delete(k); })).then(function () { return ks.length; }); }));
+    Promise.all(jobs).then(function (n) {
+      var found = n.reduce(function (a, b) { return a + b; }, 0);
+      if (found && !done) { sessionStorage.setItem('sw-cleaned', '1'); location.reload(); }
+    }).catch(function () {});
+  } catch (e) {}
+})();
+</script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%230b5394'/%3E%3Ccircle cx='9.5' cy='12' r='4.6' fill='none' stroke='white' stroke-width='1.8'/%3E%3Ccircle cx='14.5' cy='12' r='4.6' fill='none' stroke='%23f2a900' stroke-width='1.8'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css">
-<script src="vendor/chart.umd.min.js"></script>
-<script type="module" src="js/app.js"></script>
+<link rel="stylesheet" href="css/app.css?v=20261125.1527">
+<script src="vendor/chart.umd.min.js?v=20261125.1527"></script>
+<script type="module" src="js/app.js?v=20261125.1527"></script>
 </head>
 <body>
 <a class="hide" href="#view">Skip to content</a>
@@ -34,7 +51,7 @@
       <a href="#/data" data-ic="data"><span class="ic"></span>Data &amp; sources</a>
       <a href="#/about" data-ic="roadmap"><span class="ic"></span>Roadmap</a>
     </nav>
-    <div class="sb-foot">Evaluated per MSETCL circular 06961 (18 Oct 2024) · IEC / IEEE cross-check</div>
+    <div class="sb-foot">Evaluated per MSETCL circular 06961 (18 Oct 2024) · IEC / IEEE cross-check<br>Build <span id="build" class="mono">20261125.1527</span></div>
   </aside>
   <main class="main">
     <header class="top">
