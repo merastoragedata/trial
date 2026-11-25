@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1527';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1621';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -59,7 +59,7 @@ function sisterCheck(t, L, opt) {
   const peers = recs(t, { unit: L.unit, pos: L.pos }).filter(r => r.date === L.date && r.ph !== L.ph && r.ph !== 'N' && r.v[opt.metric] != null && (r.acting || '') === (L.acting || ''));
   if (peers.length < 2 || L.ph === 'N') return;
   const m = median(peers.map(r => r.v[opt.metric])); const v = L.v[opt.metric];
-  if (v > 1.5 * m && v - m > 0.1) add({ t, unit: L.unit, pos: L.pos, ph: L.ph, date: L.date, recIds: [L.id, ...peers.map(p => p.id)], sev: 'watch', where: label(L),
+  if (v > 1.5 * m && v - m > 0.1) add({ t, unit: L.unit, pos: L.pos, ph: L.ph, date: L.date, recIds: [L.id], sev: 'watch', where: label(L),
     title: `Tan δ ${fmt(v / m, 1)}× sister phases`, detail: `${label(L)} ${fmt(v, 3)} % vs ${fmt(m, 3)} % on the other phases (same day, same temperature).`, action: 'Same-day sister-phase comparison removes temperature error — strongest early indicator. Clean/dry the porcelain and re-test; if it persists, increase test frequency.', basis: 'Field practice (sister-unit comparison)' });
 }
 

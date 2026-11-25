@@ -1,7 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-export const BUILD = '20261125.1527';  // set by tools/stamp_version.py
+import { recompute, newRows, ELEM } from './edit.js?v=20261125.1621';
+export { ELEM };
+
+export const BUILD = '20261125.1621';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -32,8 +35,27 @@ export async function loadAll(source = JSON_SOURCE) {
   const d = await source.load();
   Object.assign(DB, d);
   DB.records = d.site.records.map((r, i) => ({ ...r, id: i }));
+  refresh();
   DB.normsBySr = Object.fromEntries(d.norms.rows.map(r => [r.sr, r]));
   return DB;
+}
+
+/** Re-apply admin edits and recompute derived cells (call after any edit). */
+export function refresh() {
+  const base = DB.site.records.length;
+  DB.records = DB.records.filter(r => r.id < base);
+  for (const n of newRows()) DB.records.push({ ...n, id: DB.records.length });
+  recompute(DB.records, DB.site.tempCorrection, done);
+}
+
+/** Equipment population per test: elements present in the sheet's blocks or in the data,
+ *  restricted to bays in the register and excluding future bays. */
+export function population(t) {
+  const set = new Map();
+  const add = (u, sub) => { if (!isTF(u) && (!DB.site.bays[u] || /FUTURE/i.test(DB.site.bays[u]))) return; set.set(u + '|' + sub, [u, sub]); };
+  for (const [u, ph] of (DB.site.population?.[t] || [])) add(String(u), ph);
+  for (const r of DB.records.filter(r => r.t === t)) add(r.unit, ELEM[t](r).split('|').slice(1).join('|'));
+  return [...set.values()];
 }
 
 export const isTF = (u) => /^(ICT1|ICT2|SPARE_ICT|BUS_REACTOR)$/.test(u);
@@ -69,7 +91,8 @@ export function fmtDate(x) {
 export function fmt(v, dp = 2) {
   if (v == null || Number.isNaN(v)) return '—';
   const a = Math.abs(v);
-  if (a !== 0 && a < 0.01) return v.toExponential(1);
+  if (a !== 0 && a < 0.0005) return v.toExponential(1);
+  if (a !== 0 && a < 0.01) return Number(v).toFixed(Math.max(3, Math.min(dp, 4)));
   return Number(v).toLocaleString('en-IN', { maximumFractionDigits: dp, minimumFractionDigits: 0 });
 }
 
