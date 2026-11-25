@@ -652,3 +652,67 @@ body{background:
 .rank-class{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .el-sec{border-top:1px dashed var(--line-2);margin-top:18px;padding-top:4px}
 .el-sec:first-of-type{border-top:0}
+
+
+/* ==========================================================================
+   v6 — desktop-only layout, element page, interactive tables, tank compare,
+   draggable norms button, targets page
+   ========================================================================== */
+/* desktop layout on every device (mobile version comes later) */
+html,body{min-width:1280px}
+@media (max-width:1240px){.kpis{grid-template-columns:repeat(6,minmax(0,1fr))}.kpi:nth-child(-n+3){border-bottom:0}.kpi:nth-child(3){border-right:1px solid var(--line)}.hi-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.g-7-5{grid-template-columns:minmax(0,7fr) minmax(0,5fr)}.fcards{grid-template-columns:repeat(4,minmax(0,1fr))}.el-b{grid-template-columns:minmax(0,1fr) 400px}}
+@media (max-width:1100px){.g4{grid-template-columns:repeat(4,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.test-hero{grid-template-columns:300px 1fr}.asset.has-art{grid-template-columns:1fr minmax(260px,380px)}}
+
+/* element page */
+.el-hero{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;box-shadow:var(--shadow);margin-bottom:14px}
+.el-hero h1{font-size:26px}
+.el-tabs{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 8px;box-shadow:var(--shadow)}
+.el-tabs a{display:inline-flex;align-items:center;gap:6px}
+.dot-ph{width:9px;height:9px;border-radius:50%;display:inline-block}.ph-R{background:var(--R)}.ph-Y{background:var(--Y)}.ph-B{background:var(--B)}.ph-N{background:var(--N)}
+a.ph-card{color:inherit;text-decoration:none!important;transition:transform .12s,box-shadow .12s}
+a.ph-card:hover{transform:translateY(-2px);box-shadow:var(--shadow-l)}
+section.el-sec{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 18px 18px;margin-top:16px;box-shadow:var(--shadow)}
+
+/* phase-coloured element decoration (as in the sheet) */
+.el[data-ph="R"]{border-left:5px solid var(--R)}.el[data-ph="Y"]{border-left:5px solid var(--Y)}.el[data-ph="B"]{border-left:5px solid var(--B)}.el[data-ph="N"]{border-left:5px solid var(--N)}
+.el[data-ph="R"] .el-h{background:linear-gradient(90deg,rgba(209,59,59,.09),transparent 60%)}
+.el[data-ph="Y"] .el-h{background:linear-gradient(90deg,rgba(217,164,0,.12),transparent 60%)}
+.el[data-ph="B"] .el-h{background:linear-gradient(90deg,rgba(47,111,208,.09),transparent 60%)}
+
+/* interactive tables */
+table.seq thead th{position:sticky;top:0;z-index:2;cursor:pointer;user-select:none}
+table.seq thead th:hover{background:#efd9a6}
+table.seq th .srt{margin-left:3px;color:#8a6a1a}
+table.seq tbody tr:nth-child(even) td:not([class*="c-"]){background:rgba(15,27,42,.025)}
+table.seq tbody tr:hover td{box-shadow:inset 0 0 0 9999px rgba(26,111,194,.08)}
+table.seq tbody tr.hl td{box-shadow:inset 0 0 0 9999px rgba(242,169,0,.22)}
+table.seq tr.xcl td{color:var(--ink-4);text-decoration:line-through;text-decoration-color:rgba(196,22,28,.4)}
+table.seq tr.xcl td.rem{text-decoration:none}
+.mchart .pt{transition:r .1s}
+.mchart .pt.hl{stroke-width:4;r:6.5}
+.mchart rect.pt.hl{opacity:1;stroke:#f2a900;stroke-width:2}
+.mc-grid{stroke:var(--line-2);stroke-dasharray:2 3}
+.mc-tr{font-size:9px;font-weight:700;font-family:var(--mono)}
+
+/* same-tank strip & card */
+.tank{display:flex;flex-wrap:wrap;gap:4px;align-items:center;padding:0 16px 8px}
+.tank-k{font-size:11px;font-weight:650;color:var(--ink-3);margin-right:4px}
+.tk{font-size:11px;font-family:var(--mono);border:1px solid var(--line);border-radius:6px;padding:1px 6px;background:var(--panel)}
+.tk b{font-family:var(--sans);font-weight:600;margin-right:2px}.tk i{color:var(--ink-4);font-style:normal}
+
+/* draggable norms button */
+.fab-norms{position:fixed;right:auto;bottom:auto;cursor:grab;touch-action:none;transition:opacity .15s,transform .15s}
+.fab-norms.dragging{cursor:grabbing;opacity:.85;transform:scale(1.04)}
+.fab-norms.mini span{display:none}
+.fab-norms.mini{padding:12px;opacity:.8}
+.fab-norms.mini:hover{opacity:1}
+
+/* targets page */
+.tgt-card{margin-bottom:16px}
+.tgt-card.focus{box-shadow:0 0 0 3px var(--brand-2),var(--shadow)}
+input.tgt.big{width:90px;font-size:14px;padding:4px 8px}
+details.sec.inner{box-shadow:none;border-radius:0;border-width:1px 0 0;margin:0}
+
+/* reserved right gutter so the norms button always has blank space to park in */
+body.has-fab .view{padding-right:84px}
+.fab-norms.mini{width:48px;height:48px;padding:0;justify-content:center;border-radius:50%}

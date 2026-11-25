@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM } from './edit.js?v=20261125.1811';
+import { recompute, newRows, ELEM } from './edit.js?v=20261125.1848';
 export { ELEM };
 
-export const BUILD = '20261125.1811';  // set by tools/stamp_version.py
+export const BUILD = '20261125.1848';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -27,7 +27,7 @@ export const TESTS = {
 // A record counts as a completed test only if its key measurement is present
 // (a row with a date but "Rain! couldn't be tested" / "Crm taken" is not a completed test).
 export const KEY = { bushing: ['tand', 'C'], winding: ['tand', 'C'], ct: ['tand', 'C'], cb_crm: ['R'], cb_timing: ['open1', 'open2', 'close'], la: ['Icorr', 'Ith', 'Itotal'], dga: ['H2', 'CH4', 'CO', 'C2H2'] };
-export const done = (r) => (KEY[r.t] || []).some(k => r.v[k] != null);
+export const done = (r) => !r.excluded && (KEY[r.t] || []).some(k => r.v[k] != null);
 
 export const DB = { site: null, norms: null, standards: null, today: new Date() };
 

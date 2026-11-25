@@ -1,13 +1,13 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1811';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1811';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1811';
-import { IC, LOGO } from './icons.js?v=20261125.1811';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1811';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1811';
-import { art, skyline } from './art.js?v=20261125.1811';
-import { renderSections, bindResults, openElement, openNorms, NOUN } from './results.js?v=20261125.1811';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1811';
-import { refresh } from './data.js?v=20261125.1811';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1848';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1848';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1848';
+import { IC, LOGO } from './icons.js?v=20261125.1848';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1848';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1848';
+import { art, skyline } from './art.js?v=20261125.1848';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage } from './results.js?v=20261125.1848';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1848';
+import { refresh } from './data.js?v=20261125.1848';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -356,9 +356,9 @@ function vUnit(u, q) {
       <div class="card"><div class="card-h"><h2>Schedule</h2><span class="sub">per test, from the latest completed test</span></div>${schedTable(sch, true)}</div></div>
     <div class="card mt"><div class="card-h"><h2>Findings</h2><span class="sub">${fs.length}</span></div>${findingList(fs)}</div>`
     : '<div class="card empty">No test records for this bay in the sheet yet. It is probably a future bay.</div>'}`;
-  $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openElement(b.dataset.detail, u, null); });
+  $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openElement(b.dataset.detail, u, null); });  // navigates to #/el/…
   $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openElement(t, u, null); } });
-  if (q.get('t') && ts.includes(q.get('t'))) openElement(q.get('t'), u, null);
+  if (q.get('t') && ts.includes(q.get('t'))) { location.replace(`#/el/${q.get('t')}/${encodeURIComponent(u)}`); return; }
 }
 
 function vTest(t, q) {
@@ -380,8 +380,8 @@ function vTest(t, q) {
     <details class="sec"><summary><span class="sec-t">Findings</span><span class="dim">${fs.length}</span><span class="caret">▾</span></summary><div class="sec-b"><div class="card">${findingList(fs)}</div></div></details>
 `;
   renderSections(t, $('#v4'));
-  view().insertAdjacentHTML('beforeend', `<button class="fab-norms" data-norms title="Show the circular clause and industry standards for these results">${IC.norms}Norms & standards</button>`);
   $$('[data-norms]').forEach(b => b.onclick = () => openNorms(t));
+  normsFab(t);
 
 }
 
@@ -480,6 +480,49 @@ js/app.js, js/ui.js  ← views, charts, Duval, palette, circular viewer</pre></d
     <li><b>Multi-substation</b>: one data set per S/s, then circle / zone roll-ups and fleet health-index ranking.</li>
     <li><b>Rule settings</b> editable by S.E. PAC (Note 1 of the circular), with versioning.</li>
     <li>DGA: IEEE C57.104-2019 Level 1/2/3 with rate-of-change, Duval Triangle 2 for OLTC, Duval Pentagon.</li></ol></div></div>`;
+}
+
+function vElement(t, u, sub) {
+  const T = TESTS[t]; if (!T) return vNotFound();
+  setCrumbs([['Tests', '#/tests'], [T.name, `#/test/${t}`], [unitName(u), `#/el/${t}/${encodeURIComponent(u)}`], ...(sub ? [[sub.split('|').filter(x => x && x !== '-').join(' · ') || 'Element']] : [])]);
+  if (!sub) $('#crumbs').lastElementChild.outerHTML = `<b>${esc(unitName(u))}</b>`;
+  renderElementPage(t, u, sub, view());
+  normsFab(t);
+}
+function vTargets(q) {
+  setCrumbs([['FY targets']]);
+  targetsPage(view(), q.get('t'));
+}
+// floating Norms & standards button: draggable; parks itself on blank space
+function normsFab(t) {
+  document.body.classList.add('has-fab');
+  const b = document.createElement('button'); b.className = 'fab-norms'; b.title = 'Norms & standards for these results · drag to move · double-click to re-park';
+  b.innerHTML = `${IC.norms}<span>Norms & standards</span>`;
+  view().appendChild(b);
+  let saved = null; try { saved = JSON.parse(localStorage.getItem('ehv-fab')); } catch { }
+  const place = (x, y) => { b.style.left = Math.max(8, Math.min(innerWidth - b.offsetWidth - 8, x)) + 'px'; b.style.top = Math.max(64, Math.min(innerHeight - b.offsetHeight - 8, y)) + 'px'; };
+  const _blank = (x, y) => { const w = b.offsetWidth, h = b.offsetHeight; b.style.visibility = 'hidden';
+    const ok = [[x + 4, y + 4], [x + w - 4, y + 4], [x + 4, y + h - 4], [x + w - 4, y + h - 4], [x + w / 2, y + h / 2]].every(([px, py]) => { const el = document.elementFromPoint(px, py); return !el || el === document.body || el.matches('.main, .view, .shell, html'); });
+    b.style.visibility = ''; return ok; };
+  const park = () => {                                   // park in the blank gutter to the right of the content
+    if (saved) return place(saved.x, saved.y);
+    const W = innerWidth, H = innerHeight;
+    const right = Math.max(0, ...[...view().children].filter(c => c !== b).map(c => c.getBoundingClientRect().right));
+    const gutter = W - right;
+    b.classList.remove('mini');
+    if (gutter < b.offsetWidth + 24) b.classList.add('mini');
+    const w = b.offsetWidth, h = b.offsetHeight;
+    place(right + Math.max(6, (gutter - w) / 2), H - h - 22);
+  };
+  requestAnimationFrame(park);
+  let raf = 0; const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!saved) park(); }); };
+  addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll);
+  let drag = null, moved = false;
+  b.addEventListener('pointerdown', (e) => { drag = { dx: e.clientX - b.offsetLeft, dy: e.clientY - b.offsetTop }; moved = false; b.setPointerCapture(e.pointerId); });
+  b.addEventListener('pointermove', (e) => { if (!drag) return; moved = true; b.classList.add('dragging'); place(e.clientX - drag.dx, e.clientY - drag.dy); });
+  b.addEventListener('pointerup', () => { if (drag && moved) { saved = { x: b.offsetLeft, y: b.offsetTop }; try { localStorage.setItem('ehv-fab', JSON.stringify(saved)); } catch { } } drag = null; b.classList.remove('dragging'); });
+  b.addEventListener('click', (e) => { if (moved) { e.preventDefault(); return; } openNorms(t); });
+  b.addEventListener('dblclick', () => { saved = null; try { localStorage.removeItem('ehv-fab'); } catch { } park(); });
 }
 
 function vNotFound() { setCrumbs([['Not found']]); view().innerHTML = '<div class="empty">Page not found. <a href="#/">Go to overview</a></div>'; }
@@ -621,6 +664,7 @@ function openDetail(u, t) {
 function route(opt = {}) {
   destroyCharts();
   if (!opt.keepModal) $$('.modal-bg, .drawer').forEach(m => m.remove());
+  $$('.fab-norms').forEach(f => f.remove()); document.body.classList.remove('has-fab');
   const h = location.hash.replace(/^#/, '') || '/';
   const [path, qs] = h.split('?'); const q = new URLSearchParams(qs || '');
   const p = path.split('/').filter(Boolean);
@@ -628,6 +672,8 @@ function route(opt = {}) {
   $('#sb').classList.remove('open');
   const V = { '': vOverview, equipment: vEquipment, sld: vSld, tests: vTests, findings: vFindings, schedule: vSchedule, norms: vNorms, standards: vStandards, data: vData, about: vAbout };
   if (p[0] === 'eq') vUnit(decodeURIComponent(p[1]), q);
+  else if (p[0] === 'el') vElement(p[1], decodeURIComponent(p[2] || ''), p[3] ? decodeURIComponent(p[3]) : null);
+  else if (p[0] === 'targets') vTargets(q);
   else if (p[0] === 'test') vTest(p[1], q);
   else (V[p[0] || ''] || vNotFound)(q);
   if (!opt.keepScroll) window.scrollTo(0, 0);
@@ -662,7 +708,7 @@ function afterLoad() {
   $('#site-fy').textContent = `FY ${DB.site.substation.fy} · ${DB.records.length.toLocaleString('en-IN')} records`;
   // command palette index
   const items = [
-    ...[['#/', 'Overview', 'overview'], ['#/findings', 'Findings', 'findings'], ['#/schedule', 'Test schedule', 'schedule'], ['#/sld', 'Single-line diagram', 'sld'], ['#/equipment', 'Equipment', 'equipment'], ['#/norms', 'MSETCL norms 2024', 'norms'], ['#/norms?tab=errata', 'Corrections to old JSON', 'norms'], ['#/standards', 'Industry standards', 'standards'], ['#/data', 'Data & sources', 'data'], ['#/about', 'Roadmap', 'roadmap']].map(([href, label, ic]) => ({ href, label, kind: 'page', icon: IC[ic] })),
+    ...[['#/', 'Overview', 'overview'], ['#/findings', 'Findings', 'findings'], ['#/schedule', 'Test schedule', 'schedule'], ['#/targets', 'FY targets', 'schedule'], ['#/sld', 'Single-line diagram', 'sld'], ['#/equipment', 'Equipment', 'equipment'], ['#/norms', 'MSETCL norms 2024', 'norms'], ['#/norms?tab=errata', 'Corrections to old JSON', 'norms'], ['#/standards', 'Industry standards', 'standards'], ['#/data', 'Data & sources', 'data'], ['#/about', 'Roadmap', 'roadmap']].map(([href, label, ic]) => ({ href, label, kind: 'page', icon: IC[ic] })),
     ...TF_UNITS.map(u => ({ href: '#/eq/' + u, label: unitName(u), sub: DB.site.units[u].rating, kind: 'equipment', icon: IC.equipment })),
     ...Object.keys(DB.site.bays).map(u => ({ href: '#/eq/' + u, label: `Bay ${u}`, sub: bayTitle(u), kind: `${kvOf(u)} kV bay`, icon: IC.sld })),
     ...Object.values(TESTS).map(T => ({ href: '#/test/' + T.key, label: T.name, sub: T.eq, kind: 'test', icon: IC[T.key] })),

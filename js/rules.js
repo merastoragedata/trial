@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1811';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1848';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -190,6 +190,22 @@ function dga() {
   }
 }
 
+function tankDiff() {
+  const all = recs('dga').filter(r => r.pos !== 'OLTC');
+  for (const [, g] of groupBy(all, r => r.unit + '|' + r.ph)) {
+    const T = g.filter(r => r.pos === 'Top'), B = g.filter(r => r.pos === 'Bottom');
+    const dates = T.map(r => r.date).filter(d => B.some(b => b.date === d)).sort();
+    if (!dates.length) continue;
+    const d = dates.at(-1), t = T.find(r => r.date === d), b = B.find(r => r.date === d);
+    const bad = ['H2', 'CH4', 'C2H4', 'C2H6', 'CO'].filter(k => { const x = t.v[k], y = b.v[k]; if (x == null || y == null) return false; const m = Math.max(x, y); return m >= 20 && Math.abs(x - y) / m > 0.5; });
+    const acet = (t.v.C2H2 > 0) !== (b.v.C2H2 > 0);
+    if (bad.length || acet) add({ t: 'dga', unit: t.unit, ph: t.ph, pos: 'Top/Bottom', date: d, sev: 'watch', recIds: [t.id, b.id], where: `${unitName(t.unit)}${t.ph !== '-' ? ' · ' + t.ph + '-ph' : ''} · same tank`,
+      title: `Top and bottom samples disagree (${[...bad, ...(acet ? ['C2H2 in one only'] : [])].join(', ')})`,
+      detail: bad.map(k => `${k} top ${fmt(t.v[k], 0)} vs bottom ${fmt(b.v[k], 0)} ppm`).join(' · ') + (acet ? ` · C2H2 top ${fmt(t.v.C2H2, 1)} / bottom ${fmt(b.v.C2H2, 1)}` : ''),
+      action: 'Both points sample one tank; gases are normally near-uniform. Re-sample top and bottom together (IEC 60567 procedure, flushed valve, gas-tight syringe). If the gap persists, suspect a localised fault near the sampling point with the higher gases.', basis: 'IEC 60567 · same-tank comparison' });
+  }
+}
+
 // ---------------------------------------------------------------- schedule
 // One due date per ASSET per TEST, counted from the asset's latest COMPLETED test
 // (all phases / sampling points of one campaign count together). Components that
@@ -228,7 +244,7 @@ export function run() {
   tandSeries('bushing', r => `${r.unit}|${r.pos}|${r.ph}`, { metric: 'tand20', metricLabel: 'corrected tan δ @20 °C', basis: 'MSETCL Sr 1', hard: LIM.tandHard, hardAction: 'Replace bushing immediately (circular Sr 1 cl.5).', overAction: 'Follow-up measurement for next two quarters; replacement on rate of change.', rate: true, cWatch: true });
   tandSeries('winding', r => `${r.unit}|${r.ph}|${r.acting}`, { metric: 'tand20', metricLabel: 'tan δ at 20 °C', basis: 'MSETCL Sr 3', overAction: 'Decide with transformer test results & oil test results — S.E. TCC & S.E. EHV (O&M) jointly.', watchAbs: 0.5, watchStd: 'IEEE C57.152 new-unit 0.5 %', doubling: true });
   tandSeries('ct', r => `${r.unit}|${r.ph}`, { metric: 'tand20', metricLabel: 'corrected tan δ @20 °C', basis: 'MSETCL Sr 18/19', hard: LIM.tandHard, hardAction: 'Industry practice: replace CT at ≥ 1.0 % (CEA/POWERGRID); circular: follow-up two quarters.', overAction: 'Follow-up measurement for next two quarters; decide on rate of change & oil DGA.', rate: true, watchAbs: 0.5, watchStd: 'IEC 61869-1 routine 0.5 %' });
-  windingCross(); crm(); timing(); la(); dga();
+  windingCross(); crm(); timing(); la(); dga(); tankDiff();
   FINDINGS.sort((a, b) => SEV[b.sev] - SEV[a.sev] || b.date.localeCompare(a.date));
   return FINDINGS;
 }
