@@ -10,12 +10,12 @@ A static web portal (no server, no build step) for EHV substation diagnostic tes
 ## Run locally
 
 ```bash
-cd diagnostic-portal
+cd trial
 python3 -m http.server 8000      # then open http://localhost:8000
 ```
 
 Opening `index.html` directly as a file will not work: browsers block `fetch()` of the JSON files.
-On GitHub Pages it is served at `/<repo>/diagnostic-portal/`.
+On GitHub Pages it is served at `/<repo>/`.
 
 ## Refresh data from the Google Sheet
 
