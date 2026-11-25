@@ -68,12 +68,12 @@ const TV = {
     group: r => r.unit, groupLabel: r => unitName(r.unit, true), series: r => r.ph,
     metrics: [
       { k: 'Icorr', label: 'Icorr — 3rd-harmonic resistive (µA)', unit: 'µA', limits: [{ y: 150, label: '150 µA (stack IR)', sev: 'alert' }, { y: 350, label: '350 µA (replace)', sev: 'critical' }] },
-      { k: 'Ith', label: 'Ith (µA)', unit: 'µA', limits: [{ y: 150, label: '150 µA', sev: 'alert' }, { y: 350, label: '350 µA', sev: 'critical' }] },
+      { k: 'Ith', label: 'Ith — uncompensated 3rd harmonic, for reference (µA)', unit: 'µA' },
       { k: 'Itotal', label: 'Itotal — total leakage, mostly capacitive (µA)', unit: 'µA' },
     ],
     cols: [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Feeder', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)], ['Season', r => esc(r.season || '')],
-      ['Ith µA', r => fmt(r.v.Ith, 0), 'r', r => r.v.Ith > 150], ['Icorr µA', r => fmt(r.v.Icorr, 0), 'r', r => r.v.Icorr > 150], ['Itotal µA', r => fmt(r.v.Itotal, 0), 'r'], ['Remark', r => `<span class="dim">${esc(r.rem)}</span>`]],
-    note: '<b>Method.</b> ZnO block degradation shows up in the <i>resistive</i> component; total leakage is about 90 % capacitive and is a trend only. The circular judges the 3rd-harmonic resistive current, so the portal evaluates the higher of Ith and Icorr. Large pre/post-monsoon swings usually point to surface leakage, not block ageing.',
+      ['Ith µA', r => fmt(r.v.Ith, 0), 'r'], ['Icorr µA', r => fmt(r.v.Icorr, 0), 'r', r => r.v.Icorr > 150], ['Itotal µA', r => fmt(r.v.Itotal, 0), 'r'], ['Remark', r => `<span class="dim">${esc(r.rem)}</span>`]],
+    note: '<b>Method.</b> ZnO block degradation shows up in the <i>resistive</i> component; total leakage is about 90 % capacitive and is a trend only. The circular\'s limits (150 / 350 µA) are applied to <b>Icorr</b>, the harmonic-compensated 3rd-harmonic resistive current. Ith and Itotal are stored and plotted for reference. Large pre/post-monsoon swings usually point to surface leakage, not block ageing.',
   },
   dga: {
     group: r => `${r.unit}|${r.ph}|${r.pos}`, groupLabel: r => `${unitName(r.unit)}${ph(r) ? ' · ' + r.ph + '-ph' : ''} · ${r.pos}`,

@@ -137,21 +137,21 @@ function timing() {
 
 // ---------------------------------------------------------------- LA
 function la() {
-  const all = recs('la').filter(r => r.v.Icorr != null || r.v.Ith != null);
+  const all = recs('la').filter(r => r.v.Icorr != null);
   for (const [, s0] of groupBy(all, r => r.unit + '|' + r.ph)) {
     const s = sorted(s0), L = s[s.length - 1];
     mark(s.map(r => r.id), 'ok');
     for (const r of s) {
-      const v = Math.max(r.v.Icorr ?? 0, r.v.Ith ?? 0);
+      const v = r.v.Icorr;
       if (v > LIM.la.replace) mark([r.id], 'critical'); else if (v > LIM.la.normal) mark([r.id], 'alert');
     }
-    const v = Math.max(L.v.Icorr ?? 0, L.v.Ith ?? 0);
+    const v = L.v.Icorr;
     const base = { t: 'la', unit: L.unit, ph: L.ph, date: L.date, recIds: [L.id], where: label(L) };
-    if (v > LIM.la.replace) add({ ...base, sev: 'critical', title: `3rd-harmonic resistive current ${fmt(v, 0)} µA > 350 µA`, detail: `${L.season || ''} ${L.date}: Ith ${fmt(L.v.Ith, 0)} · Icorr ${fmt(L.v.Icorr, 0)} µA.`, action: 'Complete LA should be replaced.', basis: 'MSETCL Sr 17 (c)' });
-    else if (v > LIM.la.normal) add({ ...base, sev: 'alert', title: `3rd-harmonic resistive current ${fmt(v, 0)} µA (150–350 band)`, detail: `Ith ${fmt(L.v.Ith, 0)} · Icorr ${fmt(L.v.Icorr, 0)} µA.`, action: 'Take stack-wise IR values; replace the low stack. Gantry LAs: during TF outage by removing jumper.', basis: 'MSETCL Sr 17 (b)' });
+    if (v > LIM.la.replace) add({ ...base, sev: 'critical', title: `Icorr ${fmt(v, 0)} µA > 350 µA`, detail: `${L.season || ''} ${L.date}: Ith ${fmt(L.v.Ith, 0)} · Icorr ${fmt(L.v.Icorr, 0)} µA.`, action: 'Complete LA should be replaced.', basis: 'MSETCL Sr 17 (c)' });
+    else if (v > LIM.la.normal) add({ ...base, sev: 'alert', title: `Icorr ${fmt(v, 0)} µA (150–350 µA band)`, detail: `Ith ${fmt(L.v.Ith, 0)} · Icorr ${fmt(L.v.Icorr, 0)} µA.`, action: 'Take stack-wise IR values; replace the low stack. Gantry LAs: during TF outage by removing jumper.', basis: 'MSETCL Sr 17 (b)' });
     const past = s.filter(r => r !== L && r.v.Icorr != null && r.date < L.date);
-    const hist = past.filter(r => Math.max(r.v.Icorr, r.v.Ith ?? 0) > LIM.la.normal);
-    if (v <= LIM.la.normal && hist.length) add({ ...base, sev: 'watch', recIds: hist.map(r => r.id).concat(L.id), title: `Was in 150–350 µA band ${hist.length}× in history, now ${fmt(v, 0)} µA`, detail: hist.map(r => `${r.date} (${r.season}): ${fmt(Math.max(r.v.Icorr, r.v.Ith ?? 0), 0)} µA`).join(' · '), action: 'Seasonal swing this large usually means surface leakage or moisture rather than block ageing. Check whether stack-wise IR was taken after each exceedance as the circular requires.', basis: 'MSETCL Sr 17 · IEC 60099-5' });
+    const hist = past.filter(r => r.v.Icorr > LIM.la.normal);
+    if (v <= LIM.la.normal && hist.length) add({ ...base, sev: 'watch', recIds: hist.map(r => r.id).concat(L.id), title: `Was in 150–350 µA band ${hist.length}× in history, now ${fmt(v, 0)} µA`, detail: hist.map(r => `${r.date} (${r.season}): Icorr ${fmt(r.v.Icorr, 0)} µA`).join(' · '), action: 'Seasonal swing this large usually means surface leakage or moisture rather than block ageing. Check whether stack-wise IR was taken after each exceedance as the circular requires.', basis: 'MSETCL Sr 17 · IEC 60099-5' });
   }
 }
 
