@@ -1,9 +1,10 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit } from './data.js';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js';
 import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js';
 import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js';
 import { IC, LOGO } from './icons.js';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise } from './health.js';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js';
 import { sld400, sld220, SLD_LEGEND } from './sld.js';
+import { art, skyline } from './art.js';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -114,7 +115,7 @@ const stdRow = (i) => `<div class="std-row"><div><div class="s">${esc(i.std)}</d
 function latestTable(t, rs) {
   const cfg = TV[t];
   const sk = cfg.seriesKey || (r => `${r.unit}|${r.pos}|${r.ph}`);
-  const valid = ['bushing', 'winding', 'ct'].includes(t) ? rs.filter(r => r.v.tand != null || r.v.C != null) : rs;
+  const valid = rs.filter(done);
   const rows = [...groupBy(valid, sk).values()].map(s => { s.sort((a, b) => a.date.localeCompare(b.date)); return { r: s[s.length - 1], s }; })
     .sort((a, b) => sortUnits(a.r.unit, b.r.unit) || (a.r.pos || '').localeCompare(b.r.pos || '') || a.r.ph.localeCompare(b.r.ph));
   return `<div class="tbl-wrap"><table class="t"><thead><tr>${cfg.cols.map(c => `<th class="${c[2] || ''}">${c[0]}</th>`).join('')}<th>Status</th></tr></thead><tbody>
@@ -213,18 +214,20 @@ function renderTestBody(t, rs, scoped) {
 
 // ============================================================ Health index widgets
 function hiCard(u) {
-  const h = healthIndex(u); if (!h) return '';
-  return `<a class="hi" href="#/eq/${u}">${gaugeSVG(h.hi)}<div><div class="n">${esc(unitName(u))}</div><div class="m">${esc(DB.site.units[u].rating)}</div>
+  const h = assetHealth(u); if (!h) return '';
+  return `<a class="hi" href="#/eq/${u}">${gaugeSVG(h.hi)}<div><div class="n">${esc(unitName(u))}</div><div class="m">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</div>
     <div class="band band-${h.band[1]}">${esc(h.band[2])}</div><div class="m">Governed by ${esc(h.factors[h.governing].label.toLowerCase())}</div></div></a>`;
 }
+
 function hiPanel(u) {
-  const h = healthIndex(u); if (!h) return '';
-  const bar = (k) => { const f = h.factors[k]; if (!f) return `<div class="hi-bar"><span class="dim">${{ dga: 'Dissolved gases', oil: 'Oil quality', winding: 'Winding insulation', bushing: 'Bushings' }[k]}</span><div class="track"></div><span class="val dim">n/a</span></div>`;
-    const bb = HI_BANDS.find(b => f.score >= b[0]); return `<div class="hi-bar" title="${esc(f.why)}"><span>${esc(f.label)} <span class="dim">· ${HI_WEIGHTS[k]}%</span></span><div class="track"><div class="fill bg-${bb[1]}" style="width:${Math.max(2, f.score)}%"></div></div><span class="val">${Math.round(f.score)}</span></div><div class="note hi-why">${esc(chem(f.why))}</div>`; };
-  return `<div style="display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:center">
-    <div style="text-align:center">${gaugeSVG(h.hi, 110)}<div class="band band-${h.band[1]}" style="font-weight:650">${esc(h.band[2])}</div></div>
-    <div class="hi-bars">${['dga', 'oil', 'winding', 'bushing'].map(bar).join('')}</div></div>
-    <p class="note mt" style="margin-bottom:0"><b>Health Index ${h.hi}/100</b> · ${esc(h.band[3])}. A weighted-factor index in the CIGRE TB 761 style. Bushings and DGA carry the most weight because they dominate catastrophic transformer failures in CIGRE A2 surveys. The index is indicative: thresholds are visible and can be tuned by S.E. PAC.</p>`;
+  const h = assetHealth(u); if (!h) return '';
+  const names = isTF(u) ? { dga: 'Dissolved gases', oil: 'Oil quality', winding: 'Winding insulation', bushing: 'Bushings' } : { cb_crm: 'Breaker contacts', cb_timing: 'Breaker mechanism', ct: 'CT insulation', la: 'Surge arresters' };
+  const bar = (k) => { const f = h.factors[k]; if (!f) return `<div class="hi-bar"><span class="dim">${names[k]} <span class="dim">· no data</span></span><div class="track"></div><span class="val dim">n/a</span></div>`;
+    const bb = HI_BANDS.find(b => f.score >= b[0]); return `<div class="hi-bar" title="${esc(chem(f.why))}"><span>${esc(f.label)} <span class="dim">· ${h.weights[k]}%</span></span><div class="track"><div class="fill bg-${bb[1]}" style="width:${Math.max(2, f.score)}%"></div></div><span class="val">${Math.round(f.score)}</span></div><div class="note hi-why">${esc(chem(f.why))}</div>`; };
+  return `<div class="hi-panel">
+    <div style="text-align:center">${gaugeSVG(h.hi, 120)}<div class="band band-${h.band[1]}" style="font-weight:650">${esc(h.band[2])}</div></div>
+    <div class="hi-bars">${Object.keys(names).map(bar).join('')}</div></div>
+    <p class="note mt" style="margin-bottom:0"><b>${isTF(u) ? 'Health Index' : 'Bay Health'} ${h.hi}/100</b> · ${esc(h.band[3])}. Weighted-factor index (CIGRE TB 761 style): each factor is scored from its latest reading, and the worst factor caps the total so a single bad component cannot be averaged away.${isTF(u) ? '' : ' Breaker contact resistance is scored against the healthy-fleet median of the same voltage class.'}</p>`;
 }
 
 // ============================================================ views
@@ -238,49 +241,60 @@ function vOverview() {
   const tests = Object.keys(TESTS);
   const cell = (u, t) => { if (!DB.records.some(r => r.unit === u && r.t === t)) return '<span class="dim">·</span>'; const s = unitStatus(u, t); return `<a href="#/eq/${u}?t=${t}" title="${SEV_LABEL[s]}">${s === 'ok' ? '<span class="dim">✓</span>' : pill(s)}</a>`; };
   const kpi = (cls, href, l, v, d) => `<a class="kpi ${cls} ${v ? 'hot' : ''}" href="${href}"><div class="l">${l}</div><div class="v">${v}</div><div class="d">${d}</div></a>`;
-  view().innerHTML = pageHead('Condition monitoring · 400 / 220 kV', esc(DB.site.substation.name),
-    `Diagnostic health for FY ${esc(DB.site.substation.fy)}, as of <b>${fmtDate(DB.today)}</b>. Every reading is evaluated against MSETCL circular 06961 (18 Oct 2024) and cross-checked with IEC / IEEE practice.`, printBtn + `<a class="btn pri" href="#/findings">${IC.findings}Review findings</a>`)
-    + `<section class="kpis" aria-label="Key figures">
+  const bh = bays.map(u => [u, assetHealth(u)]).filter(x => x[1]).sort((a, b) => a[1].hi - b[1].hi);
+  const avg = (a) => Math.round(a.reduce((x, y) => x + y, 0) / a.length);
+  const tfh = tfs.map(u => assetHealth(u)?.hi).filter(x => x != null);
+  view().innerHTML = `<section class="hero">${skyline()}<div class="hero-in"><div class="eyebrow">Condition monitoring · 400 / 220 kV · MSETCL</div><h1>${esc(DB.site.substation.name)}</h1>
+      <p class="lede">Diagnostic health for FY ${esc(DB.site.substation.fy)}, as of <b>${fmtDate(DB.today)}</b>. Each reading is evaluated against MSETCL circular 06961 (18 Oct 2024) and cross-checked with IEC / IEEE practice.</p>
+      <div class="hero-stats"><div><span>Transformer fleet HI</span><b>${avg(tfh)}</b></div><div><span>Bay fleet health</span><b>${avg(bh.map(x => x[1].hi))}</b></div><div><span>Weakest bay</span><b>${bh[0] ? unitName(bh[0][0]) + ' · ' + bh[0][1].hi : '—'}</b></div><div><span>Tests overdue</span><b>${od.length}</b></div></div>
+      <div class="actions" style="display:flex;gap:8px;margin-top:16px">${printBtn}<a class="btn pri" href="#/findings">${IC.findings}Review findings</a></div></div></section>
+    <section class="kpis" aria-label="Key figures">
       ${kpi('crit', '#/findings?sev=critical', '◆ Critical', n('critical'), 'act immediately')}
       ${kpi('alert', '#/findings?sev=alert', '▲ Alerts', n('alert'), 'circular limit breached')}
       ${kpi('watch', '#/findings?sev=watch', '● Watch-list', n('watch'), 'adverse trend / industry flag')}
       ${kpi('crit', '#/schedule?f=overdue', 'Overdue tests', od.length, `${due.length} more due ≤ 120 days`)}
       ${kpi('', '#/equipment', 'Assets monitored', units.length, `${tfs.length} transformers/reactor · ${bays.length} bays`)}
       ${kpi('', '#/data', 'Test records', DB.records.length.toLocaleString('en-IN'), `${DB.site.issues.length} data-quality notes`)}</section>
-    <div class="sec-h" style="margin-top:6px"><h2>Transformer & reactor health index</h2><span class="note">0–100 · weighted DGA, oil, winding & bushing condition</span></div>
+    <div class="sec-h" style="margin-top:6px"><h2>Transformer & reactor health index</h2><span class="note">0–100 · DGA, oil, winding & bushing condition · worst factor governs</span></div>
     <div class="hi-grid">${TF_UNITS.map(hiCard).join('')}</div>
-    <div class="card sld-card mt-l"><div class="card-h"><span style="width:18px;color:var(--brand-2)">${IC.sld}</span><h2>400 kV switchyard</h2><span class="sub">one-and-a-half breaker scheme · breakers coloured by test health</span><div class="sp"></div><a class="btn sm" href="#/sld">Full SLD incl. 220 kV ${IC.arrow}</a></div>
-      <div class="card-b"><div class="sld-wrap">${sld400()}</div>${SLD_LEGEND}</div></div>
+    <div class="grid g-7-5 mt-l">
+      <div class="card sld-card"><div class="card-h"><span style="width:18px;color:var(--brand-2)">${IC.sld}</span><h2>400 kV switchyard</h2><span class="sub">breakers coloured by test health</span><div class="sp"></div><a class="btn sm" href="#/sld">Full SLD ${IC.arrow}</a></div>
+        <div class="card-b"><div class="sld-wrap">${sld400()}</div>${SLD_LEGEND}</div></div>
+      <div class="card"><div class="card-h"><h2>Bay health</h2><span class="sub">weakest first · CB, CT, LA</span><div class="sp"></div><a class="btn sm ghost" href="#/equipment">All ${IC.arrow}</a></div>
+        <div class="bay-rank">${bh.slice(0, 12).map(([u, h]) => `<a href="#/eq/${u}"><span class="b">${esc(unitName(u))}</span><span class="dim nm">${esc(bayTitle(u))}</span><span class="track"><span class="fill bg-${h.band[1]}" style="width:${h.hi}%"></span></span><span class="num band-${h.band[1]}">${h.hi}</span></a>`).join('')}</div></div>
+    </div>
     <div class="grid g-7-5 mt">
       <div class="card"><div class="card-h"><h2>Needs attention</h2><span class="sub">critical & alert</span><div class="sp"></div><a class="btn sm ghost" href="#/findings">All findings ${IC.arrow}</a></div>${findingList(fs.filter(f => SEV[f.sev] >= 3), 6)}</div>
-      <div class="card"><div class="card-h"><h2>Test schedule</h2><span class="sub">overdue & next 120 days</span><div class="sp"></div><a class="btn sm ghost" href="#/schedule">Full schedule ${IC.arrow}</a></div>${schedTable([...od, ...due].slice(0, 12), true)}</div>
+      <div class="card"><div class="card-h"><h2>Test schedule</h2><span class="sub">per asset · overdue & next 120 days</span><div class="sp"></div><a class="btn sm ghost" href="#/schedule">Full schedule ${IC.arrow}</a></div>${schedTable([...od, ...due].slice(0, 12), true)}</div>
     </div>
     <div class="card mt"><div class="card-h"><h2>Health matrix</h2><span class="sub">worst open finding per asset & test · ✓ = normal (ISA-101: colour only for abnormal)</span></div>
-      <div class="tbl-wrap"><table class="t"><thead><tr><th>Asset</th>${tests.map(t => `<th><a href="#/test/${t}">${esc(TESTS[t].short)}</a></th>`).join('')}</tr></thead><tbody>
-      <tr class="grp"><td colspan="${tests.length + 1}">Transformers & reactor</td></tr>
-      ${tfs.map(u => row(u)).join('')}<tr class="grp"><td colspan="${tests.length + 1}">400 kV bays</td></tr>${bays.filter(b => kvOf(b) === 400).map(row).join('')}
-      <tr class="grp"><td colspan="${tests.length + 1}">220 kV bays</td></tr>${bays.filter(b => kvOf(b) === 220).map(row).join('')}
+      <div class="tbl-wrap"><table class="t"><thead><tr><th>Asset</th><th class="r">Health</th>${tests.map(t => `<th><a href="#/test/${t}">${esc(TESTS[t].short)}</a></th>`).join('')}</tr></thead><tbody>
+      <tr class="grp"><td colspan="${tests.length + 2}">Transformers & reactor</td></tr>
+      ${tfs.map(u => row(u)).join('')}<tr class="grp"><td colspan="${tests.length + 2}">400 kV bays</td></tr>${bays.filter(b => kvOf(b) === 400).map(row).join('')}
+      <tr class="grp"><td colspan="${tests.length + 2}">220 kV bays</td></tr>${bays.filter(b => kvOf(b) === 220).map(row).join('')}
       </tbody></table></div></div>`;
-  function row(u) { return `<tr><td><a href="#/eq/${u}"><b>${esc(unitName(u))}</b></a> <span class="dim">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</span></td>${tests.map(t => `<td>${cell(u, t)}</td>`).join('')}</tr>`; }
+  function row(u) { const h = assetHealth(u); return `<tr><td><a href="#/eq/${u}"><b>${esc(unitName(u))}</b></a> <span class="dim">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</span></td><td class="r">${h ? `<span class="band-${h.band[1]}" style="font-weight:600">${h.hi}</span>` : '<span class="dim">—</span>'}</td>${tests.map(t => `<td>${cell(u, t)}</td>`).join('')}</tr>`; }
 }
 
 function schedTable(list, compact) {
   if (!list.length) return `<div class="empty">${pill('ok', 'Nothing overdue or due in the next 120 days')}</div>`;
-  return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th><th>Asset</th>${compact ? '' : '<th>Ph / sample</th><th>Circular</th>'}${compact ? '' : '<th class="r">Last done</th>'}<th class="r">Due</th><th>Status</th></tr></thead><tbody>
-  ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td><td><a href="#/eq/${s.unit}">${esc(unitName(s.unit))}</a>${compact && (s.ph || s.pos) ? ` <span class="dim">${esc([s.ph && s.ph !== '-' ? s.ph : '', s.pos].filter(Boolean).join(' '))}</span>` : ''}</td>
-  ${compact ? '' : `<td>${phase(s.ph)} ${esc(s.pos)}</td><td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · every ${s.months} mo</button></td>`}
-  ${compact ? '' : `<td class="r">${fmtDate(s.last)}</td>`}<td class="r" title="Last done ${fmtDate(s.last)}">${fmtDate(s.due)}</td>
-  <td>${s.status === 'overdue' ? pill('critical', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', 'Scheduled')}</td></tr>`).join('')}</tbody></table></div>`;
+  const lagTxt = (s) => s.lag.length ? s.lag.map(l => `${l.k} last ${fmtDate(l.last)}`).join(' · ') : '';
+  return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th><th>Asset</th>${compact ? '' : '<th>Circular</th><th class="r">Last completed</th>'}<th class="r">Next due</th><th>Status</th>${compact ? '' : '<th>Not covered in last campaign</th>'}</tr></thead><tbody>
+  ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td><td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a>${compact && s.lag.length ? ` <span class="tag ver" title="${esc(lagTxt(s))}">${s.lag.length} lagging</span>` : ''}</td>
+  ${compact ? '' : `<td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · ${esc(s.freq)}</button></td><td class="r">${fmtDate(s.last)}</td>`}
+  <td class="r" title="Last completed ${fmtDate(s.last)}">${fmtDate(s.due)}</td>
+  <td>${s.status === 'overdue' ? pill('critical', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}</td>
+  ${compact ? '' : `<td style="white-space:normal">${s.lag.length ? `<span class="note">${esc(lagTxt(s))}</span>` : '<span class="dim">—</span>'}</td>`}</tr>`).join('')}</tbody></table></div>`;
 }
 
 function vSchedule(q) {
   setCrumbs([['Overview', '#/'], ['Test schedule']]);
   const f = q.get('f') || 'open';
   const list = SCHED.filter(s => f === 'all' || (f === 'open' ? s.status !== 'ok' : s.status === f));
-  view().innerHTML = pageHead('Planning', 'Test schedule', 'Next due = last test + circular frequency (bushing yearly · winding 2-yearly · DGA ½-yearly · LA ½-yearly · CT 2-yearly at 400 kV, yearly at 220 kV · CB 2-yearly). "Due" = within 120 days, the same window as the sheet\'s Pending Tests tab.', printBtn)
+  view().innerHTML = heroHead('Planning', 'Test schedule', 'One due date per asset and test, counted from the asset\'s <b>latest completed</b> test. A test done in 2025 and repeated in 2026 is due from the 2026 date. A row with a date but no measurement (e.g. "Rain, couldn\'t be tested") does not count as done. LA follows the circular\'s pre-monsoon (by 31 May) and post-monsoon (by 30 Nov) windows. "Due" = within 120 days.', printBtn)
     + `<div class="toolbar"><div class="chips">${[['open', 'Overdue + due'], ['overdue', 'Overdue'], ['due', 'Due ≤ 120 d'], ['all', 'All']].map(([k, l]) => `<a class="chip ${f === k ? 'on' : ''}" href="#/schedule?f=${k}">${l} <span class="num">${SCHED.filter(s => k === 'all' || (k === 'open' ? s.status !== 'ok' : s.status === k)).length}</span></a>`).join('')}</div></div>
     <div class="card">${schedTable(list, false)}</div>
-    <p class="note mt">220 kV CTs are taken as "Major/Important S/s" (Sr 19, yearly), matching the sheet's due dates. Per Note 2 of the circular, the zonal CE confirms this classification.</p>`;
+    <p class="note mt">"Not covered in last campaign" lists phases or sampling points whose last completed test is more than 60 days older than the asset's latest campaign. They should be picked up in the next outage. 220 kV CTs are taken as "Major/Important S/s" (Sr 19, yearly), matching the sheet; per Note 2 the zonal CE confirms this classification.</p>`;
 }
 
 function vSld() {
@@ -295,17 +309,18 @@ function vEquipment() {
   setCrumbs([['Equipment']]);
   const allBays = Object.keys(DB.site.bays).sort(sortUnits);
   const tile = (u) => {
-    const ts = testsForUnit(u), st = ts.length ? unitStatus(u) : 'none', last = DB.records.filter(r => r.unit === u).map(r => r.date).sort().pop();
-    const h = isTF(u) ? healthIndex(u) : null;
-    return `<a class="tile sev-${st} ${ts.length ? '' : 'off'}" href="#/eq/${u}"><div class="row"><span class="n">${esc(unitName(u))}</span><span style="flex:1"></span>${h ? `<span class="tag" title="Health index">HI ${h.hi}</span>` : ''}${pill(st)}</div>
-      <div class="m">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</div>
+    const ts = testsForUnit(u), st = ts.length ? unitStatus(u) : 'none', last = DB.records.filter(r => r.unit === u && done(r)).map(r => r.date).sort().pop();
+    const h = assetHealth(u);
+    return `<a class="tile media sev-${st} ${ts.length ? '' : 'off'}" href="#/eq/${u}">${art(artKind(u), { photo: u, alt: unitName(u) })}
+      <div class="tile-b"><div class="row"><span class="n">${esc(unitName(u))}</span><span style="flex:1"></span>${h?.hi != null ? `<span class="tag band-${h.band[1]}" title="Health index">HI ${h.hi}</span>` : ''}${pill(st)}</div>
+      <div class="m">${esc(isTF(u) ? DB.site.units[u].rating + (DB.site.units[u].make ? ' · ' + DB.site.units[u].make : '') : bayTitle(u))}</div>
       <div class="row">${ts.map(t => `<span class="tag">${esc(TESTS[t].short)}</span>`).join('') || '<span class="note">no tests recorded</span>'}</div>
-      ${last ? `<div class="m">Last test ${fmtDate(last)}</div>` : ''}</a>`;
+      ${last ? `<div class="m">Last completed test ${fmtDate(last)}</div>` : ''}</div></a>`;
   };
-  view().innerHTML = pageHead('Asset register', 'Equipment', 'Transformers and the reactor are listed by unit; switchyard equipment (CT, CB, LA) by bay. The left edge carries the worst open finding. Future bays are dimmed.', `<a class="btn" href="#/sld">${IC.sld}View on SLD</a>`)
-    + `<div class="sec-h" style="margin-top:0"><h2>Transformers & reactor</h2></div><div class="tiles">${TF_UNITS.map(tile).join('')}</div>
-    <div class="sec-h"><h2>400 kV bays</h2><span class="note">one-and-a-half breaker</span></div><div class="tiles">${allBays.filter(b => kvOf(b) === 400).map(tile).join('')}</div>
-    <div class="sec-h"><h2>220 kV bays</h2><span class="note">double main + transfer</span></div><div class="tiles">${allBays.filter(b => kvOf(b) === 220).map(tile).join('')}</div>`;
+  view().innerHTML = heroHead('Asset register', 'Equipment', 'Transformers and the reactor are listed by unit; switchyard equipment (CT, CB, LA) by bay. The left edge carries the worst open finding, and the HI tag shows the health index. Drop a site photo in <code>assets/photos/</code> named after the asset (e.g. <code>ICT1.jpg</code>, <code>403.jpg</code>) and it replaces the illustration.', `<a class="btn" href="#/sld">${IC.sld}View on SLD</a>`)
+    + `<div class="sec-h" style="margin-top:0"><h2>Transformers & reactor</h2></div><div class="tiles media-tiles">${TF_UNITS.map(tile).join('')}</div>
+    <div class="sec-h"><h2>400 kV bays</h2><span class="note">one-and-a-half breaker</span></div><div class="tiles media-tiles">${allBays.filter(b => kvOf(b) === 400).map(tile).join('')}</div>
+    <div class="sec-h"><h2>220 kV bays</h2><span class="note">double main + transfer</span></div><div class="tiles media-tiles">${allBays.filter(b => kvOf(b) === 220).map(tile).join('')}</div>`;
 }
 
 function bayPosition(u) {
@@ -316,27 +331,31 @@ function bayPosition(u) {
 }
 
 function vUnit(u, q) {
-  const ts = testsForUnit(u); const sel = q.get('t') && ts.includes(q.get('t')) ? q.get('t') : ts[0];
+  const ts = testsForUnit(u);
   setCrumbs([['Equipment', '#/equipment'], [unitName(u)]]);
   const info = isTF(u) ? DB.site.units[u] : null;
   const fs = findings().filter(f => f.unit === u || (f.unit === '*' && f.recIds.some(id => DB.records[id].unit === u)));
   const sch = SCHED.filter(s => s.unit === u);
   const st = ts.length ? unitStatus(u) : 'none';
+  const h = assetHealth(u);
+  const bushMake = info ? [...new Set(recs('bushing', { unit: u }).map(r => (r.mk || '').replace(/\n/g, ' ')).filter(Boolean))][0] : '';
   const plate = info
-    ? [['Rating', info.rating], ['Make', info.make || '—'], ['Commissioned', info.commissioned ? fmtDate(info.commissioned) : '—'], ['HV bay', info.bay ? `Bay ${info.bay}` : '—'], ...(info.serials ? [['Serial nos.', Object.entries(info.serials).map(([p, s]) => `${p}: ${s}`).join(' · ')]] : [])]
+    ? [['Rating', info.rating], ['Make', info.make || '—'], ['Commissioned', info.commissioned ? fmtDate(info.commissioned) : '—'], ['HV bay', info.bay ? `Bay ${info.bay}` : '—'], ...(info.serials ? [['Serial nos.', Object.entries(info.serials).map(([p, s]) => `${p}: ${s}`).join(' · ')]] : []), ...(bushMake ? [['Bushings', bushMake.replace('MAKE : ', '').replace(/SNO\. - \S+/, '').trim() || bushMake]] : [])]
     : [['Voltage', `${kvOf(u)} kV`], ['Feeder', bayTitle(u) || '—'], ['Scheme position', bayPosition(u)], ['Tests on record', String(ts.length)]];
-  view().innerHTML = `<section class="asset"><div><div class="eyebrow">${info ? 'Power transformer / reactor' : `${kvOf(u)} kV bay`}</div><div class="row-flex"><h1>${esc(unitName(u, !info))}</h1>${pill(st)}</div>
-      <div class="plate">${plate.map(([k, v]) => `<div><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}</div></div>
-      <div class="actions" style="display:flex;gap:8px;align-items:flex-start">${printBtn}</div></section>
-    ${info && healthIndex(u) ? `<div class="grid g-7-5 mb"><div class="card"><div class="card-h"><h2>Health index</h2><span class="sub">what drives the score</span></div><div class="card-b">${hiPanel(u)}</div></div>
-      <div class="card"><div class="card-h"><h2>Schedule</h2></div>${schedTable(sch, true)}</div></div>` : ''}
-    ${ts.length ? `<div class="grid ${info ? '' : 'g-7-5'} mb"><div class="card"><div class="card-h"><h2>Findings</h2><span class="sub">${fs.length}</span></div>${findingList(fs)}</div>${info ? '' : `<div class="card"><div class="card-h"><h2>Schedule</h2></div>${schedTable(sch, true)}</div>`}</div>
-    <nav class="tabs" aria-label="Tests">${ts.map(t => { const s = unitStatus(u, t); return `<a class="${t === sel ? 'on' : ''}" href="#/eq/${u}?t=${t}"><span style="width:16px;height:16px;display:grid">${IC[t]}</span>${esc(TESTS[t].name)} ${SEV[s] >= 2 ? `<span class="dot ${s}"></span>` : ''}</a>`; }).join('')}</nav>
-    <div class="toolbar"><span class="note">Governing clause</span>${circularBtn(sel === 'ct' && kvOf(u) === 220 ? 19 : TESTS[sel].sr, 'Circular scan')}<div class="sp"></div><a class="btn sm ghost" href="#/test/${sel}">Compare all ${esc(TESTS[sel].short)} ${IC.arrow}</a></div>
-    <div id="tb"></div>` : '<div class="card empty">No test records for this bay in the sheet yet. It is probably a future bay.</div>'}`;
-  if (!ts.length) return;
-  const body = renderTestBody(sel, recs(sel, { unit: u }), true);
-  $('#tb').innerHTML = body.html; body.after($('#tb'));
+  const artPlate = info ? [['MAKE', info.make || '—'], ['RATING', info.rating], ['SR. NO.', info.serials ? Object.values(info.serials)[0] + (Object.keys(info.serials).length > 1 ? ' …' : '') : '—']] : [['BAY', u], ['VOLTAGE', `${kvOf(u)} kV`]];
+  view().innerHTML = `<section class="asset has-art"><div><div class="eyebrow">${info ? (u === 'BUS_REACTOR' ? 'Shunt reactor' : 'Power transformer · auto-transformer') : `${kvOf(u)} kV bay · ${bayPosition(u)}`}</div><div class="row-flex"><h1>${esc(unitName(u, !info))}</h1>${pill(st)}${h ? `<span class="tag band-${h.band[1]}" style="font-size:12.5px">${isTF(u) ? 'HI' : 'Bay health'} ${h.hi} · ${h.band[2]}</span>` : ''}</div>
+      <div class="plate">${plate.map(([k, v]) => `<div><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}</div>
+      <div class="actions" style="display:flex;gap:8px;margin-top:14px">${printBtn}${!info ? `<a class="btn" href="#/sld">${IC.sld}Locate on SLD</a>` : ''}</div></div>
+      <div class="asset-art">${art(artKind(u), { photo: u, plate: artPlate, alt: unitName(u, true) })}</div></section>
+    ${ts.length ? `<div class="sec-h" style="margin-top:4px"><h2>Diagnostic tests</h2><span class="note">click a test for full results, graphs and history</span></div>
+    <div class="test-cards">${ts.map(t => testCard(u, t)).join('')}</div>
+    <div class="grid g-7-5 mt">${h ? `<div class="card"><div class="card-h"><h2>${isTF(u) ? 'Health index' : 'Bay health'}</h2><span class="sub">what drives the score</span></div><div class="card-b">${hiPanel(u)}</div></div>` : '<div></div>'}
+      <div class="card"><div class="card-h"><h2>Schedule</h2><span class="sub">per test, from latest completed</span></div>${schedTable(sch, true)}</div></div>
+    <div class="card mt"><div class="card-h"><h2>Findings</h2><span class="sub">${fs.length}</span></div>${findingList(fs)}</div>`
+    : '<div class="card empty">No test records for this bay in the sheet yet. It is probably a future bay.</div>'}`;
+  $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openDetail(u, b.dataset.detail); });
+  $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openDetail(u, t); } });
+  if (q.get('t') && ts.includes(q.get('t'))) openDetail(u, q.get('t'));
 }
 
 function vTest(t, q) {
@@ -348,11 +367,26 @@ function vTest(t, q) {
   const kvChips = !['bushing', 'winding', 'dga'].includes(t) && units.some(u => kvOf(u) === 220) && units.some(u => kvOf(u) === 400);
   const fs = findings().filter(x => x.t === t);
   const chip = (k, l) => { const s = ['all', '400', '220'].includes(k) ? null : unitStatus(k, t); return `<a class="chip ${f === k ? 'on' : ''}" href="#/test/${t}${k === 'all' ? '' : '?u=' + k}">${s && SEV[s] >= 2 ? `<span class="dot ${s}"></span>` : ''}${esc(l)}</a>`; };
-  view().innerHTML = pageHead(`${esc(T.eq)} · circular Sr ${T.sr}`, `<span style="display:inline-flex;gap:10px;align-items:center"><span style="width:26px;height:26px;color:var(--brand-2);display:grid">${IC[t]}</span>${esc(T.name)}</span>`, `${units.length} ${units.length === 1 ? 'asset' : 'assets'} · ${recs(t).length} records · ${fs.length} findings`, printBtn)
-    + `<div class="grid g2 mb">${clauseCard(t === 'ct' ? 18 : T.sr, t)}${standardsCard(t)}</div>
+  const A = analytics(t, recs(t));
+  view().innerHTML = `<section class="test-hero"><div class="th-art">${art(t === 'cb_crm' || t === 'cb_timing' ? 'breaker2' : t === 'ct' ? 'ct' : t === 'la' ? 'la' : 'transformer', { alt: T.name })}</div>
+      <div class="th-body"><div class="eyebrow">${esc(T.eq)} · circular Sr ${T.sr}</div><h1>${esc(T.name)}</h1><p class="lede">${esc(TEST_ABOUT[t])}</p>
+      <div class="actions" style="display:flex;gap:8px;margin-top:12px">${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}${printBtn}</div></div></section>
+    <section class="kpis" style="grid-template-columns:repeat(5,minmax(0,1fr))">
+      <div class="kpi"><div class="l">Assets tested</div><div class="v">${A.assets}</div><div class="d">${A.series} ${A.series === 1 ? 'series' : 'phase / point series'}</div></div>
+      <div class="kpi"><div class="l">Latest campaign</div><div class="v" style="font-size:20px">${A.lastDate ? fmtDate(A.lastDate) : '—'}</div><div class="d">${recs(t).filter(done).length} completed records</div></div>
+      <div class="kpi ${A.within < 100 ? 'alert hot' : ''}"><div class="l">Within circular limit</div><div class="v">${A.within}%</div><div class="d">of latest readings</div></div>
+      <div class="kpi ${A.overdue ? 'crit hot' : ''}"><div class="l">Overdue</div><div class="v">${A.overdue}</div><div class="d">of ${A.assets} assets</div></div>
+      <div class="kpi"><div class="l">Worst latest</div><div class="v" style="font-size:20px">${A.worst ? fmt(A.worst.v, KM[t].dp) + ' ' + KM[t].unit : '—'}</div><div class="d">${A.worst ? esc(A.worst.label) : ''}</div></div></section>
+    <div class="grid g-7-5 mb">
+      <div class="card"><div class="card-h"><h3>Fleet ranking · latest ${esc(KM[t].label)}</h3><span class="sub">highest first</span></div><div class="card-b"><div style="height:${Math.min(560, 46 + A.rank.length * 20)}px;position:relative"><canvas id="rankCv"></canvas></div><p class="note" style="margin:6px 0 0">${esc(KM[t].limitNote)}</p></div></div>
+      <div class="card"><div class="card-h"><h3>Biggest movers</h3><span class="sub">change since previous test</span></div>${moversTable(A.movers, t)}</div></div>
+    <div class="card mb"><div class="card-h"><h3>Year-wise heat map · worst ${esc(KM[t].label)} per asset per FY</h3></div>${heatmap(t, A)}</div>
+    <div class="grid g2 mb">${clauseCard(t === 'ct' ? 18 : T.sr, t)}${standardsCard(t)}</div>
     ${fs.length ? `<div class="card mb"><div class="card-h"><h2>Findings</h2><span class="sub">${fs.length}</span><div class="sp"></div><a class="btn sm ghost" href="#/findings?t=${t}">All ${IC.arrow}</a></div>${findingList(fs, 5)}</div>` : ''}
+    <div class="sec-h"><h2>Detailed results</h2><span class="note">filter by asset · click an asset name for its full pop-up</span></div>
     <div class="toolbar"><div class="chips">${t === 'dga' ? '' : chip('all', 'All')}${kvChips ? chip('400', '400 kV') + chip('220', '220 kV') : ''}${units.map(u => chip(u, unitName(u))).join('')}</div></div>
     <div id="tb"></div>`;
+  rankChart($('#rankCv'), t, A.rank);
   const body = renderTestBody(t, rs, false);
   $('#tb').innerHTML = body.html; body.after($('#tb'));
 }
@@ -455,6 +489,139 @@ js/app.js, js/ui.js  ← views, charts, Duval, palette, circular viewer</pre></d
 }
 
 function vNotFound() { setCrumbs([['Not found']]); view().innerHTML = '<div class="empty">Page not found. <a href="#/">Go to overview</a></div>'; }
+
+
+// ============================================================ asset helpers, analytics, pop-up
+function artKind(u) {
+  if (u === 'BUS_REACTOR') return 'reactor';
+  if (isTF(u)) return 'transformer';
+  return kvOf(u) === 400 ? 'bay400' : 'bay220';
+}
+const heroHead = (eyebrow, title, lede, actions = '') => `<section class="hero hero-s">${skyline()}<div class="hero-in"><div class="eyebrow">${eyebrow}</div><h1>${title}</h1>${lede ? `<p class="lede">${lede}</p>` : ''}${actions ? `<div class="actions" style="display:flex;gap:8px;margin-top:14px">${actions}</div>` : ''}</div></section>`;
+const TEST_ABOUT = {
+  bushing: 'Capacitance C₁ and dissipation factor of condenser bushings. Moisture or partial-discharge damage in the paper raises tan δ, and shorted foil layers step C₁ up. Bushings are the leading cause of catastrophic transformer failures.',
+  winding: 'Overall insulation of the windings (HV–LV, HV–earth, LV–earth) by UST/GST/GSTg modes. Rising tan δ points to moisture, oil ageing or contamination; a capacitance shift points to winding movement.',
+  dga: 'Gases dissolved in the oil reveal the energy and nature of internal faults: H₂ for partial discharge, C₂H₂ for arcing, C₂H₄ for hot spots, CO/CO₂ for paper. Paired with the oil-quality tests (BDV, water).',
+  ct: 'Capacitance and tan δ of oil-paper CT insulation through the test tap. CT explosions in the yard are usually preceded by a steady tan δ rise.',
+  cb_crm: 'Micro-ohm resistance of each pole\'s main current path at about 100 A DC. Contact wear, erosion or a loose terminal palm raise resistance and heating.',
+  cb_timing: 'Open and close times of each pole for both trip coils. Slowing mechanisms extend fault-clearing time, and pole spread raises switching over-voltages.',
+  la: 'Third-harmonic resistive leakage of ZnO arresters (Icorr), measured before and after the monsoon. A rising resistive current signals block degradation before thermal runaway.',
+};
+// key metric per test, used for ranking, heat map and movers
+const KM = {
+  bushing: { label: 'tan δ', unit: '%', dp: 3, get: r => r.v.tand, sub: r => `${r.pos} ${r.ph !== '-' ? r.ph : ''}`.trim() || 'Bushing', th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 % follow-up, 1.0 % replace immediately. Industry: 0.5 % for a new OIP bushing (IEEE C57.19.01).' },
+  winding: { label: 'tan δ @20 °C', unit: '%', dp: 3, get: r => r.v.tand20, sub: r => `${r.ph}-ph ${r.acting}`, th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 %. IEEE C57.152: ≤ 0.5 % for a new unit.' },
+  ct: { label: 'tan δ', unit: '%', dp: 3, get: r => r.v.tand, sub: r => `${r.ph}-ph`, th: [[1.0, 'critical'], [0.7, 'alert'], [0.5, 'watch']], limitNote: 'Circular: 0.7 % with 0.1 %/yr maximum rise. IEC 61869-1 routine limit 0.5 %.' },
+  cb_crm: { label: 'contact resistance', unit: 'µΩ', dp: 1, get: r => r.v.R, sub: r => `${r.ph}-ph`, th: r => [[LIM.crm[kvOf(r.unit)], 'alert']], limitNote: 'Circular: 400 kV 50 µΩ, 220 kV 100 µΩ. Every 400 kV pole exceeds 50 µΩ, which suggests a per-break figure (see findings).' },
+  cb_timing: { label: 'trip time', unit: 'ms', dp: 1, get: r => Math.max(r.v.open1 ?? 0, r.v.open2 ?? 0) || null, sub: r => `${r.ph}-ph`, th: r => [[LIM.trip[kvOf(r.unit)], 'alert'], [LIM.trip[kvOf(r.unit)] * 0.92, 'watch']], limitNote: 'Circular trip limit: 400 kV 25 ms, 220 kV 35 ms (max of TC1 / TC2 shown). Watch from 92 % of limit.' },
+  la: { label: 'Icorr', unit: 'µA', dp: 0, get: r => r.v.Icorr, sub: r => `${r.ph}-ph`, th: [[350, 'critical'], [150, 'alert']], limitNote: 'Circular: up to 150 µA normal · 150–350 µA stack-wise IR test · beyond 350 µA replace.' },
+  dga: { label: 'TDCG (main tank)', unit: 'ppm', dp: 0, get: r => r.pos === 'OLTC' ? null : r.v.TDCG, sub: r => `${r.ph !== '-' ? r.ph + '-ph ' : ''}${r.pos}`, th: [[4630, 'critical'], [1920, 'alert'], [720, 'watch']], limitNote: 'TDCG recomputed from the six combustible gases. IEEE C57.104-2008 conditions: 720 / 1920 / 4630 ppm.' },
+};
+function sevVal(t, r, v) {
+  if (v == null) return 'none';
+  const th = typeof KM[t].th === 'function' ? KM[t].th(r) : KM[t].th;
+  for (const [lim, sev] of th) if (v > lim) return sev;
+  return 'ok';
+}
+function analytics(t, all) {
+  const k = KM[t], rs = all.filter(done).filter(r => k.get(r) != null);
+  const series = [...groupBy(rs, r => r.unit + '|' + k.sub(r))].map(([key, s]) => { s.sort((a, b) => a.date.localeCompare(b.date)); return { key, s, L: s.at(-1), P: s.at(-2) }; });
+  const rank = series.map(x => ({ label: `${unitName(x.L.unit)} · ${k.sub(x.L)}`.replace(/\s+/g, ' ').trim(), v: k.get(x.L), sev: sevVal(t, x.L, k.get(x.L)), unit: x.L.unit })).sort((a, b) => b.v - a.v);
+  const movers = series.filter(x => x.P).map(x => { const a = k.get(x.P), b = k.get(x.L), dy = years(x.P.date, x.L.date); return { label: `${unitName(x.L.unit)} · ${k.sub(x.L)}`, unit: x.L.unit, a, b, d: b - a, pct: a ? (b - a) / Math.abs(a) * 100 : null, rate: dy > 0 ? (b - a) / dy : null, from: x.P.date, to: x.L.date }; })
+    .filter(m => m.pct != null).sort((a, b) => Math.abs(b.pct) - Math.abs(a.pct)).slice(0, 8);
+  const fys = [...new Set(rs.map(r => r.ses))].sort();
+  const heat = [...groupBy(rs, r => r.unit)].sort((a, b) => sortUnits(a[0], b[0])).map(([u, s]) => ({ u, cells: fys.map(fy => { const x = s.filter(r => r.ses === fy); if (!x.length) return null; const w = x.reduce((m, r) => k.get(r) > k.get(m) ? r : m); return { v: k.get(w), sev: sevVal(t, w, k.get(w)), n: x.length }; }) }));
+  const latest = series.map(x => x.L);
+  const within = latest.length ? Math.round(latest.filter(r => SEV[sevVal(t, r, k.get(r))] < 3).length / latest.length * 100) : 100;
+  return { assets: new Set(rs.map(r => r.unit)).size, series: series.length, lastDate: rs.map(r => r.date).sort().pop(), within, overdue: SCHED.filter(s => s.t === t && s.status === 'overdue').length, worst: rank[0], rank, movers, fys, heat };
+}
+function rankChart(cv, t, rank) {
+  if (!cv || !rank.length) return;
+  const c = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  const col = { ok: c('--ink-4'), watch: c('--watch'), alert: c('--alert'), critical: c('--crit'), none: c('--line-2') };
+  const top = rank.slice(0, 26);
+  const ch = new Chart(cv, { type: 'bar', data: { labels: top.map(r => r.label), datasets: [{ data: top.map(r => r.v), backgroundColor: top.map(r => col[r.sev]), borderRadius: 3, barThickness: 12 }] },
+    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, animation: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (it) => `${fmt(it.raw, KM[t].dp)} ${KM[t].unit} · ${SEV_LABEL[top[it.dataIndex].sev]}` } } },
+      onClick: (_e, els) => { if (els[0]) location.hash = `#/eq/${top[els[0].index].unit}?t=${t}`; },
+      scales: { x: { grid: { color: c('--line') }, ticks: { color: c('--ink-3') }, title: { display: true, text: KM[t].unit, color: c('--ink-3') } }, y: { grid: { display: false }, ticks: { color: c('--ink-2'), font: { size: 11 } } } } } });
+  return ch;
+}
+function moversTable(m, t) {
+  const dp = KM[t].dp;
+  if (!m.length) return '<div class="empty">Needs at least two completed tests per series.</div>';
+  return `<div class="tbl-wrap"><table class="t"><thead><tr><th>Series</th><th class="r">Previous</th><th class="r">Latest</th><th class="r">Change</th><th class="r">Per year</th></tr></thead><tbody>${m.map(x => `<tr><td><a href="#/eq/${x.unit}">${esc(x.label)}</a><div class="dim" style="font-size:11.5px">${fmtDate(x.from)} → ${fmtDate(x.to)}</div></td><td class="r">${fmt(x.a, dp)}</td><td class="r">${fmt(x.b, dp)}</td><td class="r ${x.pct > 0 ? 'up' : 'down'}">${x.pct > 0 ? '▲' : '▼'} ${fmt(Math.abs(x.pct), 0)}%</td><td class="r">${t !== 'la' && x.rate != null ? (x.rate > 0 ? '+' : '') + fmt(x.rate, dp) : '<span class="dim" title="Seasonal test: an annual rate is not meaningful">—</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+function heatmap(t, A) {
+  if (!A.heat.length) return '<div class="empty">No data</div>';
+  return `<div class="tbl-wrap"><table class="t heat"><thead><tr><th>Asset</th>${A.fys.map(f => `<th class="r">FY ${f}</th>`).join('')}</tr></thead><tbody>${A.heat.map(h => `<tr><td><a href="#/eq/${h.u}?t=${t}">${esc(unitName(h.u))}</a> <span class="dim">${esc(isTF(h.u) ? '' : bayTitle(h.u))}</span></td>${h.cells.map(c => c ? `<td class="r hc-${c.sev}" title="${c.n} readings">${fmt(c.v, KM[t].dp)}</td>` : '<td class="r dim">·</td>').join('')}</tr>`).join('')}</tbody></table></div>`;
+}
+function testCard(u, t) {
+  const rs = recs(t, { unit: u }).filter(done), k = KM[t];
+  const s = unitStatus(u, t), sch = SCHED.find(x => x.unit === u && x.t === t);
+  const latest = [...groupBy(rs.filter(r => k.get(r) != null), k.sub).values()].map(x => x.sort((a, b) => a.date.localeCompare(b.date)).at(-1));
+  const worstL = latest.sort((a, b) => k.get(b) - k.get(a))[0];
+  const spark = sparkline(rs.filter(r => k.get(r) != null), k);
+  return `<a class="test-card sev-${s}" href="#/eq/${u}?t=${t}" data-detail="${t}"><div class="tc-h"><span class="tc-ic">${IC[t]}</span><span class="n">${esc(TESTS[t].name)}</span><span style="flex:1"></span>${pill(s)}</div>
+    <div class="tc-v"><span class="num">${worstL ? fmt(k.get(worstL), k.dp) : '—'}</span><span class="u">${k.unit}</span><span class="dim">worst latest ${esc(k.label)}${worstL ? ' · ' + esc(k.sub(worstL)) : ''}</span></div>${spark}
+    <div class="tc-f"><span>Last ${sch ? fmtDate(sch.last) : '—'}</span><span>${sch ? (sch.status === 'overdue' ? `<b style="color:var(--crit)">Overdue ${-sch.days} d</b>` : `Due ${fmtDate(sch.due)}`) : ''}</span></div></a>`;
+}
+function sparkline(rs, k) {
+  const pts = [...groupBy(rs, r => r.date)].map(([d, x]) => [d, Math.max(...x.map(k.get))]).sort((a, b) => a[0].localeCompare(b[0]));
+  if (pts.length < 2) return '<div class="spark"></div>';
+  const W = 240, H = 40, xs = pts.map(p => +new Date(p[0])), ys = pts.map(p => p[1]);
+  const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys) || 1;
+  const X = (x) => 4 + (x - x0) / (x1 - x0 || 1) * (W - 8), Y = (y) => H - 5 - (y - y0) / ((y1 - y0) || 1) * (H - 10);
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${X(+new Date(p[0])).toFixed(1)} ${Y(p[1]).toFixed(1)}`).join('');
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><path d="${d}" fill="none" stroke="var(--brand-2)" stroke-width="1.8"/>${pts.map(p => `<circle cx="${X(+new Date(p[0])).toFixed(1)}" cy="${Y(p[1]).toFixed(1)}" r="2.2" fill="var(--brand-2)"/>`).join('')}</svg>`;
+}
+
+const FIELD = { C: 'C pF', tand: 'Tan δ %', tand20: 'Tan δ @20 °C', U: 'U kV', I: 'I', P: 'P', F: 'F Hz', temp: 'Temp °C', R: 'CRM µΩ', mV: 'mV', open1: 'Trip TC1 ms', open2: 'Trip TC2 ms', close: 'Close ms', co1: 'C-O TC1 ms', co2: 'C-O TC2 ms', Ith: 'Ith µA', Icorr: 'Icorr µA', Itotal: 'Itotal µA', IRt: 'IR top MΩ', IRm: 'IR mid MΩ', IRb: 'IR bottom MΩ', IRtot: 'IR total MΩ', H2: 'H₂', CH4: 'CH₄', CO: 'CO', CO2: 'CO₂', C2H4: 'C₂H₄', C2H6: 'C₂H₆', C2H2: 'C₂H₂', O2: 'O₂', N2: 'N₂', TDCG: 'TDCG', TGC: 'TGC', BDV: 'BDV kV', H2O: 'H₂O ppm', acidity: 'Acidity', DDF: 'DDF', resistivity: 'Resistivity', TDCG_sheet: 'TDCG (sheet)' };
+
+/** Full-detail pop-up for one asset × one test. */
+function openDetail(u, t) {
+  const T = TESTS[t], cfg = TV[t], k = KM[t];
+  const all = recs(t, { unit: u }).sort((a, b) => b.date.localeCompare(a.date));
+  const rs = all.filter(done);
+  const s = unitStatus(u, t), sch = SCHED.find(x => x.unit === u && x.t === t);
+  const fs = findings().filter(f => f.t === t && (f.unit === u || (f.unit === '*' && f.recIds.some(id => DB.records[id].unit === u))));
+  const sr = t === 'ct' && kvOf(u) === 220 ? 19 : (t === 'ct' ? 18 : T.sr);
+  const ser = [...groupBy(rs.filter(r => k.get(r) != null), k.sub)].map(([key, x]) => { x.sort((a, b) => a.date.localeCompare(b.date)); const L = x.at(-1), P = x.at(-2), B = x[0]; return { key, L, P, B }; }).sort((a, b) => a.key.localeCompare(b.key));
+  const keys = [...new Set(all.flatMap(r => Object.keys(r.v)))].filter(x => FIELD[x] && x !== 'TDCG_sheet');
+  const groups = cfg ? groupBy(rs, cfg.group) : new Map();
+  const gkeys = [...groups.keys()];
+  const body = `
+    <div class="dt-head">${art(artKind(u) === 'reactor' || artKind(u) === 'transformer' ? artKind(u) : (t === 'ct' ? 'ct' : t === 'la' ? 'la' : kvOf(u) === 400 ? 'breaker2' : 'breaker1'), { photo: `${u}-${t}`, alt: T.name })}
+      <div><div class="row-flex">${pill(s)}${sch ? (sch.status === 'overdue' ? pill('critical', `Overdue ${-sch.days} d`) : pill('ok', `Next due ${fmtDate(sch.due)}`)) : ''}${circularBtn(sr, 'Circular scan')}</div>
+      <p class="lede" style="margin-top:8px">${esc(TEST_ABOUT[t])}</p>
+      <div class="stat-strip">
+        <div><span>Last completed</span><b>${sch ? fmtDate(sch.last) : '—'}</b></div><div><span>Completed tests</span><b>${new Set(rs.map(r => r.date)).size}</b></div>
+        <div><span>Records</span><b>${rs.length}</b></div><div><span>Findings</span><b>${fs.length}</b></div>
+        ${sch?.lag.length ? `<div><span>Not covered last time</span><b style="color:var(--watch)">${esc(sch.lag.map(l => l.k).join(', '))}</b></div>` : ''}</div></div></div>
+    <h3 class="mt">Latest by ${t === 'dga' ? 'sampling point' : t === 'winding' ? 'insulation' : t === 'bushing' ? 'bushing' : 'phase'} · ${esc(k.label)}</h3>
+    <div class="ph-cards">${ser.map(x => { const v = k.get(x.L), pv = x.P ? k.get(x.P) : null, bv = k.get(x.B), sv = sevVal(t, x.L, v); return `<div class="ph-card hc-${sv}"><div class="k">${esc(x.key)}</div><div class="v num">${fmt(v, k.dp)} <span class="u">${k.unit}</span></div>
+      <div class="d">${pv != null ? `${v > pv ? '▲' : v < pv ? '▼' : '='} ${fmt(Math.abs(v - pv), k.dp)} vs ${fmtDate(x.P.date)}` : 'single test'}</div>${x.B !== x.L ? `<div class="d dim">baseline ${fmt(bv, k.dp)} (${fmtDate(x.B.date)})</div>` : ''}</div>`; }).join('')}</div>
+    ${t === 'dga' ? duvalCard(rs) : ''}
+    ${t === 'cb_crm' ? `<div class="card mt"><div class="card-b"><div style="height:240px;position:relative"><canvas id="dtCrm"></canvas></div></div></div>` : `
+    <div class="row-flex mt"><h3 style="margin:0">Trends</h3>${gkeys.length > 1 ? `<div class="seg" id="dtGroups">${gkeys.map((g, i) => `<button class="${i ? '' : 'on'}" data-g="${esc(g)}">${esc(cfg.groupLabel(groups.get(g)[0]).replace(unitName(u) + ' · ', ''))}</button>`).join('')}</div>` : ''}</div>
+    <div class="grid g2 mt" id="dtCharts"></div>`}
+    ${fs.length ? `<h3 class="mt-l">Findings</h3><div class="card">${findingList(fs)}</div>` : ''}
+    <div class="grid g2 mt-l">${clauseCard(sr, t)}${standardsCard(t)}</div>
+    <div class="row-flex mt-l"><h3 style="margin:0">Complete test history</h3><span class="note">${all.length} rows · newest first · includes rows logged without a measurement</span></div>
+    <div class="card mt"><div class="tbl-wrap" style="max-height:420px"><table class="t"><thead><tr><th>Date</th><th>FY</th><th>Ph</th>${t === 'bushing' || t === 'dga' ? '<th>Point</th>' : ''}${t === 'winding' ? '<th>Mode</th><th>Insulation</th>' : ''}${t === 'la' ? '<th>Season</th>' : ''}${keys.map(x => `<th class="r">${FIELD[x]}</th>`).join('')}<th>Status</th><th>Remark</th><th>Source</th></tr></thead><tbody>
+      ${all.map(r => `<tr class="${done(r) ? '' : 'dim'}"><td class="num">${fmtDate(r.date)}</td><td>${esc(r.ses)}</td><td>${phase(r.ph)}</td>${t === 'bushing' || t === 'dga' ? `<td>${esc(r.pos)}</td>` : ''}${t === 'winding' ? `<td>${esc(r.mode)}</td><td>${esc(r.acting)}</td>` : ''}${t === 'la' ? `<td>${esc(r.season || '')}</td>` : ''}${keys.map(x => `<td class="r">${fmt(r.v[x], x === 'tand' || x === 'tand20' ? 3 : 2)}</td>`).join('')}<td>${done(r) ? pill(statusOf(r)) : pill('none', 'not done')}</td><td class="dim" style="white-space:normal;min-width:120px">${esc(r.rem)}</td><td class="mono dim" style="font-size:11px">${esc(r.src)}</td></tr>`).join('')}</tbody></table></div></div>`;
+  modal(`${esc(unitName(u, true))} — ${esc(T.name)}`, body, (root) => {
+    root.querySelector('.modal').classList.add('xl');
+    if (t === 'cb_crm') { const c = PHASE_COLOR(); const lat = ser.map(x => x.L); barChart(root.querySelector('#dtCrm'), { labels: ['R', 'Y', 'B'], yLabel: 'µΩ', limits: [{ y: LIM.crm[kvOf(u)], label: `Circular ${LIM.crm[kvOf(u)]} µΩ` }], series: [{ label: 'Contact resistance', color: c['-'], data: ['R', 'Y', 'B'].map(p => lat.find(r => r.ph === p)?.v.R ?? null) }] }); return; }
+    const draw = (g) => {
+      const box = root.querySelector('#dtCharts'); const grs = groups.get(g) || rs;
+      box.innerHTML = cfg.metrics.map((m, i) => `<div class="chart-card" data-mi="${i}"><div class="card-h"><h3>${esc(m.label)}</h3></div><div class="chart-box" style="height:260px"><canvas></canvas></div><div class="legend-note" data-lbl></div></div>`).join('');
+      $$('[data-mi]', box).forEach(card => drawChart(card, grs, cfg, Number(card.dataset.mi)));
+    };
+    draw(gkeys.sort((a, b) => SEV[worst(groups.get(b).map(statusOf))] - SEV[worst(groups.get(a).map(statusOf))])[0]);
+    const sg = root.querySelector('#dtGroups');
+    if (sg) { const first = gkeys[0]; $$('button', sg).forEach(b => { b.classList.toggle('on', b.dataset.g === first); b.onclick = () => { $$('button', sg).forEach(x => x.classList.toggle('on', x === b)); draw(b.dataset.g); }; }); }
+  });
+}
 
 // ============================================================ router & shell
 function route() {

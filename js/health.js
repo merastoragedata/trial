@@ -73,3 +73,54 @@ export function gaugeSVG(hi, size = 76) {
     <circle cx="38" cy="38" r="${r}" fill="none" stroke="${col}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${(c * frac).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 38 38)"/>
     <text x="38" y="42" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="19" font-weight="600" fill="var(--ink)">${hi}</text></svg>`;
 }
+
+// ---------------------------------------------------------------------------
+// Bay Health Index — breaker (CRM + timing), CT insulation and LA condition.
+// Same mechanics as the transformer index: weighted factors, worst factor governs.
+// CRM is scored against the fleet median of the same voltage class (healthy-fleet
+// baseline), because the circular's 400 kV 50 µΩ figure does not match per-pole
+// measurement (see finding); the circular limit is still shown on every chart.
+import { kvOf, done } from './data.js';
+export const BAY_WEIGHTS = { cb_crm: 20, cb_timing: 20, ct: 30, la: 30 };
+const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const latestPh = (t, unit) => latestBy(recs(t, { unit }).filter(done), r => r.ph);
+
+export function bayHealth(unit) {
+  const f = {}, kv = kvOf(unit);
+  const crm = latestPh('cb_crm', unit).filter(r => r.v.R != null);
+  if (crm.length) {
+    const fleet = med(latestBy(recs('cb_crm').filter(r => r.v.R != null && kvOf(r.unit) === kv), r => r.unit + r.ph).map(r => r.v.R));
+    const hi = crm.sort((a, b) => b.v.R - a.v.R)[0], vals = crm.map(r => r.v.R);
+    let sc = lerp(hi.v.R / fleet, [[1.0, 100], [1.2, 85], [1.5, 55], [2, 20], [3, 0]]);
+    const imb = (Math.max(...vals) - Math.min(...vals)) / Math.min(...vals);
+    if (imb > 0.25) sc = Math.min(sc, 70);
+    f.cb_crm = { score: sc, label: 'Breaker contacts', why: `max ${hi.v.R} µΩ (${hi.ph}-ph) vs ${kv} kV fleet median ${fleet.toFixed(0)} µΩ${imb > 0.25 ? ` · pole imbalance ${(imb * 100).toFixed(0)} %` : ''}`, date: hi.date };
+  }
+  const tm = latestPh('cb_timing', unit);
+  if (tm.length) {
+    const trip = { 400: 25, 220: 35 }[kv];
+    const op = Math.max(...tm.map(r => Math.max(r.v.open1 ?? 0, r.v.open2 ?? 0)));
+    const cl = Math.max(...tm.map(r => r.v.close ?? 0));
+    let sc = Math.min(lerp(op / trip, [[0.8, 100], [0.9, 90], [1.0, 65], [1.2, 25], [1.5, 0]]), cl ? lerp(cl / 150, [[0.7, 100], [0.85, 90], [1.0, 60], [1.5, 10], [2, 0]]) : 100);
+    const spread = (k) => { const v = tm.map(r => r.v[k]).filter(x => x != null); return v.length > 1 ? Math.max(...v) - Math.min(...v) : 0; };
+    if (spread('close') > 5 || spread('open1') > 3.33) sc = Math.min(sc, 70);
+    f.cb_timing = { score: sc, label: 'Breaker mechanism', why: `trip ${op.toFixed(1)} ms (limit ${trip}) · close ${cl ? cl.toFixed(1) : '—'} ms (limit 150)${spread('close') > 5 ? ` · close-pole spread ${spread('close').toFixed(1)} ms` : ''}`, date: tm[0].date };
+  }
+  const c = latestPh('ct', unit).filter(r => r.v.tand != null);
+  if (c.length) {
+    const w = c.sort((a, b) => b.v.tand - a.v.tand)[0];
+    f.ct = { score: lerp(w.v.tand, [[0.3, 100], [0.5, 85], [0.7, 60], [1.0, 20], [1.2, 0]]), label: 'CT insulation', why: `${w.ph}-ph tan δ ${w.v.tand.toFixed(3)} % · C ${w.v.C ?? '—'} pF`, date: w.date };
+  }
+  const l = latestPh('la', unit).filter(r => r.v.Icorr != null);
+  if (l.length) {
+    const w = l.sort((a, b) => b.v.Icorr - a.v.Icorr)[0];
+    f.la = { score: lerp(w.v.Icorr, [[30, 100], [100, 85], [150, 65], [350, 25], [500, 0]]), label: 'Surge arresters', why: `${w.ph}-ph Icorr ${w.v.Icorr} µA (${w.season || ''} ${w.date})`, date: w.date };
+  }
+  const keys = Object.keys(f);
+  if (!keys.length) return null;
+  const tw = keys.reduce((a, k) => a + BAY_WEIGHTS[k], 0);
+  const gov = [...keys].sort((a, b) => f[a].score - f[b].score)[0];
+  const hi = Math.min(keys.reduce((a, k) => a + BAY_WEIGHTS[k] * f[k].score, 0) / tw, f[gov].score + 25);
+  return { hi: Math.round(hi), band: band(hi), factors: f, governing: gov, weights: BAY_WEIGHTS };
+}
+export function assetHealth(u) { if (/^(ICT1|ICT2|SPARE_ICT|BUS_REACTOR)$/.test(u)) { const h = healthIndex(u); return h && { ...h, weights: HI_WEIGHTS }; } return bayHealth(u); }

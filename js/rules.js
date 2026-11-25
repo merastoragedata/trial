@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF } from './data.js';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -201,18 +201,32 @@ function dga() {
 }
 
 // ---------------------------------------------------------------- schedule
-const MONTHS = { bushing: 12, winding: 24, dga: 6, la: 6, cb_crm: 24, cb_timing: 24 };
+// One due date per ASSET per TEST, counted from the asset's latest COMPLETED test
+// (all phases / sampling points of one campaign count together). Components that
+// were missed in the latest campaign are reported as "lagging" instead of getting
+// their own due date. LA follows the circular's pre- / post-monsoon windows.
+const MONTHS = { bushing: 12, winding: 24, dga: 6, cb_crm: 24, cb_timing: 24 };
+const SUBKEY = { bushing: r => `${r.pos} ${r.ph}`, winding: r => `${r.ph}-ph`, dga: r => `${r.ph !== '-' ? r.ph + '-ph ' : ''}${r.pos}`, ct: r => `${r.ph}-ph`, cb_crm: r => `${r.ph}-ph`, cb_timing: r => `${r.ph}-ph`, la: r => `${r.ph}-ph` };
+export function laWindow(iso) {             // returns [season just done, due date of next season]
+  const d = toDate(iso), y = d.getFullYear(), m = d.getMonth() + 1;
+  if (m >= 3 && m <= 7) return ['Pre-monsoon', new Date(y, 10, 30)];            // next: post-monsoon by 30 Nov
+  return ['Post-monsoon', new Date(m <= 2 ? y : y + 1, 4, 31)];                 // next: pre-monsoon by 31 May
+}
 export function schedule() {
   const out = [];
-  const groups = { bushing: r => r.unit, winding: r => r.unit + '|' + r.ph, dga: r => `${r.unit}|${r.ph}|${r.pos}`, ct: r => r.unit, cb_crm: r => r.unit, cb_timing: r => r.unit, la: r => r.unit };
   for (const t of Object.keys(TESTS)) {
-    for (const [k, g] of groupBy(recs(t), groups[t])) {
-      const last = g.map(r => r.date).sort().pop(); const r0 = g[0];
-      const months = t === 'ct' ? (kvOf(r0.unit) === 220 ? 12 : 24) : MONTHS[t];
-      const sr = t === 'ct' ? (kvOf(r0.unit) === 220 ? 19 : 18) : TESTS[t].sr;
-      const due = addMonths(last, months);
+    for (const [unit, g0] of groupBy(recs(t).filter(done), r => r.unit)) {
+      const last = g0.map(r => r.date).sort().pop();
+      const kv = kvOf(unit);
+      let months = t === 'ct' ? (kv === 220 ? 12 : 24) : MONTHS[t], due, freq;
+      const sr = t === 'ct' ? (kv === 220 ? 19 : 18) : TESTS[t].sr;
+      if (t === 'la') { const [season, nx] = laWindow(last); due = nx; freq = `½-yearly · ${season.toLowerCase()} done`; months = 6; }
+      else { due = addMonths(last, months); freq = months === 12 ? 'yearly' : months === 6 ? '½-yearly' : `${months / 12}-yearly`; }
+      // components not covered in the latest campaign (more than 60 days older)
+      const sub = [...groupBy(g0, SUBKEY[t])].map(([k, s]) => [k, s.map(r => r.date).sort().pop()]);
+      const lag = sub.filter(([, d]) => years(d, last) > 60 / 365).map(([k, d]) => ({ k: k.trim(), last: d }));
       const days = Math.round((due - DB.today) / 864e5);
-      out.push({ t, key: k, unit: r0.unit, ph: t === 'winding' || t === 'dga' ? r0.ph : '', pos: t === 'dga' ? r0.pos : '', last, due, days, months, sr,
+      out.push({ t, key: unit, unit, last, due, days, months, freq, sr, lag, n: new Set(g0.map(r => r.date)).size,
         status: days < 0 ? 'overdue' : days <= 120 ? 'due' : 'ok' });
     }
   }

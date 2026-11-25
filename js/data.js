@@ -19,6 +19,11 @@ export const TESTS = {
   la:        { key: 'la',        name: 'LA leakage current',      short: 'LA LCM',        sr: 17, eq: 'Lightning arresters',     icon: '↯' },
 };
 
+// A record counts as a completed test only if its key measurement is present
+// (a row with a date but "Rain! couldn't be tested" / "Crm taken" is not a completed test).
+export const KEY = { bushing: ['tand', 'C'], winding: ['tand', 'C'], ct: ['tand', 'C'], cb_crm: ['R'], cb_timing: ['open1', 'open2', 'close'], la: ['Icorr', 'Ith', 'Itotal'], dga: ['H2', 'CH4', 'CO', 'C2H2'] };
+export const done = (r) => (KEY[r.t] || []).some(k => r.v[k] != null);
+
 export const DB = { site: null, norms: null, standards: null, today: new Date() };
 
 export async function loadAll(source = JSON_SOURCE) {
