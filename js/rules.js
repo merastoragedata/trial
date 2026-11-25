@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1848';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1917';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -14,6 +14,7 @@ const LIM = {
 export { LIM };
 
 let FINDINGS = [];
+const recsOK = (t, f) => recs(t, f).filter(r => !r.excluded);   // copied / template rows never feed a finding
 const recSev = new Map();       // record id -> worst severity
 const mark = (ids, sev) => ids.forEach(id => { if ((SEV[recSev.get(id)] ?? -1) < SEV[sev]) recSev.set(id, sev); });
 
@@ -29,7 +30,7 @@ const label = (r) => [unitName(r.unit), r.pos, r.ph && r.ph !== '-' ? r.ph + '-p
 
 // ---------------------------------------------------------------- tan δ family
 function tandSeries(t, keyFn, opt) {
-  const all = recs(t).filter(r => r.v.tand != null || r.v.C != null);
+  const all = recsOK(t).filter(r => r.v.tand != null || r.v.C != null);
   for (const [, s0] of groupBy(all, keyFn)) {
     const s = sorted(s0); const L = s[s.length - 1]; const B = s[0];
     const P = [...s].reverse().find(r => r !== L && years(r.date, L.date) >= 0.5 && r.v[opt.metric] != null);
@@ -55,7 +56,7 @@ function tandSeries(t, keyFn, opt) {
 }
 
 function sisterCheck(t, L, opt) {
-  const peers = recs(t, { unit: L.unit, pos: L.pos }).filter(r => r.date === L.date && r.ph !== L.ph && r.ph !== 'N' && r.v[opt.metric] != null && (r.acting || '') === (L.acting || ''));
+  const peers = recsOK(t, { unit: L.unit, pos: L.pos }).filter(r => r.date === L.date && r.ph !== L.ph && r.ph !== 'N' && r.v[opt.metric] != null && (r.acting || '') === (L.acting || ''));
   if (peers.length < 2 || L.ph === 'N') return;
   const m = median(peers.map(r => r.v[opt.metric])); const v = L.v[opt.metric];
   if (v > 1.5 * m && v - m > 0.1) add({ t, unit: L.unit, pos: L.pos, ph: L.ph, date: L.date, recIds: [L.id], sev: 'watch', where: label(L),
@@ -63,7 +64,7 @@ function sisterCheck(t, L, opt) {
 }
 
 function windingCross() {
-  const all = recs('winding');
+  const all = recsOK('winding');
   for (const [, g] of groupBy(all, r => `${r.unit}|${r.ph}|${r.date}`)) {
     const c = (a) => g.find(r => r.acting === a)?.v.C;
     for (const [side, ust, gstg, gst] of [['HV', 'C(HV-LV)', 'C(HV)', 'C(HV)+C(HV-LV)'], ['LV', 'C(LV-HV)', 'C(LV)', 'C(LV)+C(HV-LV)']]) {
@@ -81,7 +82,7 @@ function windingCross() {
 
 // ---------------------------------------------------------------- breakers
 function crm() {
-  const all = recs('cb_crm');
+  const all = recsOK('cb_crm');
   const byKv = groupBy(all.filter(r => r.v.R != null), r => kvOf(r.unit));
   for (const [kv, rs] of byKv) {
     const lim = LIM.crm[kv];
@@ -99,14 +100,14 @@ function crm() {
 }
 
 function timing() {
-  const all = recs('cb_timing');
+  const all = recsOK('cb_timing');
   for (const [, s0] of groupBy(all, r => r.unit + '|' + r.ph)) {
     const s = sorted(s0), L = s[s.length - 1], B = s[0], kv = kvOf(L.unit), trip = LIM.trip[kv];
     mark(s.map(r => r.id), 'ok');
     const op = Math.max(L.v.open1 ?? 0, L.v.open2 ?? 0);
     if (op > trip) add({ t: 'cb_timing', unit: L.unit, ph: L.ph, date: L.date, sev: 'alert', recIds: [L.id], where: label(L), title: `Trip time ${fmt(op, 1)} ms > ${trip} ms`, detail: `TC1 ${fmt(L.v.open1, 1)} ms · TC2 ${fmt(L.v.open2, 1)} ms.`, action: 'Check trip-coil voltage at coil terminals, latch/linkage lubrication and operating-mechanism energy.', basis: 'MSETCL Sr 26' });
     if (L.v.close > LIM.close) {
-      const peers = s0.length ? recs('cb_timing', { unit: L.unit }).filter(r => r.date === L.date && r.ph !== L.ph).map(r => r.v.close) : [];
+      const peers = s0.length ? recsOK('cb_timing', { unit: L.unit }).filter(r => r.date === L.date && r.ph !== L.ph).map(r => r.v.close) : [];
       const m = median(peers);
       add({ t: 'cb_timing', unit: L.unit, ph: L.ph, date: L.date, sev: 'alert', recIds: [L.id], where: label(L), title: `Close time ${fmt(L.v.close, 1)} ms > 150 ms`, detail: peers.length ? `Other poles same day: ${peers.map(x => fmt(x, 1)).join(', ')} ms (${fmt(L.v.close / m, 1)}× median). Either a data-entry error or a sticking closing mechanism on this pole.` : '', action: 'First verify the raw test-kit record. If genuine, inspect closing latch/coil and spring charging; repeat timing.', basis: 'MSETCL Sr 26' });
     }
@@ -127,7 +128,7 @@ function timing() {
 
 // ---------------------------------------------------------------- LA
 function la() {
-  const all = recs('la').filter(r => r.v.Icorr != null);
+  const all = recsOK('la').filter(r => r.v.Icorr != null);
   for (const [, s0] of groupBy(all, r => r.unit + '|' + r.ph)) {
     const s = sorted(s0), L = s[s.length - 1];
     mark(s.map(r => r.id), 'ok');
@@ -163,12 +164,17 @@ export function duval1(v) {
 export const DUVAL_NAMES = { PD: 'Partial discharge', T1: 'Thermal fault < 300 °C', T2: 'Thermal fault 300–700 °C', T3: 'Thermal fault > 700 °C', D1: 'Low-energy discharge', D2: 'High-energy discharge', DT: 'Mixed thermal & electrical' };
 
 function dga() {
-  const all = recs('dga');
-  for (const [, s0] of groupBy(all, r => `${r.unit}|${r.ph}|${r.pos}`)) {
-    const s = sorted(s0), L = s[s.length - 1], P = s[s.length - 2];
+  // One element per tank: an ICT phase unit's main tank (top + bottom samples) and its OLTC compartment.
+  const all = recsOK('dga').filter(r => Object.keys(r.v).length);
+  const merge = (rs) => { const v = {}; for (const r of rs) for (const [k, x] of Object.entries(r.v)) { if (x == null) continue; v[k] = k === 'BDV' ? Math.min(v[k] ?? x, x) : Math.max(v[k] ?? x, x); } return v; };
+  for (const [, s0] of groupBy(all, r => `${r.unit}|${r.ph}|${r.pos === 'OLTC' ? 'OLTC' : 'Main'}`)) {
+    const s = sorted(s0), Ld = s.at(-1).date, Ls = s.filter(r => r.date === Ld), L = Ls[0];
+    const prevD = [...new Set(s.map(r => r.date))].filter(d => d < Ld).pop(), Ps = s.filter(r => r.date === prevD);
     mark(s.map(r => r.id), 'ok');
-    const base = { t: 'dga', unit: L.unit, ph: L.ph, pos: L.pos, date: L.date, recIds: [L.id], where: label(L) };
-    const v = L.v;
+    const tank = L.pos === 'OLTC' ? 'OLTC' : 'main tank';
+    const where = `${unitName(L.unit)}${L.ph !== '-' ? ' · ' + L.ph + '-phase unit' : ''} · ${tank}${tank === 'main tank' ? ` (${Ls.map(r => r.pos.toLowerCase()).join(' + ')} sample${Ls.length > 1 ? 's' : ''})` : ''}`;
+    const base = { t: 'dga', unit: L.unit, ph: L.ph, pos: tank, date: Ld, recIds: Ls.map(r => r.id), where };
+    const v = merge(Ls), pv = Ps.length ? merge(Ps) : null;
     if (L.pos === 'OLTC') {
       if (v.H2O > 40) add({ ...base, sev: 'watch', title: `OLTC oil water ${fmt(v.H2O, 0)} ppm (> 40)`, detail: '', action: 'Filter/replace diverter oil.', basis: 'Karjat sheet OLTC limit' });
       if (v.BDV != null && v.BDV < 40) add({ ...base, sev: 'alert', title: `OLTC oil BDV ${fmt(v.BDV, 0)} kV`, detail: '', action: 'Diverter oil replacement.', basis: 'Practice' });
@@ -180,9 +186,9 @@ function dga() {
       const dv = duval1(v);
       const ratio = v.CO > 0 ? v.CO2 / v.CO : null;
       add({ ...base, sev: ac ? 'alert' : 'watch', title: `${over.map(([g]) => g).join(', ')} above IEEE C57.104 Condition-1`, detail: over.map(([g, lim]) => `${g} ${fmt(v[g], 0)} ppm (limit ${lim})`).join(' · ') + (dv ? ` · Duval T1: ${dv.zone} — ${DUVAL_NAMES[dv.zone]}` : '') + (ratio != null ? ` · CO₂/CO ${fmt(ratio, 1)}` : ''),
-        action: ac ? 'Acetylene in main tank: re-sample within 1 month; check rate of rise; correlate with through-faults and OLTC-to-main-tank leakage.' : 'Re-sample to confirm trend; evaluate rate of rise (IEEE C57.104-2019 approach).', basis: 'IEEE C57.104 · IEC 60599' });
+        action: ac ? 'Acetylene in main tank: re-sample within 1 month; check rate of rise; correlate with through-faults and with the OLTC (C₂H₂/H₂ > 2–3 points to OLTC oil reaching the main tank).' : 'Re-sample to confirm trend; evaluate rate of rise (IEEE C57.104-2019 approach).', basis: 'IEEE C57.104 · IEC 60599' });
     }
-    if (P && v.C2H2 > 0 && (P.v.C2H2 ?? 0) === 0 && v.C2H2 <= 1) add({ ...base, sev: 'watch', recIds: [P.id, L.id], title: `Acetylene appeared (${fmt(v.C2H2, 1)} ppm)`, detail: `Previous sample ${P.date}: 0 ppm.`, action: 'Any new C₂H₂ in a main tank is worth a confirmatory sample.', basis: 'IEC 60599' });
+    if (pv && v.C2H2 > 0 && !(pv.C2H2 > 0) && v.C2H2 <= 1) add({ ...base, sev: 'watch', title: `Acetylene appeared in main tank (${fmt(v.C2H2, 1)} ppm)`, detail: `Previous sample ${prevD}: 0 ppm.`, action: 'Any new C₂H₂ in a main tank is worth a confirmatory sample; compare with the OLTC sample of the same day.', basis: 'IEC 60599' });
     if (v.BDV != null && v.BDV < 50) add({ ...base, sev: 'alert', title: `Oil BDV ${fmt(v.BDV, 0)} kV < 50 kV`, detail: '', action: 'Filtration / dehydration.', basis: 'Karjat sheet · IEC 60422 (poor)' });
     else if (v.BDV != null && v.BDV < 60) add({ ...base, sev: 'watch', title: `Oil BDV ${fmt(v.BDV, 0)} kV — IEC 60422 "fair"`, detail: 'Passes the sheet limit of 50 kV.', action: 'Trend; filter if declining.', basis: 'IEC 60422 cat. A/O (verify)' });
     if (v.H2O != null && v.H2O > 20) add({ ...base, sev: 'alert', title: `Water ${fmt(v.H2O, 0)} ppm > 20 ppm`, detail: '', action: 'Dry out oil; check breather/silica gel and gasket leaks.', basis: 'Karjat sheet · IEC 60422' });
@@ -190,8 +196,36 @@ function dga() {
   }
 }
 
+// OLTC ↔ main tank of the same phase unit: arcing gases from the diverter must stay in the OLTC.
+export function oltcCorrelation(unit, ph) {
+  const all = recsOK('dga', { unit }).filter(r => r.ph === ph && Object.keys(r.v).length);
+  const main = all.filter(r => r.pos !== 'OLTC'), oltc = all.filter(r => r.pos === 'OLTC');
+  if (!main.length || !oltc.length) return null;
+  const md = [...new Set(main.map(r => r.date))].sort(), od = [...new Set(oltc.map(r => r.date))].sort();
+  const rows = md.map(d => {
+    const m = main.filter(r => r.date === d), o = oltc.filter(r => r.date <= d).sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+    const mx = (k) => Math.max(...m.map(r => r.v[k] ?? 0));
+    return { d, mC2H2: mx('C2H2'), mH2: mx('H2'), mC2H4: mx('C2H4'), o, oDate: o?.date, oC2H2: o?.v.C2H2, oH2: o?.v.H2, ratio: mx('H2') > 0 ? mx('C2H2') / mx('H2') : null };
+  });
+  const L = rows.at(-1);
+  let verdict = 'ok', text = 'No acetylene in the main tank — arcing gases from the diverter are contained in the OLTC compartment.';
+  if (L.mC2H2 > 0) {
+    if (L.ratio != null && L.ratio > 2 && (L.oC2H2 ?? 0) > L.mC2H2) { verdict = 'alert'; text = `Main-tank C₂H₂/H₂ = ${fmt(L.ratio, 1)} (> 2) with acetylene-rich OLTC oil — typical signature of OLTC oil leaking into the main tank (IEC 60599). Check the OLTC barrier / diverter-tank seals.`; }
+    else { verdict = 'watch'; text = `Acetylene ${fmt(L.mC2H2, 1)} ppm in the main tank, C₂H₂/H₂ = ${L.ratio == null ? '—' : fmt(L.ratio, 2)}. Not the OLTC-leak pattern (ratio ≤ 2), so look for an arcing source in the main tank; keep sampling OLTC on the same day.`; }
+  }
+  const lag = od.length && od.at(-1) < md.at(-1) ? `OLTC last sampled ${od.at(-1)}, main tank ${md.at(-1)} — sample both together.` : '';
+  return { rows, L, verdict, text, lag };
+}
+function oltcRule() {
+  for (const [k] of groupBy(recsOK('dga').filter(r => r.pos === 'OLTC'), r => r.unit + '|' + r.ph)) {
+    const [u, ph] = k.split('|'); const c = oltcCorrelation(u, ph); if (!c || c.verdict === 'ok') continue;
+    add({ t: 'dga', unit: u, ph, pos: 'OLTC ↔ main tank', date: c.L.d, sev: c.verdict, recIds: [], where: `${unitName(u)}${ph !== '-' ? ' · ' + ph + '-phase unit' : ''} · OLTC ↔ main tank`,
+      title: c.verdict === 'alert' ? 'OLTC oil may be reaching the main tank' : 'Acetylene in main tank — not the OLTC-leak pattern', detail: c.text, action: c.lag || 'Sample OLTC and main tank on the same day; compare C₂H₂/H₂.', basis: 'IEC 60599 (OLTC contamination)' });
+  }
+}
+
 function tankDiff() {
-  const all = recs('dga').filter(r => r.pos !== 'OLTC');
+  const all = recsOK('dga').filter(r => r.pos !== 'OLTC');
   for (const [, g] of groupBy(all, r => r.unit + '|' + r.ph)) {
     const T = g.filter(r => r.pos === 'Top'), B = g.filter(r => r.pos === 'Bottom');
     const dates = T.map(r => r.date).filter(d => B.some(b => b.date === d)).sort();
@@ -199,7 +233,7 @@ function tankDiff() {
     const d = dates.at(-1), t = T.find(r => r.date === d), b = B.find(r => r.date === d);
     const bad = ['H2', 'CH4', 'C2H4', 'C2H6', 'CO'].filter(k => { const x = t.v[k], y = b.v[k]; if (x == null || y == null) return false; const m = Math.max(x, y); return m >= 20 && Math.abs(x - y) / m > 0.5; });
     const acet = (t.v.C2H2 > 0) !== (b.v.C2H2 > 0);
-    if (bad.length || acet) add({ t: 'dga', unit: t.unit, ph: t.ph, pos: 'Top/Bottom', date: d, sev: 'watch', recIds: [t.id, b.id], where: `${unitName(t.unit)}${t.ph !== '-' ? ' · ' + t.ph + '-ph' : ''} · same tank`,
+    if (bad.length || acet) add({ t: 'dga', unit: t.unit, ph: t.ph, pos: 'main tank', date: d, sev: 'watch', recIds: [t.id, b.id], where: `${unitName(t.unit)}${t.ph !== '-' ? ' · ' + t.ph + '-phase unit' : ''} · main tank (top vs bottom)`,
       title: `Top and bottom samples disagree (${[...bad, ...(acet ? ['C2H2 in one only'] : [])].join(', ')})`,
       detail: bad.map(k => `${k} top ${fmt(t.v[k], 0)} vs bottom ${fmt(b.v[k], 0)} ppm`).join(' · ') + (acet ? ` · C2H2 top ${fmt(t.v.C2H2, 1)} / bottom ${fmt(b.v.C2H2, 1)}` : ''),
       action: 'Both points sample one tank; gases are normally near-uniform. Re-sample top and bottom together (IEC 60567 procedure, flushed valve, gas-tight syringe). If the gap persists, suspect a localised fault near the sampling point with the higher gases.', basis: 'IEC 60567 · same-tank comparison' });
@@ -221,7 +255,7 @@ export function laWindow(iso) {             // returns [season just done, due da
 export function schedule() {
   const out = [];
   for (const t of Object.keys(TESTS)) {
-    for (const [unit, g0] of groupBy(recs(t).filter(done), r => r.unit)) {
+    for (const [unit, g0] of groupBy(recsOK(t).filter(done), r => r.unit)) {
       const last = g0.map(r => r.date).sort().pop();
       const kv = kvOf(unit);
       let months = t === 'ct' ? (kv === 220 ? 12 : 24) : MONTHS[t], due, freq;
@@ -244,7 +278,7 @@ export function run() {
   tandSeries('bushing', r => `${r.unit}|${r.pos}|${r.ph}`, { metric: 'tand20', metricLabel: 'corrected tan δ @20 °C', basis: 'MSETCL Sr 1', hard: LIM.tandHard, hardAction: 'Replace bushing immediately (circular Sr 1 cl.5).', overAction: 'Follow-up measurement for next two quarters; replacement on rate of change.', rate: true, cWatch: true });
   tandSeries('winding', r => `${r.unit}|${r.ph}|${r.acting}`, { metric: 'tand20', metricLabel: 'tan δ at 20 °C', basis: 'MSETCL Sr 3', overAction: 'Decide with transformer test results & oil test results — S.E. TCC & S.E. EHV (O&M) jointly.', watchAbs: 0.5, watchStd: 'IEEE C57.152 new-unit 0.5 %', doubling: true });
   tandSeries('ct', r => `${r.unit}|${r.ph}`, { metric: 'tand20', metricLabel: 'corrected tan δ @20 °C', basis: 'MSETCL Sr 18/19', hard: LIM.tandHard, hardAction: 'Industry practice: replace CT at ≥ 1.0 % (CEA/POWERGRID); circular: follow-up two quarters.', overAction: 'Follow-up measurement for next two quarters; decide on rate of change & oil DGA.', rate: true, watchAbs: 0.5, watchStd: 'IEC 61869-1 routine 0.5 %' });
-  windingCross(); crm(); timing(); la(); dga(); tankDiff();
+  windingCross(); crm(); timing(); la(); dga(); tankDiff(); oltcRule();
   FINDINGS.sort((a, b) => SEV[b.sev] - SEV[a.sev] || b.date.localeCompare(a.date));
   return FINDINGS;
 }

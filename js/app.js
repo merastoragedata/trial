@@ -1,13 +1,13 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1848';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1848';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1848';
-import { IC, LOGO } from './icons.js?v=20261125.1848';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1848';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1848';
-import { art, skyline } from './art.js?v=20261125.1848';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage } from './results.js?v=20261125.1848';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1848';
-import { refresh } from './data.js?v=20261125.1848';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1917';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1917';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1917';
+import { IC, LOGO } from './icons.js?v=20261125.1917';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1917';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1917';
+import { art, skyline } from './art.js?v=20261125.1917';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName } from './results.js?v=20261125.1917';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1917';
+import { refresh } from './data.js?v=20261125.1917';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -484,7 +484,9 @@ js/app.js, js/ui.js  ← views, charts, Duval, palette, circular viewer</pre></d
 
 function vElement(t, u, sub) {
   const T = TESTS[t]; if (!T) return vNotFound();
-  setCrumbs([['Tests', '#/tests'], [T.name, `#/test/${t}`], [unitName(u), `#/el/${t}/${encodeURIComponent(u)}`], ...(sub ? [[sub.split('|').filter(x => x && x !== '-').join(' · ') || 'Element']] : [])]);
+  const ph = sub && sub.split('|')[0];
+  const pu = sub && /^[RYB]$/.test(ph) && /^(ICT1|ICT2)$/.test(u) && ['bushing', 'winding', 'dga'].includes(t);
+  setCrumbs([['Tests', '#/tests'], [T.name, `#/test/${t}`], [unitName(u), `#/el/${t}/${encodeURIComponent(u)}`], ...(pu ? [[`${ph}-phase unit`, `#/el/${t}/${encodeURIComponent(u)}/${ph}`]] : []), ...(sub && sub.includes('|') ? [[elemLabel(t, u, sub).replace(/^[RYB]-phase unit · /, '')]] : [])]);
   if (!sub) $('#crumbs').lastElementChild.outerHTML = `<b>${esc(unitName(u))}</b>`;
   renderElementPage(t, u, sub, view());
   normsFab(t);
@@ -495,8 +497,7 @@ function vTargets(q) {
 }
 // floating Norms & standards button: draggable; parks itself on blank space
 function normsFab(t) {
-  document.body.classList.add('has-fab');
-  const b = document.createElement('button'); b.className = 'fab-norms'; b.title = 'Norms & standards for these results · drag to move · double-click to re-park';
+  const b = document.createElement('button'); b.className = 'fab-norms'; b.title = 'Norms & standards for these results · drag anywhere · double-click to return to the corner';
   b.innerHTML = `${IC.norms}<span>Norms & standards</span>`;
   view().appendChild(b);
   let saved = null; try { saved = JSON.parse(localStorage.getItem('ehv-fab')); } catch { }
@@ -504,15 +505,9 @@ function normsFab(t) {
   const _blank = (x, y) => { const w = b.offsetWidth, h = b.offsetHeight; b.style.visibility = 'hidden';
     const ok = [[x + 4, y + 4], [x + w - 4, y + 4], [x + 4, y + h - 4], [x + w - 4, y + h - 4], [x + w / 2, y + h / 2]].every(([px, py]) => { const el = document.elementFromPoint(px, py); return !el || el === document.body || el.matches('.main, .view, .shell, html'); });
     b.style.visibility = ''; return ok; };
-  const park = () => {                                   // park in the blank gutter to the right of the content
+  const park = () => {                                   // default: bottom-right corner; translucent, so it may sit over text
     if (saved) return place(saved.x, saved.y);
-    const W = innerWidth, H = innerHeight;
-    const right = Math.max(0, ...[...view().children].filter(c => c !== b).map(c => c.getBoundingClientRect().right));
-    const gutter = W - right;
-    b.classList.remove('mini');
-    if (gutter < b.offsetWidth + 24) b.classList.add('mini');
-    const w = b.offsetWidth, h = b.offsetHeight;
-    place(right + Math.max(6, (gutter - w) / 2), H - h - 22);
+    place(innerWidth - b.offsetWidth - 22, innerHeight - b.offsetHeight - 22);
   };
   requestAnimationFrame(park);
   let raf = 0; const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!saved) park(); }); };
@@ -664,7 +659,7 @@ function openDetail(u, t) {
 function route(opt = {}) {
   destroyCharts();
   if (!opt.keepModal) $$('.modal-bg, .drawer').forEach(m => m.remove());
-  $$('.fab-norms').forEach(f => f.remove()); document.body.classList.remove('has-fab');
+  $$('.fab-norms').forEach(f => f.remove());
   const h = location.hash.replace(/^#/, '') || '/';
   const [path, qs] = h.split('?'); const q = new URLSearchParams(qs || '');
   const p = path.split('/').filter(Boolean);

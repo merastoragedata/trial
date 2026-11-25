@@ -17,7 +17,8 @@ const ls = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; 
 
 export const ELEM = {   // what one monitored element is, per test
   ct: r => `${r.unit}|${r.ph}`, cb_crm: r => `${r.unit}|${r.ph}`, cb_timing: r => `${r.unit}|${r.ph}`, la: r => `${r.unit}|${r.ph}`,
-  bushing: r => `${r.unit}|${r.pos}|${r.ph}`, winding: r => `${r.unit}|${r.ph}|${r.acting}`, dga: r => `${r.unit}|${r.ph}|${r.pos}`,
+  bushing: r => `${r.unit}|${r.ph}|${r.pos}`, winding: r => `${r.unit}|${r.ph}|${r.acting}`,
+  dga: r => `${r.unit}|${r.ph}|${r.pos === 'OLTC' ? 'OLTC' : 'Main tank'}`,   // top & bottom samples = one tank
 };
 export const DEFAULT_F = {
   bushing: { tand20: '=tand/K(temp)', dTand: '=tand20-prev.tand20', dC: '=(C-prev.C)/prev.C*100' },
