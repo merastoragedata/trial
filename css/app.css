@@ -1564,3 +1564,39 @@ table.prog,table.never-t,table.t{border:2px solid #9c8c63;border-radius:10px;bor
 .main table.prog td.r{white-space:normal}
 .main table.seq td:nth-child(2):not(.r){max-width:230px}
 .main table.seq td.r,.main .t td.r{font-size:17px!important}
+
+/* ================================================================ v17 · home for management */
+.hero-home .hero-stats b{font-size:30px}
+.hl-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:18px 0}
+.hl{display:flex;flex-direction:column;gap:4px;padding:18px 20px;border-radius:16px;background:linear-gradient(135deg,#ecf8f0,#fff);border:2px solid #9fd3b2;text-decoration:none;color:var(--ink);box-shadow:0 8px 20px -14px rgba(20,90,50,.6)}
+.hl b{font:800 38px var(--display,inherit);color:#13703c}.hl span{font-weight:700;font-size:18px}.hl small{color:var(--ink-3);font-size:15px}
+.hl:hover{border-color:#13703c}
+.about .card-b{padding:16px 20px}
+svg.pf{width:100%;height:auto;color:#4b5b6c;margin-bottom:10px}
+.pf-n rect{fill:#f3f6fa;stroke:#8fa3b8;stroke-width:1.5}.pf-t{font:800 15px Inter,sans-serif;fill:#1f2d3d}.pf-t.big{font-size:21px}.pf-s{font:500 12.5px Inter,sans-serif;fill:#566577}
+.pf-n.hub rect{fill:#e5efff;stroke:#1a5fc2;stroke-width:2.5}.pf-n.hub2 rect{fill:#eef4ff;stroke:#1a5fc2}
+.pf-n.gen rect{fill:#fff4e0;stroke:#c98a1b}.pf-n.src rect{fill:#fff8ec;stroke:#c98a1b}.pf-n.dst rect,.pf-n.ld rect{fill:#ecf8f0;stroke:#3c9a62}
+.pf-n.prop rect{fill:#f5f0ff;stroke:#7c3aed;stroke-dasharray:6 4}
+.pf-a{stroke:currentColor;stroke-width:2.4;fill:none}.pf-a.prop{stroke:#7c3aed;stroke-dasharray:6 4;color:#7c3aed}
+.about-g{display:grid;grid-template-columns:repeat(2,1fr);gap:12px 28px}
+.about-g h3{margin:6px 0 4px;font-size:20px;color:var(--brand-2,#1a5fc2)}.about-g p{margin:0;line-height:1.55;font-size:18px}
+.about-g .up{background:#f5f0ff;border:1.5px solid #c4b0f3;border-radius:12px;padding:10px 14px}.about-g .up h3{color:#5b21b6}
+details.home-fold{margin-top:18px}
+details.home-fold .kv-sec{margin:0}details.home-fold .kv-sec>.kv-h{display:none}
+/* v17b · full dotted inner grid (rows AND columns) on every table; numbers centred, text left — all vertically centred */
+.main table td,.main table th{vertical-align:middle!important}
+.main table td{text-align:left;border-bottom:1.6px dotted #9c8e68!important;border-right:1.6px dotted #9c8e68!important}
+.main table th{border-right:1.6px dotted rgba(110,85,20,.6)!important;text-align:center!important}
+.main table tr>td:last-child,.main table tr>th:last-child{border-right:0!important}
+.main table tbody tr:last-child>td{border-bottom:0!important}
+.main table td[rowspan]{border-bottom:1.6px dotted #9c8e68!important}
+.main table td.r,.main table td.dt,.main table td.c-ok,.main table td.c-watch,.main table td.c-alert,.main table td.c-critical,.main table td.keyv,.main table td.num,.main table td.lt-tag{text-align:center!important}
+.main table td.r .kv1{margin:2px 4px}
+.main table tr.grp>td{text-align:left!important;border-right:0!important}
+/* bay layout drawing */
+.bay-art{margin:0}.bay-art svg{display:block;width:100%;max-height:420px;border-radius:12px;border:1.5px solid #c9d3de}
+.bay-art figcaption{margin-top:10px;font-size:17px;color:var(--ink-2)}
+.bay-art .ba-n{font:700 12px Inter,sans-serif;fill:#1f2d3d}.bay-art .ba-s{font:800 11.5px Inter,sans-serif}
+.bay-art .ba-dim{fill:#5b6876;font-weight:600}
+.bay-art .ba-end{font:800 12.5px Inter,sans-serif;fill:#14365e}.bay-art .ba-sub{font:500 10.5px Inter,sans-serif;fill:#566577}
+.bay-art .ba-lnk{fill:#1a5fc2}.bay-art a:hover text{text-decoration:underline}

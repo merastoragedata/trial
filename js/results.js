@@ -1,15 +1,15 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1456';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1456';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1456';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1456';
-import { art } from './art.js?v=20261126.1456';
-import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1456';
-import { dgaAnalysis } from './dga.js?v=20261126.1456';
-import { shareButtons, wireShare } from './report.js?v=20261126.1456';
-import { IC } from './icons.js?v=20261126.1456';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1804';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1804';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1804';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1804';
+import { art } from './art.js?v=20261126.1804';
+import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1804';
+import { dgaAnalysis } from './dga.js?v=20261126.1804';
+import { shareButtons, wireShare } from './report.js?v=20261126.1804';
+import { IC } from './icons.js?v=20261126.1804';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -446,7 +446,7 @@ function elementBlock(t, e, latestOnly) {
 function unitBlock(t, U, latestOnly) {
   const hs = U.es.map(e => e.health).filter(x => x != null), worstH = hs.length ? Math.min(...hs) : null;
   return `<section class="ub" data-unit="${esc(U.u)}"><header class="ub-h" data-open="${esc(U.u)}" title="Open all ${NOUN[t][1]} of this ${HOLDER[t].split(' ')[0]}">
-    <div><div class="ub-k">${isTF(U.u) ? esc(DB.site.units[U.u].rating) : `${kvOf(U.u)} kV · Bay ${esc(U.u)}`}</div><div class="ub-n">${esc(unitName(U.u))}</div></div>
+    <div><div class="ub-k">${isTF(U.u) ? esc(DB.site.units[U.u].rating) : `${kvOf(U.u)} kV bay`}</div><div class="ub-n">${esc(unitName(U.u))}</div></div>
     <div class="ub-s"><span class="dim">${U.es.length} ${NOUN[t][U.es.length === 1 ? 0 : 1]}</span><span title="Weakest element health">${hChip(worstH)}</span><span class="btn sm">Open ${IC.arrow}</span></div></header>
     ${groupPU(t, U).map(([ph, es]) => (ph ? `<div class="pu-h"><span class="ph ${ph}">${ph}</span><b>${esc(phaseUnitName(U.u, ph))}</b><span class="dim">${es.length} ${NOUN[t][es.length === 1 ? 0 : 1]}</span><a class="btn sm ghost" href="${elHref(t, U.u, ph)}">Open phase unit ${IC.arrow}</a></div>` : '') + es.map(e => elementBlock(t, e, latestOnly)).join('') + (t === 'dga' && ph ? oltcStrip(U.u, ph) : '') + (t === 'dga' && !latestOnly && es.some(e => !e.sub.endsWith('OLTC') && e.done.length) ? dgaAnalysis(U.u, ph || '-') : '')).join('')}${latestOnly && t !== 'winding' ? phaseCompare(t, U) : ''}</section>`;
 }
@@ -788,7 +788,7 @@ export function renderElementPage(t, u, sub, mount) {
       ch.setActiveElements(act); ch.tooltip.setActiveElements(act, { x: 0, y: 0 }); ch.update('none'); }); });
   { const npPh = isPU ? sub : (one && PH_UNIT(u, one.ph) ? one.ph : null);   // nameplate of the phase unit / reactor / spare ICT
     const np = isTF(u) ? (npPh ? nameplateSection(u, npPh) : (!/^(ICT1|ICT2)$/.test(u) ? nameplateSection(u, null) : '')) : '';
-    if (np) { $('.ph-cards', mount)?.insertAdjacentHTML('afterend', `<div class="np-wrap">${np}</div>`); wireNameplates(mount); } }
+    if (np) { const anchor = $('.el-hero', mount) || $('.ph-cards', mount); (anchor || mount.firstElementChild)?.insertAdjacentHTML('afterend', `<div class="np-wrap">${np}</div>`); wireNameplates(mount); } }
   wireTank(mount, u); wireEditing(mount); wireInteractive(mount); wireShare(mount); wireTV(mount);
 }
 

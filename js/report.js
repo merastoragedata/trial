@@ -1,17 +1,17 @@
 // Shareable test results of one phase unit / bay (or one phase of a bay) in the portal's own sheet
 // format, exported as PNG (image) or PDF; on phones the system share sheet is offered.
-import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1456';
-import { findingsFor, SEV } from './rules.js?v=20261126.1456';
-import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1456';
-import { esc } from './ui.js?v=20261126.1456';
+import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1804';
+import { findingsFor, SEV } from './rules.js?v=20261126.1804';
+import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1804';
+import { esc } from './ui.js?v=20261126.1804';
 
-const SEVTXT = { ok: 'Normal', watch: 'Watch', alert: 'Beyond circular', critical: 'Critical', none: 'Normal' };
+const SEVTXT = { ok: 'Healthy', watch: 'Monitor', alert: 'Planned action', critical: 'Priority action', none: 'Healthy' };
 
 /** Scope of a report: a transformer phase unit, a whole unit, a bay, or one phase of a bay. */
 export function reportScope(u, ph) {
   const tf = isTF(u);
   const tests = tf ? ['bushing', 'winding', 'dga'] : ['ct', 'cb_crm', 'cb_timing', 'la'];
-  const title = tf ? `${unitName(u)}${ph ? ` — ${ph}-phase unit` : ''}` : `${unitName(u)} (Bay ${u})${ph ? ` · ${ph}-phase` : ''}`;
+  const title = tf ? `${unitName(u)}${ph ? ` — ${ph}-phase unit` : ''}` : `${unitName(u)}${ph ? ` · ${ph}-phase` : ''}`;
   return { u, ph, tf, tests, title };
 }
 

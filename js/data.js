@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.1456';
+import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.1804';
 export { ELEM };
 
-export const BUILD = '20261126.1456';  // set by tools/stamp_version.py
+export const BUILD = '20261126.1804';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -87,14 +87,23 @@ export function prettyBay(s) {
   }).join(' ');
 }
 export const bayRaw = (u) => DB.site.bays[u] || '';
-export function unitName(u, long = false) {
+// names that the sheet still carries as "future": the planned ICT 3 and the two Pune East circuits
+const BAYNAME = {
+  '409': '400/220 kV 501 MVA ICT 3 HV (proposed)', '202': '220 kV ICT 3 IV (proposed)',
+  '412': '400 kV Karjat - Pune East Ckt 1 (proposed)', '415': '400 kV Karjat - Pune East Ckt 2 (proposed)',
+  '408': '400 kV Tie Bay 3 (Girawali 2 - ICT 3)', '411': '400 kV Tie Bay 4 (Lonikand 1 - Pune East 1)', '414': '400 kV Tie Bay 5 (Lonikand 2 - Pune East 2)',
+  '400': '400 kV Spare ICT bay (167 MVA, 1-ph)', '200': '220 kV Spare ICT IV',
+};
+/** Bay name without the number: "400 kV Karjat - Girawali Ckt 1". */
+export const bayLabel = (u) => BAYNAME[u] || prettyBay(DB.site.bays[u]) || '';
+/** The one name used everywhere: transformers by rating, bays as "Bay 404 - 400 kV Karjat - Girawali Ckt 1". */
+export function unitName(u) {
   if (isTF(u)) return TFNAME[u] || DB.site.units[u]?.name || u;
-  const n = prettyBay(DB.site.bays[u]);
-  if (!n) return `Bay ${u}`;
-  return long ? `${n} · Bay ${u}` : n;
+  const n = bayLabel(u);
+  return n ? `Bay ${u} - ${n}` : `Bay ${u}`;
 }
-/** The bay number tag shown next to a name. */
-export function bayTitle(u) { return isTF(u) ? '' : `Bay ${u}`; }
+/** Kept for callers that used to add the bay number beside the name; the number is now part of unitName. */
+export function bayTitle(u) { return ''; }
 
 export function recs(t, f = {}) {
   return DB.records.filter(r => r.t === t &&

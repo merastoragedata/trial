@@ -3,9 +3,9 @@
 //   220 kV — double main bus + transfer bus, with bus coupler (207) and TBC (208)
 // Breaker boxes are coloured by CB test health; feeder dots by CT / LA health;
 // transformer / reactor symbols by their own health. Everything is a link.
-import { DB, unitName, bayRaw } from './data.js?v=20261126.1456';
-import { unitStatus, worst } from './rules.js?v=20261126.1456';
-import { esc } from './ui.js?v=20261126.1456';
+import { DB, unitName, bayRaw } from './data.js?v=20261126.1804';
+import { unitStatus, worst } from './rules.js?v=20261126.1804';
+import { esc } from './ui.js?v=20261126.1804';
 
 const has = (u, ts) => DB.records.some(r => r.unit === u && ts.includes(r.t));
 const st = (u, ts) => has(u, ts) ? worst(ts.map(t => unitStatus(u, t))) : 'none';
@@ -49,8 +49,11 @@ export function sld400() {
       if (u === '401') g += reactor(x + 30, fy, 'BUS_REACTOR');
       else if (u === '403') g += tf(x + 30, fy, 'ICT1');
       else if (u === '406') g += tf(x + 30, fy, 'ICT2');
+      else if (u === '409') g += tf(x + 30, fy, 'ICT1').replace(/eq-\w+/g, 'eq-none');
       else g += lineArrow(x + 30, fy);
       const tx = x + (['401', '403', '406', '409'].includes(u) ? 72 : 64);
+      const PROP = { '409': ['ICT 3', '501 MVA · proposed'], '412': ['PUNE EAST', 'Ckt 1 · proposed'], '415': ['PUNE EAST', 'Ckt 2 · proposed'] }[u];
+      if (PROP) { g += `<a href="#/eq/${u}"><text class="lbl-b" x="${tx}" y="${fy - 3}">${PROP[0]}</text><text class="lbl-s" x="${tx}" y="${fy + 11}">${PROP[1]}</text></a></g>`; continue; }
       g += `<a href="#/eq/${u}"><text class="lbl-b" x="${tx}" y="${fy - 3}">${esc(nm.split(/\s+CKT|\s+HV/)[0] || nm)}</text><text class="lbl-s" x="${tx}" y="${fy + 11}">${esc(u === '401' ? '125 MVAr reactor' : u === '403' || u === '406' ? '501 MVA → 220 kV' : /CKT\s*\d/.test(nm) ? 'Ckt ' + nm.match(/CKT\s*(\d)/)[1] : fut ? 'future' : '')}</text></a></g>`;
     }
   });
@@ -84,10 +87,10 @@ export function sld220() {
     const nm = short(u);
     if (u === '203' || u === '204' || u === '202') g += `<g transform="rotate(90 ${x} 214)">${tf(x, 214, u === '203' ? 'ICT2' : u === '204' ? 'ICT1' : 'ICT1').replace(/eq-\w+/g, u === '202' ? 'eq-none' : '$&')}</g>`;
     else g += `<path class="wire" d="M${x} 214 v18 m-5 -6 l5 6 l5 -6"/>`;
-    const lab = u === '203' ? 'ICT 2' : u === '204' ? 'ICT 1' : u === '202' ? 'ICT 3' : nm.replace(/\s*CKT\s*/, ' ').replace('FUTURE BAY', 'Future').trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+    const lab = u === '203' ? 'ICT 2' : u === '204' ? 'ICT 1' : u === '202' ? 'ICT 3 (prop.)' : nm.replace(/\s*CKT\s*/, ' ').replace('FUTURE BAY', 'Future').trim().toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
     g += `<a href="#/eq/${u}"><text class="lbl" style="font-weight:600" x="${x}" y="${u <= '204' ? 268 : 254}" text-anchor="middle">${esc(lab)}</text></a></g>`;
   });
   return `<svg class="sld" viewBox="0 0 ${W} 312" role="img" aria-label="220 kV double main and transfer bus single-line diagram">${g}</svg>`;
 }
 
-export const SLD_LEGEND = `<div class="sld-legend"><span><i style="border-color:var(--ink-3);background:var(--panel)"></i>CB tests normal</span><span><i style="border-color:var(--watch);background:var(--watch-bg)"></i>Watch</span><span><i style="border-color:var(--alert);background:var(--alert-bg)"></i>Alert</span><span><i style="border-color:var(--crit);background:var(--crit-bg)"></i>Critical</span><span><i style="border-color:var(--line-2);border-style:dashed;background:var(--panel-3)"></i>No data / future</span><span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="var(--ok)"/></svg>Dot = CT / LA health</span><span>Click any breaker or transformer</span></div>`;
+export const SLD_LEGEND = `<div class="sld-legend"><span><i style="border-color:var(--ink-3);background:var(--panel)"></i>Healthy</span><span><i style="border-color:var(--watch);background:var(--watch-bg)"></i>Monitor</span><span><i style="border-color:var(--alert);background:var(--alert-bg)"></i>Planned action</span><span><i style="border-color:var(--crit);background:var(--crit-bg)"></i>Priority action</span><span><i style="border-color:var(--line-2);border-style:dashed;background:var(--panel-3)"></i>Proposed / no data</span><span><svg width="10" height="10"><circle cx="5" cy="5" r="4" fill="var(--ok)"/></svg>Dot = CT / LA health</span><span>Click any breaker or transformer</span></div>`;

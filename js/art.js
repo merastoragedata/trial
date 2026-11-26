@@ -1,8 +1,8 @@
 // Technical illustrations of EHV equipment (SVG, theme-aware), with a nameplate.
 // A site photo placed at assets/photos/<asset>.jpg (e.g. ICT1.jpg, 403.jpg)
 // automatically replaces the illustration.
-import { ctLive, cbLive, ict, A2 } from './art2.js?v=20261126.1456';
-import { esc } from './ui.js?v=20261126.1456';
+import { ctLive, cbLive, ict, A2 } from './art2.js?v=20261126.1804';
+import { esc } from './ui.js?v=20261126.1804';
 
 const P = { porc: '#8a6a52', porcD: '#6e523f', porcL: '#a8866b', steel: '#8e9aa8', steelD: '#66727f', steelL: '#c4ccd6', tank: '#5f7a8c', tankD: '#465d6c', tankL: '#7d97a8', al: '#b7c0ca', ring: '#c9d1da', cu: '#b87333' };
 
