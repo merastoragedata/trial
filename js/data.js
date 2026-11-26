@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.0941';
+import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.0943';
 export { ELEM };
 
-export const BUILD = '20261126.0941';  // set by tools/stamp_version.py
+export const BUILD = '20261126.0943';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -70,13 +70,31 @@ export function population(t) {
 export const isTF = (u) => /^(ICT1|ICT2|SPARE_ICT|BUS_REACTOR)$/.test(u);
 export const kvOf = (u) => isTF(u) ? 400 : (String(u).startsWith('2') ? 220 : 400);
 
-export function unitName(u, long = false) {
-  if (isTF(u)) return DB.site.units[u]?.name || u;
-  const n = DB.site.bays[u];
-  if (!long) return `Bay ${u}`;
-  return n ? `Bay ${u} · ${n}` : `Bay ${u}`;
+// Equipment names as used on site: "501 MVA, 400/220/33 kV ICT 1", "400 kV Karjat - Girawali Ckt 1".
+const TFNAME = { ICT1: '501 MVA, 400/220/33 kV ICT 1', ICT2: '501 MVA, 400/220/33 kV ICT 2', SPARE_ICT: '167 MVA, 400/220/33 kV Spare ICT', BUS_REACTOR: '125 MVAr, 400 kV Bus Reactor' };
+const UPPER = new Set(['MVA', 'ICT', 'TBC', 'IV', 'HV', 'LV', 'CT', 'CB', 'LA', 'OLTC']);
+/** Sheet bay title in proper case: "400 kV KARJAT - GIRAWALI CKT 1" → "400 kV Karjat - Girawali Ckt 1". */
+export function prettyBay(s) {
+  return String(s || '').replace(/\(\s+/g, '(').replace(/\s+\)/g, ')').replace(/\s{2,}/g, ' ').trim().split(' ').map(w => {
+    const core = w.replace(/[()]/g, ''), up = core.toUpperCase();
+    if (!core) return w;
+    if (/^\d/.test(core)) return w.replace(/kv$/i, 'kV');
+    if (up === 'KV') return w.replace(core, 'kV');
+    if (up === 'MVAR') return w.replace(core, 'MVAr');
+    if (UPPER.has(up)) return w.replace(core, up);
+    if (up === 'CKT') return w.replace(core, 'Ckt');
+    return w.replace(core, core[0].toUpperCase() + core.slice(1).toLowerCase());
+  }).join(' ');
 }
-export function bayTitle(u) { return DB.site.bays[u] || ''; }
+export const bayRaw = (u) => DB.site.bays[u] || '';
+export function unitName(u, long = false) {
+  if (isTF(u)) return TFNAME[u] || DB.site.units[u]?.name || u;
+  const n = prettyBay(DB.site.bays[u]);
+  if (!n) return `Bay ${u}`;
+  return long ? `${n} · Bay ${u}` : n;
+}
+/** The bay number tag shown next to a name. */
+export function bayTitle(u) { return isTF(u) ? '' : `Bay ${u}`; }
 
 export function recs(t, f = {}) {
   return DB.records.filter(r => r.t === t &&

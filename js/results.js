@@ -1,14 +1,14 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.0941';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.0941';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0941';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0941';
-import { art } from './art.js?v=20261126.0941';
-import { dgaAnalysis } from './dga.js?v=20261126.0941';
-import { shareButtons, wireShare } from './report.js?v=20261126.0941';
-import { IC } from './icons.js?v=20261126.0941';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.0943';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.0943';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0943';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0943';
+import { art } from './art.js?v=20261126.0943';
+import { dgaAnalysis } from './dga.js?v=20261126.0943';
+import { shareButtons, wireShare } from './report.js?v=20261126.0943';
+import { IC } from './icons.js?v=20261126.0943';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -38,7 +38,8 @@ export function fullName(t, u, sub, noUnit) {
   const [a, b] = sub.split('|'); const ph = /^[RYB]$/.test(a) ? `${a}ph` : '';
   const part = t === 'bushing' ? (a === 'N' ? 'Neutral Bushing' : b ? (b.startsWith('LV-') ? `LV Bushing ${b.slice(3)}` : `${b} Bushing`) : 'Bushing')
     : t === 'winding' ? `${b} ${WMODE[b] || ''}`.trim() : t === 'dga' ? (b === 'OLTC' ? 'OLTC' : 'Main tank') : t === 'ct' ? 'CT' : t === 'la' ? 'LA' : 'CB pole';
-  return [noUnit ? '' : shortUnit(u), ph, part].filter(Boolean).join(', ');
+  if (noUnit || isTF(u)) return [noUnit ? '' : shortUnit(u), ph, part].filter(Boolean).join(', ');
+  return [`${shortUnit(u)} ${part}`, ph].filter(Boolean).join(', ');   // bay equipment: "400 kV Karjat - Girawali Ckt 1 CT, Rph"
 }
 const phOf = (t, sub) => { const p = sub.split('|')[0]; return /^[RYBN]$/.test(p) ? p : '-'; };
 
@@ -428,7 +429,7 @@ function elementBlock(t, e, latestOnly) {
 function unitBlock(t, U, latestOnly) {
   const hs = U.es.map(e => e.health).filter(x => x != null), worstH = hs.length ? Math.min(...hs) : null;
   return `<section class="ub" data-unit="${esc(U.u)}"><header class="ub-h" data-open="${esc(U.u)}" title="Open all ${NOUN[t][1]} of this ${HOLDER[t].split(' ')[0]}">
-    <div><div class="ub-k">${isTF(U.u) ? esc(DB.site.units[U.u].rating) : `${kvOf(U.u)} kV · Bay ${esc(U.u)}`}</div><div class="ub-n">${esc(unitName(U.u, true))}</div></div>
+    <div><div class="ub-k">${isTF(U.u) ? esc(DB.site.units[U.u].rating) : `${kvOf(U.u)} kV · Bay ${esc(U.u)}`}</div><div class="ub-n">${esc(unitName(U.u))}</div></div>
     <div class="ub-s"><span class="dim">${U.es.length} ${NOUN[t][U.es.length === 1 ? 0 : 1]}</span><span title="Weakest element health">${hChip(worstH)}</span><span class="btn sm">Open ${IC.arrow}</span></div></header>
     ${groupPU(t, U).map(([ph, es]) => (ph ? `<div class="pu-h"><span class="ph ${ph}">${ph}</span><b>${esc(phaseUnitName(U.u, ph))}</b><span class="dim">${es.length} ${NOUN[t][es.length === 1 ? 0 : 1]}</span><a class="btn sm ghost" href="${elHref(t, U.u, ph)}">Open phase unit ${IC.arrow}</a></div>` : '') + es.map(e => elementBlock(t, e, latestOnly)).join('') + (t === 'dga' && ph ? oltcStrip(U.u, ph) : '') + (t === 'dga' && !latestOnly && es.some(e => !e.sub.endsWith('OLTC') && e.done.length) ? dgaAnalysis(U.u, ph || '-') : '')).join('')}${latestOnly && t !== 'winding' ? phaseCompare(t, U) : ''}</section>`;
 }
@@ -490,12 +491,12 @@ function wireEditing(root) {
 }
 
 // ------------------------------------------------------------------ test voltage (tan δ tests): 10 kV default, 5 kV on request
-export const tvSwitch = (t) => TANT.includes(t) ? `<div class="seg tvseg" title="Tan δ / capacitance results at the chosen test voltage; 10 kV is the default and is used for every judgement">${[10, 5].map(v => `<button class="${VIEW.tv === v ? 'on' : ''}" data-tv="${v}">${v} kV${v === 10 ? ' (default)' : ''}</button>`).join('')}</div>` : '';
+export const tvSwitch = (t) => TANT.includes(t) && viewPref('show5') ? `<div class="seg tvseg" title="Tan δ / capacitance results at the chosen test voltage; 10 kV is the default and is used for every judgement">${[10, 5].map(v => `<button class="${VIEW.tv === v ? 'on' : ''}" data-tv="${v}">${v} kV${v === 10 ? ' (default)' : ''}</button>`).join('')}</div>` : '';
 const tvBanner = (t) => TANT.includes(t) && VIEW.tv === 5 ? `<div class="tv-ban">Showing <b>5 kV</b> results (${DB.r5.filter(r => r.t === t).length} on record). Health, findings, due dates and targets always use the 10 kV results.</div>` : '';
 function wireTV(root) { $$('[data-tv]', root).forEach(b => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); setTestVoltage(+b.dataset.tv); CTX.rerender({ keepScroll: true }); }); }
 
 // ------------------------------------------------------------------ admin view toggles
-export const applyView = () => { const h = document.documentElement; h.classList.toggle('no-graphs', !viewPref('graphs')); h.classList.toggle('no-history', !viewPref('history')); h.dataset.ts = viewPref('text') || 0; };
+export const applyView = () => { const h = document.documentElement; if (!viewPref('show5') && VIEW.tv === 5) setTestVoltage(10); h.classList.toggle('no-graphs', !viewPref('graphs')); h.classList.toggle('no-history', !viewPref('history')); h.dataset.ts = viewPref('text') || 0; };
 const gBtn = () => isAdmin() ? `<button class="tg-btn ${viewPref('graphs') ? 'on' : ''}" data-gtog title="Admin: show or hide all graphs in the results">${IC.trend || ''}<span>Graphs ${viewPref('graphs') ? 'on' : 'off'}</span><i></i></button>` : '';
 function wireToggles(root) {
   $$('[data-gtog]', root).forEach(b => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); setViewPref('graphs', !viewPref('graphs')); applyView();
@@ -571,7 +572,7 @@ function windingLatest(M) {
         return `<tr><td><b>${esc(a)}</b> <span class="dim">${WMODE[a] || ''}</span></td>${es.map(r => `<td class="r">${r ? fmt(r.v.C, 1) : '—'}</td>`).join('')}<td class="r ${dev > 3 ? 'c-watch' : ''}">${fmt(dev, 2)} %</td>${es.map(r => `<td class="r c-${r ? cellSev('winding', 'tand20', r.v.tand20, r) : ''}">${r ? fmt(r.v.tand20, 3) : '—'}</td>`).join('')}<td class="r ${spread > 0.1 ? 'c-watch' : ''}">${fmt(spread, 3)}</td></tr>`; }).join('');
       return rows ? `<div class="wl-pu wl-sis"><div class="wl-h"><b>${esc(shortUnit(U.u))} · R / Y / B phase units compared</b><span class="dim">identical single-phase units — capacitance within ~3 % and corrected tan δ within 0.1 % of each other is expected</span></div>
         <div class="el-tbl"><table class="t seq"><thead><tr><th style="min-width:170px">C (acting)</th><th class="r" style="min-width:90px">C Rph (pF)</th><th class="r" style="min-width:90px">C Yph (pF)</th><th class="r" style="min-width:90px">C Bph (pF)</th><th class="r" style="min-width:110px">C largest dev. from mean</th><th class="r" style="min-width:90px">tan δ20 Rph</th><th class="r" style="min-width:90px">tan δ20 Yph</th><th class="r" style="min-width:90px">tan δ20 Bph</th><th class="r" style="min-width:100px">tan δ20 spread</th></tr></thead><tbody>${rows}</tbody></table></div></div>` : ''; })() : '';
-    blocks.push(`<section class="ub" data-unit="${esc(U.u)}"><header class="ub-h" data-open="${esc(U.u)}"><div><div class="ub-k">${esc(DB.site.units[U.u]?.rating || '')}</div><div class="ub-n">${esc(unitName(U.u, true))}</div></div><div class="ub-s"><span class="btn sm">Open ${IC.arrow}</span></div></header>${cards.join('')}${sis}</section>`);
+    blocks.push(`<section class="ub" data-unit="${esc(U.u)}"><header class="ub-h" data-open="${esc(U.u)}"><div><div class="ub-k">${esc(DB.site.units[U.u]?.rating || '')}</div><div class="ub-n">${esc(unitName(U.u))}</div></div><div class="ub-s"><span class="btn sm">Open ${IC.arrow}</span></div></header>${cards.join('')}${sis}</section>`);
   }
   return blocks.join('');
 }

@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.0941';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.0943';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -27,13 +27,13 @@ const sorted = (a) => [...a].sort((x, y) => x.date.localeCompare(y.date));
 const median = (a) => { const s = [...a].sort((x, y) => x - y); const m = s.length >> 1; return s.length ? (s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2) : NaN; };
 const pctChange = (a, b) => (b - a) / a * 100;
 // full name of a measured element, e.g. "ICT1, Yph, LV Bushing 3.1" · "Bay 404, Rph, CT"
-export const shortUnit = (u) => isTF(u) ? (unitName(u)).replace(/^ICT (\d)$/, 'ICT$1') : unitName(u);
+export const shortUnit = (u) => unitName(u);
 const PART = { ct: 'CT', la: 'LA', cb_crm: 'CB pole', cb_timing: 'CB pole' };
 const label = (r) => {
   const ph = /^[RYB]$/.test(r.ph) ? r.ph + 'ph' : '';
   const part = r.t === 'bushing' ? (r.ph === 'N' ? 'Neutral Bushing' : r.pos ? (r.pos.startsWith('LV-') ? `LV Bushing ${r.pos.slice(3)}` : `${r.pos} Bushing`) : 'Bushing')
     : r.t === 'winding' ? r.acting : r.t === 'dga' ? (r.pos === 'OLTC' ? 'OLTC' : `Main tank (${(r.pos || '').toLowerCase()} sample)`) : PART[r.t] || r.pos;
-  return [shortUnit(r.unit), ph, part].filter(Boolean).join(', ');
+  return isTF(r.unit) ? [shortUnit(r.unit), ph, part].filter(Boolean).join(', ') : [`${shortUnit(r.unit)} ${part}`, ph].filter(Boolean).join(', ');
 };
 
 // ---------------------------------------------------------------- tan δ family
