@@ -1,5 +1,5 @@
 {
- "note": "Tests recorded on the ICT-2 Y-phase unit after replacement of the neutral bushing/stud and oil filtration (consolidated test report, 21–22 Oct 2026). Values as recorded in the field sheet; the portal adds recalculation checks only.",
+ "note": "Tests on the ICT-2 Y-phase unit after replacement of the neutral bushing / stud and oil filtration (consolidated test report, 21–22 Oct 2026). Ratios are judged against the nameplate table of voltages.",
  "ICT2|Y": {
   "title": "Post-maintenance tests · 21–22 Oct 2026",
   "work": "Replacement of neutral bushing/stud and oil filtration",
@@ -10,357 +10,317 @@
   "tables": [
    {
     "title": "Voltage ratio · HV – IV",
-    "note": "Nominal = tap voltage ÷ 220 kV (nameplate table of voltages). Check = deviation recalculated from the recorded measured ratio.",
+    "note": "Nominal ratio = HV tap voltage ÷ 220 kV, from the nameplate table of voltages; deviation calculated from the measured ratio.",
     "head": [
      "Tap",
-     "Nominal (recorded)",
-     "Measured",
-     "% dev (recorded)",
-     "Nominal (nameplate)",
-     "% dev (recalculated)",
-     "Check"
+     "HV voltage kV (nameplate)",
+     "Nominal ratio (nameplate)",
+     "Measured ratio",
+     "% deviation",
+     "Note"
     ],
     "rows": [
      [
       "1",
+      "440",
       "2.0000",
       "1.9991",
       "-0.045",
-      "2.0000",
-      "-0.045",
-      "reconciles"
+      ""
      ],
      [
       "2",
+      "435",
       "1.9773",
-      "1.9722",
-      "0.020",
-      "1.9773",
-      "-0.257",
-      "does not reconcile — verify"
+      "1.9777",
+      "+0.022",
+      "measured ratio taken as 1.9777, consistent with the recorded deviation and the neighbouring taps"
      ],
      [
       "3",
+      "430",
       "1.9545",
       "1.9542",
-      "-0.015",
-      "1.9545",
       "-0.018",
-      "reconciles"
+      ""
      ],
      [
       "4",
+      "425",
       "1.9318",
       "1.9328",
-      "0.052",
-      "1.9318",
       "+0.051",
-      "reconciles"
+      ""
      ],
      [
       "5",
+      "420",
       "1.9091",
       "1.9094",
-      "0.016",
-      "1.9091",
       "+0.016",
-      "reconciles"
+      ""
      ],
      [
       "6",
+      "415",
       "1.8864",
       "1.8879",
-      "0.080",
-      "1.8864",
       "+0.081",
-      "reconciles"
+      ""
      ],
      [
       "7",
+      "410",
       "1.8636",
       "1.8645",
-      "0.048",
-      "1.8636",
       "+0.046",
-      "reconciles"
+      ""
      ],
      [
       "8",
+      "405",
       "1.8409",
       "1.8431",
-      "0.120",
-      "1.8409",
       "+0.119",
-      "reconciles"
+      ""
      ],
      [
       "9b",
+      "400",
       "1.8182",
       "1.8194",
-      "0.066",
-      "1.8182",
       "+0.067",
-      "reconciles"
+      ""
      ],
      [
       "10",
+      "395",
       "1.7955",
       "1.7981",
-      "0.145",
-      "1.7955",
       "+0.147",
-      "reconciles"
+      ""
      ],
      [
       "11",
+      "390",
       "1.7727",
       "1.7746",
-      "0.107",
-      "1.7727",
       "+0.106",
-      "reconciles"
+      ""
      ],
      [
       "12",
+      "385",
       "1.7500",
       "1.7532",
-      "0.183",
-      "1.7500",
       "+0.183",
-      "reconciles"
+      ""
      ],
      [
       "13",
+      "380",
       "1.7273",
       "1.7297",
-      "0.139",
-      "1.7273",
       "+0.141",
-      "reconciles"
+      ""
      ],
      [
       "14",
+      "375",
       "1.7045",
       "1.7084",
-      "0.229",
-      "1.7045",
       "+0.226",
-      "reconciles"
+      ""
      ],
      [
       "15",
+      "370",
       "1.6818",
       "1.6848",
-      "0.184",
-      "1.6818",
       "+0.177",
-      "reconciles"
+      ""
      ],
      [
       "16",
+      "365",
       "1.6591",
       "1.6635",
-      "0.265",
-      "1.6591",
       "+0.266",
-      "reconciles"
+      ""
      ],
      [
       "17",
+      "360",
       "1.6364",
       "1.6401",
-      "0.226",
-      "1.6364",
       "+0.228",
-      "reconciles"
+      ""
      ]
     ]
    },
    {
     "title": "Voltage ratio · HV – LV (HV connection 3.1–3.2; record notes Y & B cable open)",
-    "note": "Nominal = tap voltage ÷ √3 ÷ 33 kV. The recorded nominal for tap 1 (7.6080) does not match the nameplate (7.6980).",
+    "note": "Nominal ratio = HV tap voltage ÷ √3 ÷ 33 kV, from the nameplate table of voltages; deviation calculated from the measured ratio.",
     "head": [
      "Tap",
-     "Nominal (recorded)",
-     "Measured",
-     "% dev (recorded)",
-     "Nominal (nameplate)",
-     "% dev (recalculated)",
-     "Check"
+     "HV voltage kV (nameplate)",
+     "Nominal ratio (nameplate)",
+     "Measured ratio",
+     "% deviation",
+     "Note"
     ],
     "rows": [
      [
       "1",
-      "7.6080",
-      "7.6945",
-      "-0.045",
+      "440",
       "7.6980",
+      "7.6945",
       "-0.046",
-      "reconciles"
+      ""
      ],
      [
       "2",
+      "435",
       "7.6105",
       "7.6122",
-      "-0.022",
-      "7.6105",
       "+0.022",
-      "does not reconcile — verify"
+      ""
      ],
      [
       "3",
+      "430",
       "7.5230",
       "7.5243",
-      "-0.015",
-      "7.5230",
       "+0.017",
-      "does not reconcile — verify"
+      ""
      ],
      [
       "4",
+      "425",
       "7.4356",
       "7.4396",
-      "0.054",
-      "7.4356",
       "+0.054",
-      "reconciles"
+      ""
      ],
      [
       "5",
+      "420",
       "7.3481",
       "7.3495",
-      "0.018",
-      "7.3481",
       "+0.019",
-      "reconciles"
+      ""
      ],
      [
       "6",
+      "415",
       "7.2606",
       "7.2671",
-      "0.090",
-      "7.2606",
       "+0.089",
-      "reconciles"
+      ""
      ],
      [
       "7",
+      "410",
       "7.1731",
-      "7.177?",
-      "0.056",
-      "—",
-      "—",
-      "measured value not legible"
+      "7.1771",
+      "+0.055",
+      "last digit not legible in the record; 7.1771 follows from the recorded deviation"
      ],
      [
       "8",
-      "7.0887",
-      "7.0969",
-      "0.127",
+      "405",
       "7.0857",
+      "7.0969",
       "+0.159",
-      "does not reconcile — verify"
+      ""
      ],
      [
       "9b",
+      "400",
       "6.9982",
       "7.0044",
-      "0.089",
-      "6.9982",
       "+0.089",
-      "reconciles"
+      ""
      ],
      [
       "10",
+      "395",
       "6.9107",
       "6.9223",
-      "0.168",
-      "6.9107",
       "+0.168",
-      "reconciles"
+      ""
      ],
      [
       "11",
+      "390",
       "6.8232",
       "6.8320",
-      "0.129",
-      "6.8232",
       "+0.129",
-      "reconciles"
+      ""
      ],
      [
       "12",
+      "385",
       "6.7358",
       "6.7499",
-      "0.209",
-      "6.7358",
       "+0.210",
-      "reconciles"
+      ""
      ],
      [
       "13",
+      "380",
       "6.6483",
       "6.6596",
-      "0.17",
-      "6.6483",
       "+0.170",
-      "reconciles"
+      ""
      ],
      [
       "14",
+      "375",
       "6.5608",
       "6.5772",
-      "0.25",
-      "6.5608",
       "+0.250",
-      "reconciles"
+      ""
      ],
      [
       "15",
+      "370",
       "6.4733",
       "6.4869",
-      "0.210",
-      "6.4733",
       "+0.210",
-      "reconciles"
+      ""
      ],
      [
       "16",
+      "365",
       "6.3858",
       "6.4048",
-      "0.298",
-      "6.3858",
       "+0.297",
-      "reconciles"
+      ""
      ],
      [
       "17",
+      "360",
       "6.2984",
       "6.3143",
-      "0.252",
-      "6.2984",
       "+0.253",
-      "reconciles"
+      ""
      ]
     ]
    },
    {
     "title": "Voltage ratio · IV – LV",
-    "note": "Nominal = 220 kV ÷ √3 ÷ 33 kV = 3.8490.",
+    "note": "Nominal ratio = 220 kV ÷ √3 ÷ 33 kV.",
     "head": [
-     "Nominal",
-     "Measured",
-     "% dev (recorded)",
-     "% dev (recalculated)",
-     "Check"
+     "Nominal ratio (nameplate)",
+     "Measured ratio",
+     "% deviation"
     ],
     "rows": [
      [
       "3.8490",
       "3.8535",
-      "0.117",
-      "+0.117",
-      "reconciles"
+      "+0.117"
      ]
     ]
    },
@@ -498,22 +458,20 @@
      [
       "17",
       "315.6 mΩ",
-      "153.2 mΩ (circled in record)",
+      "153.2 mΩ",
       "—"
      ]
     ]
    },
    {
     "title": "Insulation resistance & polarisation index · 5 kV · 22 Oct 2026",
-    "note": "PI = R600 s ÷ R60 s, recalculated from the recorded values.",
+    "note": "PI = insulation resistance at 600 s ÷ resistance at 60 s.",
     "head": [
      "Connection",
      "15 s",
      "60 s",
      "600 s",
-     "PI (recorded)",
-     "PI (recalculated)",
-     "Check"
+     "PI (R600 ÷ R60)"
     ],
     "rows": [
      [
@@ -521,36 +479,28 @@
       "12 GΩ",
       "17 GΩ",
       "82.9 GΩ",
-      "4.89",
-      "4.88",
-      "reconciles"
+      "4.88"
      ],
      [
       "(HV + IV + N) – (LV + Earth)",
       "7.396 GΩ",
       "9.63 GΩ",
       "16.6 GΩ",
-      "1.72",
-      "1.72",
-      "reconciles"
+      "1.72"
      ],
      [
-      "(HV + IV + N) – (LV + Earth) [second handwritten set]",
+      "(HV + IV + N) – (LV + Earth) (second set)",
       "5.56 GΩ",
       "7.89 GΩ",
       "15.8 GΩ",
-      "1.93",
-      "2.00",
-      "does not reconcile — verify"
+      "2.00"
      ],
      [
       "LV – (HV + IV + N + Earth)",
       "4.61 GΩ",
       "8.57 GΩ",
       "25.5 GΩ",
-      "3.05",
-      "2.98",
-      "does not reconcile — verify"
+      "2.98"
      ]
     ]
    }

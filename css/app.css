@@ -1675,3 +1675,4 @@ svg.pf{width:100%;height:auto;color:#3f4f61;margin-bottom:14px}
 .top{padding:0 16px!important;gap:8px!important}.topnav .brand{gap:8px}.tnav{margin-left:4px}
 .tgt-card table.prog{width:100%!important}.tgt-card table.prog td:last-child,.tgt-card table.prog th:last-child{min-width:0!important}.tgt-card table.prog td.r,.tgt-card table.prog th.r{white-space:normal!important}.tgt-card table.prog th,.tgt-card table.prog td{padding:8px 8px!important}.main table td .due-by{white-space:normal!important;font-size:14px}
 .glance.g5{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:12px}.glance.g5 .gl{min-width:0;flex:none!important}.glance.g5 .gl small{white-space:normal;overflow-wrap:break-word}
+.main table td.ex-note{font:500 15px Inter,sans-serif!important;color:var(--ink-2);text-align:left!important;width:32%}

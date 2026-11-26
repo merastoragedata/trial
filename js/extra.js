@@ -1,7 +1,7 @@
 // Other tests recorded on a unit outside the diagnostic sheet (ratio, OC, SC, winding resistance, IR/PI),
 // shown as recorded with the portal's recalculation checks.
-import { fmtDate, unitName } from './data.js?v=20261126.1906';
-import { esc } from './ui.js?v=20261126.1906';
+import { fmtDate, unitName } from './data.js?v=20261126.1914';
+import { esc } from './ui.js?v=20261126.1914';
 
 let X = null;
 export async function loadExtra() { if (!X) X = await fetch(`data/extra_tests.json?v=${Date.now() >> 16}`).then(r => r.json()).catch(() => ({})); return X; }
@@ -14,7 +14,7 @@ export function extraSection(u, ph, { open = true } = {}) {
   const nBad = E.tables.reduce((a, t) => a + t.rows.filter(r => r.some(c => /does not reconcile|not legible/.test(c))).length, 0);
   return `<details class="sec ex-sec" ${open ? 'open' : ''}><summary><span class="sec-t">🧾 Other tests · ${esc(unitName(u))}, ${ph}ph · ${esc(E.title)}</span><span class="dim">${esc(E.work)} · ${E.tables.length} tests${nBad ? ` · ${nBad} entries to verify` : ''}</span><span class="caret">▾</span></summary>
     <div class="sec-b"><p class="note">${esc(X.note || '')}</p>
-    ${E.tables.map(t => `<div class="ex-t"><h3>${esc(t.title)}</h3>${t.note ? `<p class="note">${esc(t.note)}</p>` : ''}<div class="el-tbl"><table class="t seq"><thead><tr>${t.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r => `<tr>${r.map((c, i) => i === 0 ? `<td><b>${esc(c)}</b></td>` : cell(c)).join('')}</tr>`).join('')}</tbody></table></div></div>`).join('')}
+    ${E.tables.map(t => `<div class="ex-t"><h3>${esc(t.title)}</h3>${t.note ? `<p class="note">${esc(t.note)}</p>` : ''}<div class="el-tbl"><table class="t seq"><thead><tr>${t.head.map(h => `<th>${esc(h)}</th>`).join('')}</tr></thead><tbody>${t.rows.map(r => `<tr>${r.map((c, i) => i === 0 ? `<td><b>${esc(c)}</b></td>` : t.head[i] === 'Note' ? `<td class="ex-note">${esc(c)}</td>` : cell(c)).join('')}</tr>`).join('')}</tbody></table></div></div>`).join('')}
     </div></details>`;
 }
 /** Cards for Results by date: other tests recorded within [from, to]. */
