@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.0943';
+import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.1152';
 export { ELEM };
 
-export const BUILD = '20261126.0943';  // set by tools/stamp_version.py
+export const BUILD = '20261126.1152';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {

@@ -1,14 +1,15 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.0943';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.0943';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0943';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0943';
-import { art } from './art.js?v=20261126.0943';
-import { dgaAnalysis } from './dga.js?v=20261126.0943';
-import { shareButtons, wireShare } from './report.js?v=20261126.0943';
-import { IC } from './icons.js?v=20261126.0943';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1152';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1152';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1152';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1152';
+import { art } from './art.js?v=20261126.1152';
+import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1152';
+import { dgaAnalysis } from './dga.js?v=20261126.1152';
+import { shareButtons, wireShare } from './report.js?v=20261126.1152';
+import { IC } from './icons.js?v=20261126.1152';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -213,6 +214,7 @@ export function svgChart(series, o = {}) {
   const dates = [...new Set(pts.map(p => p[0]))].sort();
   const tickD = dates.length <= 5 ? dates : [dates[0], dates[Math.floor(dates.length / 2)], dates.at(-1)];
   s += tickD.map(d => `<text x="${X(+toDate(d))}" y="${H - 8}" text-anchor="middle" class="mc-t">${toDate(d).toLocaleDateString('en-GB', { month: 'short', year: '2-digit' })}</text>`).join('');
+  const LBL = [];
   series.forEach((se, i) => {
     const ps = se.pts.map(p => [X(+toDate(p[0])), Y(p[1]), p]);
     if (!ps.length) return;
@@ -226,9 +228,21 @@ export function svgChart(series, o = {}) {
     if (!o.bars) ps.forEach(([x, y, p], j) => {
       const c = p[2] && p[2] !== 'ok' ? SC[p[2]] : col;
       s += `<circle class="pt" data-date="${p[0]}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${p[2] && p[2] !== 'ok' ? 4.6 : 3.4}" fill="var(--panel)" stroke="${c}" stroke-width="2"><title>${esc(se.name)} · ${fmtDate(p[0])}: ${fmt(p[1], o.dp ?? 3)}</title></circle>`;
-      if (series.length === 1 && (j === ps.length - 1 || ps.length <= 4)) s += `<text x="${x.toFixed(1)}" y="${(y - 8).toFixed(1)}" text-anchor="middle" class="mc-v" fill="${c}">${fmt(p[1], o.dp ?? 3)}</text>`;
+      if (series.length === 1 && (j === ps.length - 1 || ps.length <= 4)) LBL.push({ x, y, t: fmt(p[1], o.dp ?? 3), c, last: j === ps.length - 1 });
     });
   });
+  // value labels: placed without touching the axis numbers, limit labels or each other (latest point first)
+  const boxes = (o.limits || []).filter(l => l.y >= y0 && l.y <= y1).map(l => ({ x0: W - R - 46, x1: W - R, y0: Y(l.y) - 14, y1: Y(l.y) }));
+  const hit = (b) => boxes.some(q => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0);
+  for (const lb of LBL.sort((a, b) => b.last - a.last)) {
+    const w = lb.t.length * 7.2 + 4, anchor = lb.x - w / 2 < L + 2 ? 'start' : lb.x + w / 2 > W - R + 26 ? 'end' : 'middle';
+    const bx = anchor === 'start' ? lb.x + 2 : anchor === 'end' ? lb.x - w - 2 : lb.x - w / 2;
+    for (const dy of [-9, 17, -22]) {
+      const ty = lb.y + dy, b = { x0: bx, x1: bx + w, y0: ty - 10, y1: ty + 2 };
+      if (ty < T - 2 || ty > H - B - 2 || hit(b)) continue;
+      boxes.push(b); s += `<text x="${(anchor === 'start' ? lb.x + 3 : anchor === 'end' ? lb.x - 3 : lb.x).toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${anchor}" class="mc-v" fill="${lb.c}">${lb.t}</text>`; break;
+    }
+  }
   const leg = series.length > 1 ? `<div class="mc-leg">${series.map(se => `<span><i style="background:${se.color}"></i>${esc(se.name)}</span>`).join('')}</div>` : '';
   return `<svg class="mchart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" role="img">${s}</svg>${leg}`;
 }
@@ -329,6 +343,8 @@ export function wireInteractive(root) {
   });
   root.addEventListener('mouseout', (ev) => { const el = ev.target.closest('.el, .el-sec'); if (el && !el.contains(ev.relatedTarget)) $$('.hl', el).forEach(x => x.classList.remove('hl')); });
   root.addEventListener('click', (ev) => {
+    const gl = ev.target.closest('[data-gl]');
+    if (gl) { ev.preventDefault(); ev.stopPropagation(); const el = gl.closest('.el, .el-sec'); const on = !el.classList.contains('gx-local'); el.classList.toggle('gx-local', on); gl.classList.toggle('on', on); gl.textContent = on ? '📈 Hide graph' : '📈 Graph'; return; }
     const xt = ev.target.closest('[data-xtoggle]');
     if (xt) { ev.stopPropagation(); const tb = xt.closest('table'); tb.classList.toggle('show-x'); xt.textContent = xt.textContent.replace(/— (show|hide)$/, tb.classList.contains('show-x') ? '— hide' : '— show'); return; }
     const th = ev.target.closest('table.seq th[data-sort]'); if (!th) return; ev.stopPropagation();
@@ -423,7 +439,7 @@ function elementBlock(t, e, latestOnly) {
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
       ${e.ph !== '-' && !(PH_UNIT(e.u, e.ph) && ['bushing', 'winding', 'dga'].includes(t)) ? phase(e.ph) : ''}<b>${esc(fullName(t, e.u, e.sub))}</b>${hChip(e.health)}${pill(st)}
       <span class="el-due">${e.L ? 'Next due' : 'Never tested · due'} ${dueTxt(sch)}</span>
-      ${t === 'bushing' && e.rows[0]?.mk ? `<span class="dim el-mk">${esc(e.rows[0].mk.replace(/\n/g, ' '))}</span>` : ''}<span class="el-open">${IC.arrow}</span></div>
+      ${t === 'bushing' && e.rows[0]?.mk ? `<span class="dim el-mk">${esc(e.rows[0].mk.replace(/\n/g, ' '))}</span>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button><span class="el-open">${IC.arrow}</span></div>
     <div class="el-b"><div class="el-tbl">${latestOnly ? latestTable(t, e) : seqTable(t, e, false)}</div>${e.done.length ? `<div class="el-ch gx ${CHARTG[t] ? 'two' : ''}">${elemChart(t, e)}</div>` : ''}</div></div>`;
 }
 function unitBlock(t, U, latestOnly) {
@@ -628,7 +644,7 @@ export function renderSections(t, mount) {
     const sel = FILTER[t], us = M.units.filter(U => (!sel || sel.has(U.u)) && (viewPref('blank') || U.es.some(e => e.done.length)));
     $('#seqAll', mount).innerHTML = us.map(U => unitBlock(t, U, false)).join('') || '<div class="empty">Nothing selected — use the filter.</div>';
     $('#seqLatest', mount).innerHTML = us.map(U => unitBlock(t, U, true)).join('') || '<div class="empty">Nothing selected.</div>';
-    $$('[data-open]', mount).forEach(el => el.onclick = (ev) => { if (ev.target.closest('td.ed, input, button[data-add], button[data-del]')) return; openElement(t, el.dataset.open, el.dataset.sub || null); });
+    $$('[data-open]', mount).forEach(el => el.onclick = (ev) => { if (ev.target.closest('td.ed, input, button[data-add], button[data-del], [data-gl]')) return; openElement(t, el.dataset.open, el.dataset.sub || null); });
     wireEditing(mount); wireChartChips(mount);
   };
   drawSeq();
@@ -748,7 +764,7 @@ export function renderElementPage(t, u, sub, mount) {
         <div class="row-flex mt">${shareButtons(u, isPU ? sub : one && one.ph !== '-' && one.ph !== 'N' ? one.ph : null)}</div></div></section>
     ${tabs}
     <div class="ph-cards">${stats}</div>
-    ${es.map(e => `<section class="el-sec el" data-ph="${e.ph}"><div class="row-flex"><h2 style="margin:0">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(fullName(t, u, e.sub))}</h2>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', `never tested · due ${fmtDate(codDue(t, u))}`)}${!one ? `<a class="btn sm" href="${elHref(t, u, e.sub)}">Open this ${NOUN[t][0]} only ${IC.arrow}</a>` : ''}</div>
+    ${es.map(e => `<section class="el-sec el" data-ph="${e.ph}"><div class="row-flex"><h2 style="margin:0">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(fullName(t, u, e.sub))}</h2>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', `never tested · due ${fmtDate(codDue(t, u))}`)}${!one ? `<a class="btn sm" href="${elHref(t, u, e.sub)}">Open this ${NOUN[t][0]} only ${IC.arrow}</a>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button></div>
       <div class="card mt"><div class="card-h"><h3>Test results</h3><span class="sub">click a column header to sort · hover a row to find it on the graphs</span><div class="sp"></div><span class="note">${e.rows.length} rows</span></div><div class="tbl-wrap">${seqTable(t, e, false)}</div></div>
       <div class="grid g2 mt">${charts(e, one ? null : 2)}</div></section>`).join('')}
     ${dgaPanels}`;
@@ -769,6 +785,9 @@ export function renderElementPage(t, u, sub, mount) {
     $$('canvas[data-k]', sec).forEach(cv => { const ch = cv.__chart; if (!ch) return; const act = [];
       ch.data.datasets.forEach((ds, di) => { if (ds.isLimit || ds.isRef) return; const i = ds.data.findIndex(p => new Date(p.x).toISOString().slice(0, 10) === tr.dataset.date); if (i >= 0) act.push({ datasetIndex: di, index: i }); });
       ch.setActiveElements(act); ch.tooltip.setActiveElements(act, { x: 0, y: 0 }); ch.update('none'); }); });
+  { const npPh = isPU ? sub : (one && PH_UNIT(u, one.ph) ? one.ph : null);   // nameplate of the phase unit / reactor / spare ICT
+    const np = isTF(u) ? (npPh ? nameplateSection(u, npPh) : (!/^(ICT1|ICT2)$/.test(u) ? nameplateSection(u, null) : '')) : '';
+    if (np) { $('.ph-cards', mount)?.insertAdjacentHTML('afterend', `<div class="np-wrap">${np}</div>`); wireNameplates(mount); } }
   wireTank(mount, u); wireEditing(mount); wireInteractive(mount); wireShare(mount); wireTV(mount);
 }
 
