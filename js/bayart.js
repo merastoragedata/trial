@@ -5,9 +5,9 @@
 //   220 kV — line bays: single ACSR Zebra; ICT IV bays and TBC: twin ACSR Zebra;
 //            bus coupler: IPS tube between equipment with quad-conductor jumpers to the buses.
 // Tie bays, the bus coupler and the TBC have no lightning arrester. One pole of three is drawn.
-import { DB, unitName, kvOf } from './data.js?v=20261126.1906';
-import { unitStatus, worst, SEV_LABEL } from './rules.js?v=20261126.1906';
-import { esc } from './ui.js?v=20261126.1906';
+import { DB, unitName, kvOf } from './data.js?v=20261126.1914';
+import { unitStatus, worst, SEV_LABEL } from './rules.js?v=20261126.1914';
+import { esc } from './ui.js?v=20261126.1914';
 
 const DIAS = [['401', '402', '403'], ['404', '405', '406'], ['407', '408', '409'], ['410', '411', '412'], ['413', '414', '415']];
 const ENDS = {

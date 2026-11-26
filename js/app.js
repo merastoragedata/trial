@@ -1,20 +1,20 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1906';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1906';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1906';
-import { IC, LOGO } from './icons.js?v=20261126.1906';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1906';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1906';
-import { art, skyline } from './art.js?v=20261126.1906';
-import { shareButtons, wireShare } from './report.js?v=20261126.1906';
-import { testHeader } from './testviz.js?v=20261126.1906';
-import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1906';
-import { loadExtra, extraUnits } from './extra.js?v=20261126.1906';
-import { bayArt } from './bayart.js?v=20261126.1906';
-import { puCards, puPage } from './pu.js?v=20261126.1906';
-import { pendingPage, resultsPage, keyVals } from './pages.js?v=20261126.1906';
-import { progress, curFY, model as tModel, renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1906';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1906';
-import { refresh } from './data.js?v=20261126.1906';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1914';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1914';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1914';
+import { IC, LOGO } from './icons.js?v=20261126.1914';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1914';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1914';
+import { art, skyline } from './art.js?v=20261126.1914';
+import { shareButtons, wireShare } from './report.js?v=20261126.1914';
+import { testHeader } from './testviz.js?v=20261126.1914';
+import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1914';
+import { loadExtra, extraUnits } from './extra.js?v=20261126.1914';
+import { bayArt } from './bayart.js?v=20261126.1914';
+import { puCards, puPage } from './pu.js?v=20261126.1914';
+import { pendingPage, resultsPage, keyVals } from './pages.js?v=20261126.1914';
+import { progress, curFY, model as tModel, renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1914';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1914';
+import { refresh } from './data.js?v=20261126.1914';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => {
@@ -379,8 +379,8 @@ function vUnit(u, q) {
     ${info ? '' : `<section class="card bay-art-card"><div class="card-h"><h2>Bay layout</h2><span class="sub">equipment in the order it is connected, as on the single-line diagram · click CT, CB or LA</span></div><div class="card-b">${bayArt(u)}</div></section>`}
     ${ts.length ? `<div class="sec-h" style="margin-top:4px"><h2>Diagnostic tests</h2><span class="note">click a test for full results, graphs and history</span></div>
     <div class="test-cards">${ts.map(t => testCard(u, t)).join('')}</div>
-    <div class="grid g2 mt eq-2">${h ? `<div class="card"><div class="card-h"><h2>${isTF(u) ? 'Health index' : 'Bay health'}</h2><span class="sub">what drives the score</span></div><div class="card-b">${hiPanel(u)}</div></div>` : '<div></div>'}
-      <div class="card"><div class="card-h"><h2>Schedule</h2><span class="sub">per test, from the latest completed test</span></div>${schedTable(sch, true)}</div></div>
+    <details class="sec mt eq-sched" open><summary><span class="sec-t">Test schedule</span><span class="dim">per test · last result and next due date, counted from the latest completed test</span><span class="caret">▾</span></summary><div class="sec-b">${schedTable(sch, true)}</div></details>
+    ${h ? `<details class="sec mt eq-hi"><summary><span class="sec-t">${isTF(u) ? 'Health index' : 'Bay health'} · ${h.hi} / 100 · ${esc(h.band[2])}</span><span class="dim">what drives the score</span><span class="caret">▾</span></summary><div class="sec-b">${hiPanel(u)}</div></details>` : ''}
     <details class="sec fnd-sec mt"><summary><span class="sec-t">Findings</span><span class="dim">${fs.length ? `${fs.length} observation${fs.length > 1 ? 's' : ''} with recommended action` : 'all evaluated values within limits'} · included in image / PDF exports only when this section is open</span><span class="caret">▾</span></summary><div class="sec-b">${findingList(fs)}</div></details>`
     : '<div class="card empty">Proposed bay — equipment and tests will be added once it is commissioned.</div>'}`;
   $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openElement(b.dataset.detail, u, null); });  // navigates to #/el/…
