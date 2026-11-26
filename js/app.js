@@ -1,16 +1,16 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0941';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0941';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0941';
-import { IC, LOGO } from './icons.js?v=20261126.0941';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0941';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0941';
-import { art, skyline } from './art.js?v=20261126.0941';
-import { shareButtons, wireShare } from './report.js?v=20261126.0941';
-import { testHeader } from './testviz.js?v=20261126.0941';
-import { pendingPage, resultsPage } from './pages.js?v=20261126.0941';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.0941';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0941';
-import { refresh } from './data.js?v=20261126.0941';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0943';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0943';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0943';
+import { IC, LOGO } from './icons.js?v=20261126.0943';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0943';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0943';
+import { art, skyline } from './art.js?v=20261126.0943';
+import { shareButtons, wireShare } from './report.js?v=20261126.0943';
+import { testHeader } from './testviz.js?v=20261126.0943';
+import { pendingPage, resultsPage } from './pages.js?v=20261126.0943';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.0943';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0943';
+import { refresh } from './data.js?v=20261126.0943';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -56,7 +56,7 @@ const TV = {
       { k: 'C', label: 'Capacitance pF', unit: 'pF' },
       { k: 'dC', label: 'ΔC % vs first test', unit: '%', derived: pctC, limits: DC_LIM },
     ],
-    cols: [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Feeder', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['kV', r => kvOf(r.unit), 'r'], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)],
+    cols: [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Bay no.', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['kV', r => kvOf(r.unit), 'r'], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)],
       ['C pF', r => fmt(r.v.C, 1), 'r'], ['Tan δ %', r => fmt(r.v.tand, 3), 'r', r => r.v.tand > 0.7], ['Amb °C', r => fmt(r.v.temp, 0), 'r'], ['ΔC %', (r, s) => fmt(pctC(s)(r), 1), 'r'], ['Remark', r => `<span class="dim">${esc(r.rem)}</span>`]],
   },
   cb_timing: {
@@ -67,7 +67,7 @@ const TV = {
       { k: 'close', label: 'Close time (ms)', unit: 'ms', limits: [{ y: 150, label: 'Circular 150 ms', sev: 'alert' }] },
       { k: 'co1', label: 'Close–Open (ms)', unit: 'ms' },
     ],
-    cols: [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Feeder', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)],
+    cols: [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Bay no.', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)],
       ['Trip TC1', r => fmt(r.v.open1, 1), 'r', r => r.v.open1 > LIM.trip[kvOf(r.unit)]], ['Trip TC2', r => fmt(r.v.open2, 1), 'r', r => r.v.open2 > LIM.trip[kvOf(r.unit)]], ['Close', r => fmt(r.v.close, 1), 'r', r => r.v.close > 150], ['C-O TC1', r => fmt(r.v.co1, 1), 'r'], ['C-O TC2', r => fmt(r.v.co2, 1), 'r']],
     note: '<b>Why both trip coils matter.</b> TC1 and TC2 are redundant trip circuits, so a slow TC2 is as serious as a slow TC1. Trip time adds directly to fault-clearing time and erodes the CEA 100 ms clearance margin for 400 kV.',
   },
@@ -78,7 +78,7 @@ const TV = {
       { k: 'Ith', label: 'Ith — uncompensated 3rd harmonic, for reference (µA)', unit: 'µA' },
       { k: 'Itotal', label: 'Itotal — total leakage, mostly capacitive (µA)', unit: 'µA' },
     ],
-    cols: [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Feeder', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)], ['Season', r => esc(r.season || '')],
+    cols: [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Bay no.', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)], ['Season', r => esc(r.season || '')],
       ['Ith µA', r => fmt(r.v.Ith, 0), 'r'], ['Icorr µA', r => fmt(r.v.Icorr, 0), 'r', r => r.v.Icorr > 150], ['Itotal µA', r => fmt(r.v.Itotal, 0), 'r'], ['Remark', r => `<span class="dim">${esc(r.rem)}</span>`]],
     note: '<b>Method.</b> ZnO block degradation shows up in the <i>resistive</i> component; total leakage is about 90 % capacitive and is a trend only. The circular\'s limits (150 / 350 µA) are applied to <b>Icorr</b>, the harmonic-compensated 3rd-harmonic resistive current. Ith and Itotal are stored and plotted for reference. Large pre/post-monsoon swings usually point to surface leakage, not block ageing.',
   },
@@ -187,7 +187,7 @@ function findingList(fs, max) {
 function crmBody(rs, scoped) {
   const secs = [...groupBy(rs.filter(r => r.v.R != null), r => kvOf(r.unit))].sort((a, b) => b[0] - a[0]).map(([kv, g]) => ({ kv, g, bays: [...new Set(g.map(r => r.unit))].sort(sortUnits), id: 'crm' + kv }));
   let html = `<div class="grid ${scoped || secs.length < 2 ? '' : 'g2'} mb">${secs.map(s => `<div class="chart-card"><div class="card-h"><h3>${s.kv} kV breakers · main-contact resistance per pole</h3></div><div class="chart-box" style="height:${scoped ? 240 : 290}px"><canvas id="${s.id}"></canvas></div><div class="legend-note">Shaded = above circular limit ${LIM.crm[s.kv]} µΩ (Sr 24) · test current ≈ ${fmt(Math.round(s.g.reduce((a, r) => a + (r.v.I || 0), 0) / s.g.length), 0)} A DC (IEC 62271-1 requires ≥ 50 A)</div></div>`).join('')}</div>`;
-  const cols = [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Feeder', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)], ['CRM µΩ', r => fmt(r.v.R, 1), 'r', r => r.v.R > LIM.crm[kvOf(r.unit)]], ['Current A', r => fmt(r.v.I, 1), 'r'], ['Remark', r => `<span class="dim">${esc(r.rem)}</span>`]];
+  const cols = [['Bay', r => `<a href="#/eq/${r.unit}">${unitName(r.unit)}</a>`], ['Bay no.', r => `<span class="dim">${esc(bayTitle(r.unit))}</span>`], ['Ph', r => phase(r.ph)], ['Tested', r => fmtDate(r.date)], ['CRM µΩ', r => fmt(r.v.R, 1), 'r', r => r.v.R > LIM.crm[kvOf(r.unit)]], ['Current A', r => fmt(r.v.I, 1), 'r'], ['Remark', r => `<span class="dim">${esc(r.rem)}</span>`]];
   const rows = [...rs].sort((a, b) => sortUnits(a.unit, b.unit) || a.ph.localeCompare(b.ph));
   html += `<div class="card"><div class="card-h"><h3>Latest readings</h3></div><div class="tbl-wrap"><table class="t"><thead><tr>${cols.map(c => `<th class="${c[2] || ''}">${c[0]}</th>`).join('')}<th>Status</th></tr></thead><tbody>${rows.map(r => `<tr>${cols.map(c => `<td class="${c[2] || ''} ${c[3] && c[3](r) ? 'bad' : ''}">${c[1](r)}</td>`).join('')}<td>${pill(statusOf(r))}</td></tr>`).join('')}</tbody></table></div></div>`;
   return { html, after: (root) => secs.forEach(s => { const c = PHASE_COLOR(); const ch = barChart(root.querySelector('#' + s.id), { labels: s.bays, yLabel: 'µΩ', limits: [{ y: LIM.crm[s.kv], label: `Circular ${LIM.crm[s.kv]} µΩ` }], series: ['R', 'Y', 'B'].map(p => ({ label: p, color: c[p], data: s.bays.map(b => s.g.find(r => r.unit === b && r.ph === p)?.v.R ?? null) })) }); ch.options.plugins.zones = { bands: bandsFrom([{ y: LIM.crm[s.kv], sev: 'alert' }]) }; ch.update(); }) };
@@ -347,7 +347,7 @@ function vUnit(u, q) {
   const bushMake = info ? [...new Set(recs('bushing', { unit: u }).map(r => (r.mk || '').replace(/\n/g, ' ')).filter(Boolean))][0] : '';
   const plate = info
     ? [['Rating', info.rating], ['Make', info.make || '—'], ['Commissioned', info.commissioned ? fmtDate(info.commissioned) : '—'], ['HV bay', info.bay ? `Bay ${info.bay}` : '—'], ...(info.serials ? [['Serial nos.', Object.entries(info.serials).map(([p, s]) => `${p}: ${s}`).join(' · ')]] : []), ...(bushMake ? [['Bushings', bushMake.replace('MAKE : ', '').replace(/SNO\. - \S+/, '').trim() || bushMake]] : [])]
-    : [['Voltage', `${kvOf(u)} kV`], ['Feeder', bayTitle(u) || '—'], ['Scheme position', bayPosition(u)], ['Tests on record', String(ts.length)]];
+    : [['Voltage', `${kvOf(u)} kV`], ['Bay no.', bayTitle(u) || '—'], ['Scheme position', bayPosition(u)], ['Tests on record', String(ts.length)]];
   const artPlate = info ? [['MAKE', info.make || '—'], ['RATING', info.rating], ['SR. NO.', info.serials ? Object.values(info.serials)[0] + (Object.keys(info.serials).length > 1 ? ' …' : '') : '—']] : [['BAY', u], ['VOLTAGE', `${kvOf(u)} kV`]];
   view().innerHTML = `<section class="asset has-art"><div><div class="eyebrow">${info ? (u === 'BUS_REACTOR' ? 'Shunt reactor' : 'Power transformer · auto-transformer') : `${kvOf(u)} kV bay · ${bayPosition(u)}`}</div><div class="row-flex"><h1>${esc(unitName(u, !info))}</h1>${pill(st)}${h ? `<span class="tag band-${h.band[1]}" style="font-size:12.5px">${isTF(u) ? 'HI' : 'Bay health'} ${h.hi} · ${h.band[2]}</span>` : ''}</div>
       <div class="plate">${plate.map(([k, v]) => `<div><div class="k">${k}</div><div class="v">${esc(v)}</div></div>`).join('')}</div>
@@ -540,6 +540,7 @@ function a11yMenu() {
       if (act === 'norms') { w.classList.remove('open'); A11Y_T ? openNorms(A11Y_T) : (location.hash = '#/norms'); return; }
       if (act === 'graphs') setViewPref('graphs', !viewPref('graphs'));
       if (act === 'history') { if (!isAdmin()) return; setViewPref('history', !viewPref('history')); }
+      if (act === 'show5') { if (!isAdmin()) return; setViewPref('show5', !viewPref('show5')); applyView(); drawA11y(); route({ keepScroll: true }); return; }
       if (act.startsWith('ts')) setViewPref('text', +act.slice(2));
       applyView(); drawA11y(); stickHeads();
     });
@@ -552,6 +553,7 @@ function drawA11y() {
   p.innerHTML = `<div class="a11y-h"><b>Accessibility & view</b><span class="dim">tap outside to close</span></div>
     <button class="a11y-i" data-a="norms">${IC.standards}<span><b>Norms & standards</b><small>${A11Y_T ? 'circular clause + industry practice for this test' : 'MSETCL circular and industry standards'}</small></span></button>
     <button class="a11y-i" data-a="graphs">${IC.trend}<span><b>Graphs</b><small>show or hide every graph in the results</small></span>${sw(viewPref('graphs'))}</button>
+    <button class="a11y-i ${adm ? '' : 'locked'}" data-a="show5" ${adm ? '' : 'aria-disabled="true"'}>${IC.equipment}<span><b>5 kV results</b><small>${adm ? 'kept hidden; switch on only on special occasions (shows the 10 / 5 kV selector)' : 'hidden — admin only'}</small></span>${sw(viewPref('show5'))}</button>
     <button class="a11y-i ${adm ? '' : 'locked'}" data-a="history" ${adm ? '' : 'aria-disabled="true"'}>${IC.schedule}<span><b>Latest results: full comparison</b><small>${adm ? 'off = Latest test results show only the latest test row; previous, first and change rows are hidden' : 'set by the admin — sign in as admin to change'}</small></span>${sw(viewPref('history'))}</button>
     <div class="a11y-i ts"><span class="ts-a">A</span><span><b>Text size</b><small>larger text for easier reading</small></span><span class="seg">${['A', 'A+', 'A++'].map((l, i) => `<button data-a="ts${i}" class="${viewPref('text') === i ? 'on' : ''}">${l}</button>`).join('')}</span></div>`;
 }
@@ -771,7 +773,7 @@ function afterLoad() {
   const items = [
     ...[['#/', 'Overview', 'overview'], ['#/findings', 'Findings', 'findings'], ['#/schedule', 'Test schedule', 'schedule'], ['#/targets', 'FY targets', 'schedule'], ['#/sld', 'Single-line diagram', 'sld'], ['#/equipment', 'Equipment', 'equipment'], ['#/norms', 'MSETCL norms 2024', 'norms'], ['#/norms?tab=errata', 'Corrections to old JSON', 'norms'], ['#/standards', 'Industry standards', 'standards'], ['#/data', 'Data & sources', 'data'], ['#/about', 'Roadmap', 'roadmap']].map(([href, label, ic]) => ({ href, label, kind: 'page', icon: IC[ic] })),
     ...TF_UNITS.map(u => ({ href: '#/eq/' + u, label: unitName(u), sub: DB.site.units[u].rating, kind: 'equipment', icon: IC.equipment })),
-    ...Object.keys(DB.site.bays).map(u => ({ href: '#/eq/' + u, label: `Bay ${u}`, sub: bayTitle(u), kind: `${kvOf(u)} kV bay`, icon: IC.sld })),
+    ...Object.keys(DB.site.bays).map(u => ({ href: '#/eq/' + u, label: unitName(u), sub: bayTitle(u), kind: `${kvOf(u)} kV bay`, icon: IC.sld })),
     ...Object.values(TESTS).map(T => ({ href: '#/test/' + T.key, label: T.name, sub: T.eq, kind: 'test', icon: IC[T.key] })),
     ...DB.norms.rows.map(r => ({ href: `#/norms?q=${encodeURIComponent(r.activity)}`, label: `Sr ${r.sr} · ${r.activity}`, sub: r.equipment, kind: 'circular', icon: IC.norms })),
   ];

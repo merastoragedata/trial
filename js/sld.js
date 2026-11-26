@@ -3,18 +3,18 @@
 //   220 kV — double main bus + transfer bus, with bus coupler (207) and TBC (208)
 // Breaker boxes are coloured by CB test health; feeder dots by CT / LA health;
 // transformer / reactor symbols by their own health. Everything is a link.
-import { DB, unitName, bayTitle } from './data.js?v=20261126.0941';
-import { unitStatus, worst } from './rules.js?v=20261126.0941';
-import { esc } from './ui.js?v=20261126.0941';
+import { DB, unitName, bayRaw } from './data.js?v=20261126.0943';
+import { unitStatus, worst } from './rules.js?v=20261126.0943';
+import { esc } from './ui.js?v=20261126.0943';
 
 const has = (u, ts) => DB.records.some(r => r.unit === u && ts.includes(r.t));
 const st = (u, ts) => has(u, ts) ? worst(ts.map(t => unitStatus(u, t))) : 'none';
-const short = (u) => (bayTitle(u) || '').replace(/^\d+\s*kV\s*/i, '').replace(/KARJAT\s*-\s*/i, '').replace(/\s*\(.*\)\s*/, '').replace(/400\/220 kV|501 MVA|125 MVAr/gi, '').trim();
-const isFuture = (u) => /FUTURE/i.test(bayTitle(u));
+const short = (u) => (bayRaw(u) || '').replace(/^\d+\s*kV\s*/i, '').replace(/KARJAT\s*-\s*/i, '').replace(/\s*\(.*\)\s*/, '').replace(/400\/220 kV|501 MVA|125 MVAr/gi, '').trim();
+const isFuture = (u) => /FUTURE/i.test(bayRaw(u));
 
 function cb(x, y, u, label) {
   const s = st(u, ['cb_crm', 'cb_timing']);
-  return `<a href="#/eq/${u}" class="cb st-${s}${isFuture(u) ? ' fut' : ''}" aria-label="Breaker ${u} — ${esc(bayTitle(u))}"><title>Bay ${u} CB · ${esc(bayTitle(u))} · ${s === 'none' ? 'no CB test data' : 'CB tests: ' + s}</title>
+  return `<a href="#/eq/${u}" class="cb st-${s}${isFuture(u) ? ' fut' : ''}" aria-label="Breaker ${u} — ${esc(bayRaw(u))}"><title>Bay ${u} CB · ${esc(bayRaw(u))} · ${s === 'none' ? 'no CB test data' : 'CB tests: ' + s}</title>
     <rect x="${x - 17}" y="${y - 13}" width="34" height="26"/><text x="${x}" y="${y + 3.5}" text-anchor="middle">${label || u}</text></a>`;
 }
 function feederDot(x, y, u) {
