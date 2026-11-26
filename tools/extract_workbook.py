@@ -246,13 +246,26 @@ if __name__ == '__main__':
         sig = tuple(r['v'].get(k) for k in ks)
         if sum(v is not None for v in sig) >= 4:
             groups[(r['t'], r['date'], sig)].append(r)
+    # A row printed in the PDF of the sheet is an official result: it is shown and analysed even when
+    # its readings repeat elsewhere (then only a verification note is attached). Hidden rows that never
+    # reach the PDF stay excluded.
+    import os as _os, datetime as _dt
+    _pp = _os.path.join(_os.path.dirname(_os.path.abspath(__file__)), '..', 'data', 'sheet_pdf.txt')
+    _pdf = open(_pp).read().splitlines() if _os.path.exists(_pp) else []
+    def in_pdf(r):
+        dd = _dt.date.fromisoformat(r['date']); ds = f"{dd.day}-{dd.strftime('%b')}-{dd.year}"
+        c = r['v'].get('C')
+        return any(ds in ln and (c is None or f'{c:.2f}' in ln or f'{c:.1f}' in ln) for ln in _pdf)
     for (t, d, sig), rs in groups.items():
         elems = {(r['unit'], r['ph'], r['pos'], r.get('acting')) for r in rs}
         if len(elems) >= 3:
-            why = f'Identical readings in {len(elems)} different sampling points/elements on {d} - copied or template row, excluded from analysis'
+            shown = [r for r in rs if in_pdf(r)]
             for r in rs:
-                r['excluded'] = why
-            ISSUES.append({'src': f"{t.upper()} {d}", 'field': 'row', 'text': why, 'copied': True, 'rows': [r['src'] for r in rs]})
+                if r in shown:
+                    r['note'] = f'Readings identical in {len(elems)} elements on {d}; printed in the sheet PDF, so kept as an official result - verify against the field sheet'
+                else:
+                    r['excluded'] = f'Identical readings in {len(elems)} different sampling points/elements on {d} - hidden template row, not in the sheet PDF; excluded from analysis'
+            ISSUES.append({'src': f"{t.upper()} {d}", 'field': 'row', 'text': (f'{len(shown)} of {len(rs)} rows with identical readings are printed in the PDF - kept and analysed, flagged for verification' if shown else f'Identical readings in {len(elems)} elements on {d} - hidden template rows, not in the PDF; excluded'), 'copied': True, 'rows': [r['src'] for r in rs]})
 
     # --- calculation audit -------------------------------------------------
     # TDCG: recompute from the six combustible gases; never trust the sheet column

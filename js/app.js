@@ -1,13 +1,15 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0443';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0443';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0443';
-import { IC, LOGO } from './icons.js?v=20261126.0443';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0443';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0443';
-import { art, skyline } from './art.js?v=20261126.0443';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView } from './results.js?v=20261126.0443';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0443';
-import { refresh } from './data.js?v=20261126.0443';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0647';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0647';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0647';
+import { IC, LOGO } from './icons.js?v=20261126.0647';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0647';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0647';
+import { art, skyline } from './art.js?v=20261126.0647';
+import { shareButtons, wireShare } from './report.js?v=20261126.0647';
+import { pendingPage, resultsPage } from './pages.js?v=20261126.0647';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.0647';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0647';
+import { refresh } from './data.js?v=20261126.0647';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -285,7 +287,7 @@ function schedTable(list, compact) {
   return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th><th>Equipment</th>${compact ? '' : '<th>Circular</th><th class="r">Last completed</th>'}<th class="r">Next due</th><th>Status</th>${compact ? '' : '<th>Not covered in last campaign</th>'}</tr></thead><tbody>
   ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td><td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a>${compact && s.lag.length ? ` <span class="tag ver" title="${esc(lagTxt(s))}">${s.lag.length} lagging</span>` : ''}</td>
   ${compact ? '' : `<td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · ${esc(s.freq)}</button></td><td class="r">${fmtDate(s.last)}</td>`}
-  <td class="r" title="Last completed ${fmtDate(s.last)}">${fmtDate(s.due)}</td>
+  <td class="r" title="Last completed ${fmtDate(s.last)}">${dueTxt(s.due)}</td>
   <td>${s.status === 'overdue' ? pill('watch', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}</td>
   ${compact ? '' : `<td style="white-space:normal">${s.lag.length ? `<span class="note">${esc(lagTxt(s))}</span>` : '<span class="dim">—</span>'}</td>`}</tr>`).join('')}</tbody></table></div>`;
 }
@@ -359,6 +361,7 @@ function vUnit(u, q) {
   $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openElement(b.dataset.detail, u, null); });  // navigates to #/el/…
   $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openElement(t, u, null); } });
   if (q.get('t') && ts.includes(q.get('t'))) { location.replace(`#/el/${q.get('t')}/${encodeURIComponent(u)}`); return; }
+  { const h1 = $('.asset h1'); if (h1) { h1.parentElement.insertAdjacentHTML('afterend', `<div class="row-flex mt">${shareButtons(u, null, !['SPARE_ICT', 'BUS_REACTOR'].includes(u))}</div>`); wireShare(view()); } }
 }
 
 function vTest(t, q) {
@@ -507,16 +510,29 @@ function a11yMenu() {
     document.body.appendChild(w);
     const fab = w.querySelector('.a11y-fab'), panel = w.querySelector('.a11y-panel');
     // position: anchored to the bottom-right by default; a dragged position is kept as a share of the screen
-    const put = () => { let p = null; try { p = JSON.parse(localStorage.getItem('ehv-a11y-pos')); } catch { }
-      w.style.right = p ? `${Math.min(92, Math.max(0, p.r))}%` : '22px'; w.style.bottom = p ? `${Math.min(92, Math.max(0, p.b))}%` : '22px'; };
-    put();
+    // Placement follows the VISIBLE window (visualViewport): bottom-right of what is on screen, constant
+    // size even when a phone is pinch-zoomed. A dragged position is kept as a share of the visible window.
+    const getPos = () => { try { return JSON.parse(localStorage.getItem('ehv-a11y-pos2')); } catch { return null; } };
+    const put = () => { const vv = window.visualViewport, p = getPos();
+      const vw = vv ? vv.width : innerWidth, vh = vv ? vv.height : innerHeight, ox = vv ? vv.offsetLeft : 0, oy = vv ? vv.offsetTop : 0, s = vv ? 1 / vv.scale : 1;
+      const bw = w.offsetWidth * s, bh = w.offsetHeight * s, m = 18 * s;
+      const x = ox + (p ? Math.min(vw - bw - m, Math.max(m, vw * p.x)) : vw - bw - m), y = oy + (p ? Math.min(vh - bh - m, Math.max(m, vh * p.y)) : vh - bh - m);
+      w.style.left = '0px'; w.style.top = '0px'; w.style.right = 'auto'; w.style.bottom = 'auto'; w.style.transformOrigin = '0 0';
+      w.style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px) scale(${s.toFixed(4)})`; };
+    put(); requestAnimationFrame(put);
+    if (window.visualViewport) { visualViewport.addEventListener('resize', put); visualViewport.addEventListener('scroll', put); }
+    addEventListener('resize', put); addEventListener('scroll', put, { passive: true });
+    new ResizeObserver(put).observe(w);
     let drag = null, moved = false;
-    fab.addEventListener('pointerdown', (e) => { const r = w.getBoundingClientRect(); drag = { x: e.clientX, y: e.clientY, r: innerWidth - r.right, b: innerHeight - r.bottom }; moved = false; fab.setPointerCapture(e.pointerId); });
-    fab.addEventListener('pointermove', (e) => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (!moved && Math.hypot(dx, dy) < 6) return; moved = true; w.classList.add('dragging');
-      w.style.right = Math.max(4, Math.min(innerWidth - fab.offsetWidth - 4, drag.r - dx)) + 'px'; w.style.bottom = Math.max(4, Math.min(innerHeight - fab.offsetHeight - 4, drag.b - dy)) + 'px'; });
-    fab.addEventListener('pointerup', () => { if (drag && moved) { const r = w.getBoundingClientRect(); try { localStorage.setItem('ehv-a11y-pos', JSON.stringify({ r: (innerWidth - r.right) / innerWidth * 100, b: (innerHeight - r.bottom) / innerHeight * 100 })); } catch { } } drag = null; w.classList.remove('dragging'); });
+    fab.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY }; moved = false; fab.setPointerCapture(e.pointerId); });
+    fab.addEventListener('pointermove', (e) => { if (!drag) return; if (!moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 6) return; moved = true; w.classList.add('dragging');
+      const vv = window.visualViewport, vw = vv ? vv.width : innerWidth, vh = vv ? vv.height : innerHeight, ox = vv ? vv.offsetLeft : 0, oy = vv ? vv.offsetTop : 0, s = vv ? 1 / vv.scale : 1;
+      const r = fab.getBoundingClientRect();
+      try { localStorage.setItem('ehv-a11y-pos2', JSON.stringify({ x: (e.clientX - ox - r.width * s / 2) / vw, y: (e.clientY - oy - (w.offsetHeight - fab.offsetHeight / 2) * s) / vh })); } catch { }
+      put(); });
+    fab.addEventListener('pointerup', () => { drag = null; w.classList.remove('dragging'); });
     fab.addEventListener('click', (e) => { if (moved) { e.preventDefault(); moved = false; return; } const open = !w.classList.contains('open'); w.classList.toggle('open', open); fab.setAttribute('aria-expanded', open); if (open) drawA11y(); });
-    fab.addEventListener('dblclick', () => { try { localStorage.removeItem('ehv-a11y-pos'); } catch { } put(); });
+    fab.addEventListener('dblclick', () => { try { localStorage.removeItem('ehv-a11y-pos2'); } catch { } put(); });
     document.addEventListener('pointerdown', (e) => { if (w.classList.contains('open') && !w.contains(e.target)) { w.classList.remove('open'); fab.setAttribute('aria-expanded', false); } });
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape') w.classList.remove('open'); });
     panel.addEventListener('click', (e) => {
@@ -536,7 +552,7 @@ function drawA11y() {
   p.innerHTML = `<div class="a11y-h"><b>Accessibility & view</b><span class="dim">tap outside to close</span></div>
     <button class="a11y-i" data-a="norms">${IC.standards}<span><b>Norms & standards</b><small>${A11Y_T ? 'circular clause + industry practice for this test' : 'MSETCL circular and industry standards'}</small></span></button>
     <button class="a11y-i" data-a="graphs">${IC.trend}<span><b>Graphs</b><small>show or hide every graph in the results</small></span>${sw(viewPref('graphs'))}</button>
-    <button class="a11y-i ${adm ? '' : 'locked'}" data-a="history" ${adm ? '' : 'aria-disabled="true"'}>${IC.schedule}<span><b>Full test history</b><small>${adm ? 'off = detailed results show only the latest and previous test' : 'set by the admin — sign in as admin to change'}</small></span>${sw(viewPref('history'))}</button>
+    <button class="a11y-i ${adm ? '' : 'locked'}" data-a="history" ${adm ? '' : 'aria-disabled="true"'}>${IC.schedule}<span><b>Latest results: full comparison</b><small>${adm ? 'off = Latest test results show only the latest test row; previous, first and change rows are hidden' : 'set by the admin — sign in as admin to change'}</small></span>${sw(viewPref('history'))}</button>
     <div class="a11y-i ts"><span class="ts-a">A</span><span><b>Text size</b><small>larger text for easier reading</small></span><span class="seg">${['A', 'A+', 'A++'].map((l, i) => `<button data-a="ts${i}" class="${viewPref('text') === i ? 'on' : ''}">${l}</button>`).join('')}</span></div>`;
 }
 
@@ -708,6 +724,8 @@ function route(opt = {}) {
   if (p[0] === 'eq') vUnit(decodeURIComponent(p[1]), q);
   else if (p[0] === 'el') vElement(p[1], decodeURIComponent(p[2] || ''), p[3] ? decodeURIComponent(p[3]) : null);
   else if (p[0] === 'targets') vTargets(q);
+  else if (p[0] === 'pending') { setCrumbs([['Pending tests']]); pendingPage(view(), q, heroHead); }
+  else if (p[0] === 'results') { setCrumbs([['Results by date']]); resultsPage(view(), q, heroHead); }
   else if (p[0] === 'test') vTest(p[1], q);
   else (V[p[0] || ''] || vNotFound)(q);
   if (!opt.keepScroll) window.scrollTo(0, 0);

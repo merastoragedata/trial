@@ -1,12 +1,14 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf } from './data.js?v=20261126.0443';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, schedule } from './rules.js?v=20261126.0443';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0443';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0443';
-import { art } from './art.js?v=20261126.0443';
-import { IC } from './icons.js?v=20261126.0443';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf } from './data.js?v=20261126.0647';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, schedule } from './rules.js?v=20261126.0647';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0647';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0647';
+import { art } from './art.js?v=20261126.0647';
+import { dgaAnalysis } from './dga.js?v=20261126.0647';
+import { shareButtons, wireShare } from './report.js?v=20261126.0647';
+import { IC } from './icons.js?v=20261126.0647';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -45,6 +47,9 @@ export function fyRange(fy) { const y = parseInt(fy, 10); return [new Date(y, 3,
 export const curFY = () => DB.site.substation.fy;
 const inFY = (iso, fy) => { const [a, b] = fyRange(fy), d = toDate(iso); return d >= a && d <= b; };
 export { codDue };
+/** Next-due colour: red = overdue, yellow = due within 30 days, green = not yet due. */
+export const dueCls = (d) => !d ? '' : d < DB.today ? 'due-red' : (d - DB.today) / 864e5 <= 30 ? 'due-yel' : 'due-grn';
+export const dueTxt = (d) => !d ? '—' : `<b class="due ${dueCls(d)}">${fmtDate(d)}</b>`;
 const months = (t, u) => intervalMonths(t, u === 'x' ? '404' : u);
 
 // ------------------------------------------------------------------ colour rules (cell → severity)
@@ -126,7 +131,7 @@ const hBand = (s) => s == null ? 'none' : s >= 85 ? 'b1' : s >= 70 ? 'b2' : s >=
 const hChip = (s) => `<span class="hchip ${hBand(s)}" title="Element health index">${s == null ? '—' : s}</span>`;
 
 // ------------------------------------------------------------------ model: elements grouped by bay / unit
-function model(t) {
+export function model(t) {
   CRM_MED = {};
   if (t === 'cb_crm') for (const kv of [400, 220]) CRM_MED[kv] = med(latestOf(recs('cb_crm').filter(done), r => r.unit + r.ph).filter(r => kvOf(r.unit) === kv).map(r => r.v.R));
   const pop = population(t);
@@ -147,31 +152,31 @@ function subSort(t, a, b) {
 const latestOf = (rs, key) => [...groupBy(rs, key).values()].map(s => s.sort((a, b) => a.date.localeCompare(b.date)).at(-1));
 
 // ------------------------------------------------------------------ yearly progress
+// Yearly progress. Policy: every year at least one more than half of the population is tested
+// (⌊N/2⌋ + 1); LAs: all of them every year and half of them by the end of the first half-year (30 Sep).
+// Per bay the calculated figure is what falls due under the circular; the admin may declare any target.
+export const policyTarget = (t, pop) => t === 'la' ? pop : Math.floor(pop / 2) + 1;
+export const prevFY = (fy) => { const y = parseInt(fy, 10) - 1; return `${y}-${String(y + 1).slice(2)}`; };
 function progress(t, M, fy) {
-  const [, end] = fyRange(fy), [start] = fyRange(fy), TG = targets(), SCH = new Map(schedule().filter(x => x.t === t).map(x => [x.unit, x]));
+  const [start, end] = fyRange(fy), TG = targets(), SCH = new Map(schedule().filter(x => x.t === t).map(x => [x.unit, x]));
+  const h1End = new Date(start.getFullYear(), 8, 30, 23, 59);
   const rows = M.units.map(({ u, es }) => {
-    let pop = es.length, target = 0, prog = 0, extra = 0, last = null, next = null, overdue = 0;
+    let pop = es.length, due = 0, prog = 0, h1 = 0, extra = 0, last = null;
     for (const e of es) {
       const m = months(t, u), dts = e.done.map(r => r.date);
       const before = dts.filter(d => toDate(d) < start).pop(), inside = dts.filter(d => inFY(d, fy));
-      if (m < 12) {                                  // DGA / LA: several per year
-        const need = 12 / m; target += need;
-        const got = t === 'la' ? new Set(e.done.filter(r => inFY(r.date, fy)).map(r => laWindow(r.date)[0])).size : inside.length;
-        prog += Math.min(got, need); extra += Math.max(0, got - need);
-      } else {
-        const due = before ? addMonths(before, m) : dts.length ? start : (codDue(t, u) ?? start);  // never tested → commissioning + interval
-        if (due <= end) { target++; if (inside.length) prog++; } else if (inside.length) extra++;
-        if (!inside.length && due < DB.today) overdue++;
-      }
+      const isDue = m < 12 ? true : (before ? addMonths(before, m) : dts.length ? start : (codDue(t, u) ?? start)) <= end;
+      if (isDue) due++;
+      if (inside.length) { prog++; if (!isDue) extra++; }
+      if (inside.some(d => toDate(d) <= h1End)) h1++;
       const l = dts.at(-1); if (l && (!last || l > last)) last = l;
     }
-    next = SCH.get(u)?.due ?? null;
-    const ov = TG[`${t}|${fy}|${u}`];
-    return { u, pop, target: ov ?? target, auto: target, prog, extra, last, next, overdue, pct: (ov ?? target) ? Math.min(100, Math.round(prog / (ov ?? target) * 100)) : null, override: ov != null };
+    const ov = TG[`${t}|${fy}|${u}`], target = ov ?? due;
+    return { u, pop, target, auto: due, prog, h1, extra, last, next: SCH.get(u)?.due ?? null, pct: target ? Math.min(100, Math.round(prog / target * 100)) : null, override: ov != null };
   });
   const tot = (k) => rows.reduce((a, r) => a + (r[k] || 0), 0);
-  const totOv = TG[`${t}|${fy}|*`];
-  const T = { pop: tot('pop'), target: totOv ?? tot('target'), autoTarget: tot('target'), prog: tot('prog'), extra: tot('extra'), override: totOv != null };
+  const pop = tot('pop'), policy = policyTarget(t, pop), totOv = TG[`${t}|${fy}|*`];
+  const T = { pop, policy, due: tot('auto'), target: totOv ?? policy, autoTarget: policy, prog: tot('prog'), extra: tot('extra'), h1: tot('h1'), h1Target: Math.ceil(pop / 2), override: totOv != null };
   T.pct = T.target ? Math.min(100, Math.round(T.prog / T.target * 100)) : null;
   return { rows, T };
 }
@@ -358,10 +363,10 @@ function seqTable(t, e, latestOnly) {
   const keep = { has: (d) => d >= cut };
   const prevOf = (r) => { const i = e.done.indexOf(r); return i > 0 ? e.done.slice(0, i).reverse().find(x => (x.pos || '') === (r.pos || '')) : null; };
   const nOld = rows.filter(r => !keep.has(r.date) && !r.excluded).length;
-  const body = rows.map(r => `<tr data-date="${r.date}" class="${done(r) ? '' : 'nd'} ${r.excluded ? 'xcl' : ''} ${!keep.has(r.date) && !r.excluded ? 'old' : ''} ${r.src.startsWith('new!') ? 'newrow' : ''}" ${r.excluded ? `title="${esc(r.excluded)}"` : ''}><td>${esc(r.ses || '')}</td><td class="dt ${isAdmin() ? 'ed' : ''} ${inFY(r.date, curFY()) ? 'c-fy' : ''}" data-src="${esc(r.src)}" data-k="date">${fmtDate(r.date)}</td>${cols.map(c => cellHtml(t, r, c, done(r) ? prevOf(r) : null)).join('')}<td class="rem ${isAdmin() ? 'ed' : ''} ${r.edited?.rem ? 'edited' : ''}" data-src="${esc(r.src)}" data-k="rem">${r.excluded ? '<span class="tag chg">copied row · excluded</span> ' : ''}${esc(r.rem || (done(r) || r.excluded ? '' : 'Not recorded'))}</td>${isAdmin() && !latestOnly ? `<td>${r.src.startsWith('new!') ? `<button class="btn sm ghost" data-del="${esc(r.src)}" title="Delete added row">✕</button>` : ''}</td>` : ''}</tr>`).join('') || `<tr><td colspan="${cols.length + 3}" class="dim">No test on record — counted as pending.</td></tr>`;
+  const body = rows.map(r => `<tr data-date="${r.date}" class="${done(r) ? '' : 'nd'} ${r.excluded ? 'xcl' : ''} ${!keep.has(r.date) && !r.excluded ? 'old' : ''} ${r.src.startsWith('new!') ? 'newrow' : ''}" ${r.excluded ? `title="${esc(r.excluded)}"` : ''}><td>${esc(r.ses || '')}</td><td class="dt ${isAdmin() ? 'ed' : ''} ${inFY(r.date, curFY()) ? 'c-fy' : ''}" data-src="${esc(r.src)}" data-k="date">${fmtDate(r.date)}</td>${cols.map(c => cellHtml(t, r, c, done(r) ? prevOf(r) : null)).join('')}<td class="rem ${isAdmin() ? 'ed' : ''} ${r.edited?.rem ? 'edited' : ''}" data-src="${esc(r.src)}" data-k="rem">${r.excluded ? '<span class="tag chg">hidden template row · not in PDF</span> ' : ''}${r.note ? `<span class="tag ver" title="${esc(r.note)}">same readings in other bays · verify</span> ` : ''}${esc(r.rem || (done(r) || r.excluded ? '' : 'Not recorded'))}</td>${isAdmin() && !latestOnly ? `<td>${r.src.startsWith('new!') ? `<button class="btn sm ghost" data-del="${esc(r.src)}" title="Delete added row">✕</button>` : ''}</td>` : ''}</tr>`).join('') || `<tr><td colspan="${cols.length + 3}" class="dim">No test on record — counted as pending.</td></tr>`;
   const nx = rows.filter(r => r.excluded).length;
-  const xrow = nx ? `<tr class="xtoggle"><td colspan="${cols.length + 3}"><button class="btn sm ghost" data-xtoggle>${nx} copied / template row${nx === 1 ? '' : 's'} hidden from the sheet — show</button></td></tr>` : '';
-  const orow = nOld ? `<tr class="oldnote"><td colspan="${cols.length + 3}">${nOld} older test${nOld === 1 ? '' : 's'} folded away — the admin can show the full history from the accessibility menu</td></tr>` : '';
+  const xrow = nx ? `<tr class="xtoggle"><td colspan="${cols.length + 3}"><button class="btn sm ghost" data-xtoggle>${nx} copied / template row${nx === 1 ? '' : 's'} not printed in the sheet PDF (excluded) — show</button></td></tr>` : '';
+  const orow = '';
   return `<table class="t seq">${head}<tbody>${orow}${body}${xrow}</tbody></table>${isAdmin() && !latestOnly ? `<button class="btn sm" data-add="${esc(t + '|' + e.u + '|' + e.sub)}">＋ Add test row</button>` : ''}`;
 }
 // Latest results: the latest test with everything needed to verify it — previous and first test of the
@@ -409,12 +414,13 @@ function phaseCompare(t, U) {
     <div class="el-tbl"><table class="t seq pc"><thead><tr><th style="min-width:150px">Element</th><th style="min-width:170px">Parameter</th><th class="r" style="min-width:96px"><span class="ph R">R</span></th><th class="r" style="min-width:96px"><span class="ph Y">Y</span></th><th class="r" style="min-width:96px"><span class="ph B">B</span></th><th class="r" style="min-width:90px">Mean</th><th class="r" style="min-width:150px">Largest deviation from mean</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 function elementBlock(t, e, latestOnly) {
+  if (latestOnly && !e.done.length) return '';
   const sch = elemDue(t, e.u, e.L?.date);
   const st = e.L ? statusOf(e.L) : 'none', od = sch && sch < DB.today;
   return `<div class="el" data-ph="${e.ph}" data-el="${esc(e.u + '|' + e.sub)}">
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
       ${e.ph !== '-' && !(PH_UNIT(e.u, e.ph) && ['bushing', 'winding', 'dga'].includes(t)) ? phase(e.ph) : ''}<b>${esc(fullName(t, e.u, e.sub))}</b>${hChip(e.health)}${pill(st)}
-      <span class="el-due ${od ? 'od' : ''}">${!e.L ? `Never tested · ${od ? 'overdue since' : 'due'} ${sch ? fmtDate(sch) : '—'} <i class="dim">(commissioning + ${t === 'la' ? 'first monsoon window' : months(t, e.u) + ' months'})</i>` : `${od ? 'Overdue · ' : 'Next due '}${fmtDate(sch)}`}</span>
+      <span class="el-due">${e.L ? 'Next due' : 'Never tested · due'} ${dueTxt(sch)}</span>
       ${t === 'bushing' && e.rows[0]?.mk ? `<span class="dim el-mk">${esc(e.rows[0].mk.replace(/\n/g, ' '))}</span>` : ''}<span class="el-open">${IC.arrow}</span></div>
     <div class="el-b"><div class="el-tbl">${latestOnly ? latestTable(t, e) : seqTable(t, e, false)}</div>${e.done.length ? `<div class="el-ch gx ${CHARTG[t] ? 'two' : ''}">${elemChart(t, e)}</div>` : ''}</div></div>`;
 }
@@ -423,7 +429,7 @@ function unitBlock(t, U, latestOnly) {
   return `<section class="ub" data-unit="${esc(U.u)}"><header class="ub-h" data-open="${esc(U.u)}" title="Open all ${NOUN[t][1]} of this ${HOLDER[t].split(' ')[0]}">
     <div><div class="ub-k">${isTF(U.u) ? esc(DB.site.units[U.u].rating) : `${kvOf(U.u)} kV · Bay ${esc(U.u)}`}</div><div class="ub-n">${esc(unitName(U.u, true))}</div></div>
     <div class="ub-s"><span class="dim">${U.es.length} ${NOUN[t][U.es.length === 1 ? 0 : 1]}</span><span title="Weakest element health">${hChip(worstH)}</span><span class="btn sm">Open ${IC.arrow}</span></div></header>
-    ${groupPU(t, U).map(([ph, es]) => (ph ? `<div class="pu-h"><span class="ph ${ph}">${ph}</span><b>${esc(phaseUnitName(U.u, ph))}</b><span class="dim">${es.length} ${NOUN[t][es.length === 1 ? 0 : 1]}</span><a class="btn sm ghost" href="${elHref(t, U.u, ph)}">Open phase unit ${IC.arrow}</a></div>` : '') + es.map(e => elementBlock(t, e, latestOnly)).join('') + (t === 'dga' && ph ? oltcStrip(U.u, ph) : '')).join('')}${latestOnly && t !== 'winding' ? phaseCompare(t, U) : ''}</section>`;
+    ${groupPU(t, U).map(([ph, es]) => (ph ? `<div class="pu-h"><span class="ph ${ph}">${ph}</span><b>${esc(phaseUnitName(U.u, ph))}</b><span class="dim">${es.length} ${NOUN[t][es.length === 1 ? 0 : 1]}</span><a class="btn sm ghost" href="${elHref(t, U.u, ph)}">Open phase unit ${IC.arrow}</a></div>` : '') + es.map(e => elementBlock(t, e, latestOnly)).join('') + (t === 'dga' && ph ? oltcStrip(U.u, ph) : '') + (t === 'dga' && !latestOnly && es.some(e => !e.sub.endsWith('OLTC') && e.done.length) ? dgaAnalysis(U.u, ph || '-') : '')).join('')}${latestOnly && t !== 'winding' ? phaseCompare(t, U) : ''}</section>`;
 }
 // ICTs: R / Y / B single-phase units each hold their own bushings, windings and tank
 function groupPU(t, U) {
@@ -507,7 +513,7 @@ function neverPanel(t, M) {
       return `<tr><td><a href="${elHref(t, u)}"><b>${esc(unitName(u))}</b></a> <span class="dim">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</span>${all ? ' <span class="tag">blank</span>' : ''}</td>
         <td>${all ? `all ${es.length} ${N[es.length === 1 ? 0 : 1]}` : es.map(e => esc(fullName(t, u, e.sub, true))).join(' · ')}</td>
         <td class="r">${isAdmin() ? `<input type="date" class="cod-in" data-cod="${esc(u)}" value="${cod || ''}" title="Admin: commissioning date">` : fmtDate(cod)}</td>
-        <td class="r ${od ? 'd-od' : 'd-fy'}">${due ? fmtDate(due) : '—'}</td><td>${od ? '<span class="lg d-od">overdue</span>' : '<span class="lg d-fy">due</span>'}</td></tr>`; }).join('')}
+        <td class="r">${dueTxt(due)}</td><td>${od ? 'overdue' : 'due'}</td></tr>`; }).join('')}
     </tbody></table></div></section>`;
 }
 
@@ -518,7 +524,7 @@ const WG = [['HV-LV', ['C(HV-LV)', 'C(HV)', 'C(HV)+C(HV-LV)']], ['LV-HV', ['C(LV
 const cSev = (d) => d == null ? '' : Math.abs(d) > 2 ? 'alert' : Math.abs(d) > 1 ? 'watch' : 'ok';
 const tSev = (d) => d == null ? '' : Math.abs(d) > 25 ? 'alert' : Math.abs(d) > 10 ? 'watch' : 'ok';
 const CHK = { ok: 'consistent', watch: 'check set-up', alert: 're-test / verify connections', '': '' };
-function windingChecks(L) {
+export function windingChecks(L) {
   const v = (a, k) => L[a]?.v[k], out = [];
   if (L['C(HV-LV)'] && L['C(LV-HV)']) { const a = v('C(HV-LV)', 'C'), b = v('C(LV-HV)', 'C'), d = (a - b) / a * 100;
     out.push({ k: 'Inter-winding C from both ends (UST)', f: '[C(HV-LV) − C(LV-HV)] ÷ C(HV-LV)', calc: a, meas: b, cl: 'C(HV-LV)', ml: 'C(LV-HV)', d, u: 'pF', dp: 1, sev: cSev(d) }); }
@@ -585,8 +591,8 @@ export function renderSections(t, mount) {
   const html = `
   <section class="fcards">
     ${card('c-blue', IC[t], `${cap(N[1])} tested in FY ${fy}`, `${testedFY}<small> / ${M.elements.length}</small>`, `across ${unitsFY} ${unitsFY === 1 ? holder.replace(/s$/, '') : holder} · population ${M.elements.length} ${N[1]}`)}
-    ${card('c-teal', IC.schedule, `FY ${fy} progress`, `${pr.T.pct ?? '—'}<small>%</small>`, `${pr.T.prog} of ${pr.T.target} ${N[1]} due this FY${pr.T.override ? ' (admin target)' : ''}`, `<div class="fc-bar"><span style="width:${ringPct}%"></span></div>`)}
-    ${card(bad ? 'c-red' : 'c-green', IC.findings, 'Outside circular limit', `${bad}<small> ${bad === 1 ? N[0] : N[1]}</small>`, `${watch} more on watch · ${latest.length - bad - watch} normal`)}
+    ${card('c-teal', IC.schedule, `FY ${fy} progress`, `${pr.T.pct ?? '—'}<small>%</small>`, `${pr.T.prog} of ${pr.T.target} ${N[1]} targeted this FY (${pr.T.override ? 'declared' : 'policy 50 % + 1'})`, `<div class="fc-bar"><span style="width:${ringPct}%"></span></div>`)}
+    ${card(bad ? 'c-amber' : 'c-green', IC.findings, 'Outside circular limit', `${bad}<small> ${bad === 1 ? N[0] : N[1]}</small>`, `${watch} more on watch · ${latest.length - bad - watch} normal`)}
     ${card('c-violet', IC.equipment, `Average ${N[0]} health`, `${avgH ?? '—'}<small>/100</small>`, weakest ? `weakest: ${fullName(t, weakest.u, weakest.sub)} (${weakest.health})` : '—')}
   </section>
   ${neverPanel(t, M)}
@@ -595,9 +601,9 @@ export function renderSections(t, mount) {
     <div class="sec-b"><div class="rank-class"><span class="note">Comparable class</span><div class="seg" id="classSeg"></div></div><div class="seg" id="rankSeg">${RANKP[t].map((p, i) => `<button class="${(RANK_SEL[t] ?? 0) === i ? 'on' : ''}" data-i="${i}">${p.label}</button>`).join('')}</div>
     <div class="rank-wrap"><canvas id="rankCv2"></canvas></div><p class="note" id="rankNote"></p></div></details>
 
-  <details class="sec" open><summary><span class="sec-t">${IC.schedule} Yearly progress · ${esc(T.name)}</span><span class="dim">target = ${N[1]} falling due in the FY (incl. overdue & never tested); admin can set the annual target</span><span class="caret">▾</span></summary>
+  <details class="sec" open><summary><span class="sec-t">${IC.schedule} Yearly progress · ${esc(T.name)}</span><span class="dim">target policy: one more than half the population every year${t === 'la' ? ' (LA: all every year, half by 30 Sep)' : ''} · admin can declare the target</span><span class="caret">▾</span></summary>
     <div class="sec-b"><div class="toolbar"><a class="btn pri" href="#/targets?t=${t}">${IC.schedule} Set FY targets</a><div class="seg" id="fySeg">${FYS().map(f => `<button class="${f === fy ? 'on' : ''}" data-fy="${f}">FY ${f}${f === nextFY() ? ' (next)' : ''}</button>`).join('')}</div><span class="note">${months(t, 'x') < 12 || t === 'ct' ? `Frequency: ${t === 'ct' ? '400 kV 2-yearly · 220 kV yearly' : t === 'la' ? 'pre- and post-monsoon (2 per year)' : t === 'dga' ? '½-yearly (2 per year)' : ''}` : `Frequency: every ${months(t, 'x') / 12 === 1 ? 'year' : months(t, 'x') / 12 + ' years'}`}</span></div>
-    ${progressTable(t, pr, fy)}</div></details>
+    ${lastFyStrip(t, M, fy, pr)}${progressTable(t, pr, fy)}</div></details>
 
   ${t === 'winding' ? `<details class="sec" open id="secWL"><summary><span class="sec-t">${IC.findings} Latest tan δ results · cross-checked</span><span class="dim">latest test of each phase unit with the sheet's checks — C(HV-LV) from both ends, GST = GSTg + UST (C and tan δ), and R / Y / B compared</span><span class="caret">▾</span></summary>
     <div class="sec-b"><div id="secWLb">${windingLatest(M)}</div><p class="note">Checks are measurement-consistency rules used in practice (Doble / IEEE C57.152 test-set-up checks): within 1 % consistent, 1–2 % check the set-up, over 2 % re-test. They validate the readings; the insulation itself is judged on corrected tan δ against the circular.</p></div></details>` : ''}
@@ -634,17 +640,24 @@ function legend(t) {
   return `<span class="lg c-ok">within limit</span><span class="lg c-watch">watch</span><span class="lg c-alert">beyond circular</span><span class="lg c-critical">critical</span><span class="lg fxl">ƒ formula</span><span class="lg c-fy">tested this FY</span>`;
 }
 
+function lastFyStrip(t, M, fy, pr) {
+  const pf = prevFY(fy), pp = progress(t, M, pf);
+  const chip = (k, v, d = '') => `<div class="ly-c"><span>${k}</span><b>${v}</b>${d ? `<small>${d}</small>` : ''}</div>`;
+  return `<div class="ly">
+    <div class="ly-g"><div class="ly-h">FY ${pf} <span class="dim">last year</span></div>${chip('Target', pp.T.target, pp.T.override ? 'declared' : 'policy')}${chip('Achieved', pp.T.prog, `${pp.T.pct ?? 0} %`)}</div>
+    <div class="ly-g cur"><div class="ly-h">FY ${fy} <span class="dim">selected</span></div>${chip('Target', pr.T.target, pr.T.override ? 'declared' : 'policy')}${chip('Achieved', pr.T.prog, `${pr.T.pct ?? 0} %`)}${t === 'la' ? chip('By 30 Sep', `${pr.T.h1} / ${pr.T.h1Target}`, 'half-year: 50 %') : ''}${chip('Pending', Math.max(0, pr.T.target - pr.T.prog))}</div></div>`;
+}
 function progressTable(t, pr, fy) {
   const adm = isAdmin(), [, end] = fyRange(fy);
-  const dueCls = (d) => !d ? '' : d < DB.today ? 'd-od' : d <= end ? 'd-fy' : 'd-ok';
   return `<div class="tbl-wrap"><table class="t prog"><thead><tr><th>${HOLDER[t].includes('bay') ? 'Bay' : 'Unit'}</th><th class="r">${NOUN[t][0].toUpperCase() === NOUN[t][0] ? NOUN[t][0] : NOUN[t][0][0].toUpperCase() + NOUN[t][0].slice(1)} population</th><th class="r">Target FY ${fy}</th><th class="r">Progress FY ${fy}</th><th style="min-width:140px">%</th><th class="r">Last tested</th><th class="r">Next due</th><th class="r">Pending</th></tr></thead><tbody>
   ${pr.rows.map(r => `<tr><td><a href="#/eq/${r.u}?t=${t}"><b>${esc(unitName(r.u))}</b></a> <span class="dim">${esc(isTF(r.u) ? '' : bayTitle(r.u))}</span></td><td class="r">${r.pop}</td>
     <td class="r">${adm ? `<input class="tgt" type="number" min="0" data-tgt="${t}|${fy}|${esc(r.u)}" value="${r.override ? r.target : ''}" placeholder="${r.auto}">` : `${r.target}${r.override ? ' <span class="tag ver" title="Set by admin">set</span>' : ''}`}</td>
     <td class="r">${r.prog}${r.extra ? ` <span class="dim" title="Tested though not due">+${r.extra}</span>` : ''}</td>
     <td>${r.pct == null ? '<span class="dim">not due</span>' : `<div class="pbar"><span style="width:${r.pct}%" class="${r.pct >= 100 ? 'full' : ''}"></span></div><span class="pnum">${r.pct}%</span>`}</td>
-    <td class="r ${r.last && inFY(r.last, fy) ? 'c-fy' : ''}">${r.last ? fmtDate(r.last) : '<span class="dim">never</span>'}</td><td class="r ${dueCls(r.next)}">${r.next ? fmtDate(r.next) : '—'}</td><td class="r"><b>${Math.max(0, r.target - r.prog)}</b></td></tr>`).join('')}
-  </tbody><tfoot><tr><td><b>Total</b></td><td class="r"><b>${pr.T.pop}</b></td><td class="r">${adm ? `<input class="tgt" type="number" min="0" data-tgt="${t}|${fy}|*" value="${pr.T.override ? pr.T.target : ''}" placeholder="${pr.T.autoTarget}" title="Annual target population (overrides the sum)">` : `<b>${pr.T.target}</b>`}</td><td class="r"><b>${pr.T.prog}</b></td><td>${pr.T.pct == null ? '' : `<div class="pbar big"><span style="width:${pr.T.pct}%"></span></div><span class="pnum"><b>${pr.T.pct}%</b></span>`}</td><td></td><td></td><td class="r"><b>${Math.max(0, pr.T.target - pr.T.prog)}</b></td></tr></tfoot></table></div>
-  <p class="note">Next-due colours: <span class="lg d-od">overdue</span> <span class="lg d-fy">due within FY ${fy}</span> <span class="lg d-ok">due later</span> · <span class="lg c-fy">tested in FY ${fy}</span>. ${adm ? 'Type a number in "Target" to declare the annual target (leave blank for the calculated value).' : 'Admin can declare the annual target.'}</p>`;
+    <td class="r ${r.last && inFY(r.last, fy) ? 'c-fy' : ''}">${r.last ? fmtDate(r.last) : '<span class="dim">never</span>'}</td><td class="r">${dueTxt(r.next)}</td><td class="r"><b>${Math.max(0, r.target - r.prog)}</b></td></tr>`).join('')}
+  </tbody><tfoot><tr><td><b>Total</b></td><td class="r"><b>${pr.T.pop}</b></td><td class="r">${adm ? `<input class="tgt" type="number" min="0" data-tgt="${t}|${fy}|*" value="${pr.T.override ? pr.T.target : ''}" placeholder="${pr.T.autoTarget}" title="Annual target (blank = policy ⌊N/2⌋+1${t === 'la' ? ', LA 100 %' : ''})">` : `<b>${pr.T.target}</b>`}</td><td class="r"><b>${pr.T.prog}</b></td><td>${pr.T.pct == null ? '' : `<div class="pbar big"><span style="width:${pr.T.pct}%"></span></div><span class="pnum"><b>${pr.T.pct}%</b></span>`}</td><td></td><td></td><td class="r"><b>${Math.max(0, pr.T.target - pr.T.prog)}</b></td></tr></tfoot></table></div>
+  <p class="note"><b>Target policy:</b> ${t === 'la' ? `all ${pr.T.pop} LAs every year (100 %) and half of them (${pr.T.h1Target}) by 30 Sep` : `one more than half of the population every year — ⌊${pr.T.pop} ÷ 2⌋ + 1 = <b>${pr.T.policy}</b>`}; per ${HOLDER[t].includes('bay') ? 'bay' : 'unit'} the calculated figure is what falls due under the circular (${pr.T.due} in total). </p>
+  <p class="note">Next due: <b class="due due-red">overdue</b> <b class="due due-yel">within a month</b> <b class="due due-grn">not yet due</b> · <span class="lg c-fy">tested in FY ${fy}</span>. ${adm ? 'Type a number in "Target" to declare the annual target (leave blank for the calculated value).' : 'Admin can declare the annual target.'}</p>`;
 }
 
 // Comparable class of an element: same voltage class, rating and position (make where known).
@@ -717,13 +730,14 @@ export function renderElementPage(t, u, sub, mount) {
       ? pus.map(([ph, list]) => `<a class="${sub === ph || (one && one.ph === ph) ? 'on' : ''}" href="${elHref(t, u, ph)}"><span class="dot-ph ph-${ph}"></span>${ph}-phase unit <span class="dim">(${list.length})</span></a>`).join('')
       : U.es.map(e => `<a class="${e.sub === sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${e.ph !== '-' ? `<span class="dot-ph ph-${e.ph}"></span>` : ''}${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>
     ${(isPU || (one && pus[0][0] !== null)) ? `<nav class="tabs el-tabs sub">${pus.find(p => p[0] === (isPU ? sub : one.ph))[1].map(e => `<a class="${one && e.sub === one.sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>` : ''}`;
-  const dgaPanels = t === 'dga' ? [...new Set(es.map(e => e.ph))].map(ph => (es.some(e => e.ph === ph && !e.sub.endsWith('OLTC')) ? tankSection(u, ph) : '') + oltcSection(u, ph)).join('') : '';
+  const dgaPanels = t === 'dga' ? [...new Set(es.map(e => e.ph))].map(ph => (es.some(e => e.ph === ph && !e.sub.endsWith('OLTC')) ? tankSection(u, ph) + dgaAnalysis(u, ph) : '') + oltcSection(u, ph)).join('') : '';
   mount.innerHTML = `
     <section class="el-hero"><div class="eh-art">${art(kind, { photo: one ? `${u}-${one.ph}` : u, alt: T.name })}</div>
       <div class="eh-body"><div class="eyebrow">${esc(T.name)} · ${isTF(u) ? esc(DB.site.units[u].rating) : `${kvOf(u)} kV bay`} · circular Sr ${sr}</div>
         <h1>${esc(unitName(u, true))}${title ? `<span class="h1-sub">${esc(title)}</span>` : ''}</h1>
         <p class="lede">${one ? `An independent unit with its own history and health, judged only against the MSETCL circular and industry standards.` : isPU ? `The ${sub}-phase single-phase unit of ${esc(unitName(u))} — ${es.length} ${NOUN[t][1]}, each monitored on its own.` : `${U.es.length} ${NOUN[t][1]} — each monitored on its own. Open a ${pus[0][0] !== null ? 'phase unit' : NOUN[t][0]} to see it alone.`}</p>
-        <div class="row-flex mt">${circularBtn(sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button><a class="btn" href="#/test/${t}">${IC.arrow} All ${NOUN[t][1]}</a></div></div></section>
+        <div class="row-flex mt">${circularBtn(sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button><a class="btn" href="#/test/${t}">${IC.arrow} All ${NOUN[t][1]}</a></div>
+        <div class="row-flex mt">${shareButtons(u, isPU ? sub : one && one.ph !== '-' && one.ph !== 'N' ? one.ph : null)}</div></div></section>
     ${tabs}
     <div class="ph-cards">${stats}</div>
     ${es.map(e => `<section class="el-sec el" data-ph="${e.ph}"><div class="row-flex"><h2 style="margin:0">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(fullName(t, u, e.sub))}</h2>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', `never tested · due ${fmtDate(codDue(t, u))}`)}${!one ? `<a class="btn sm" href="${elHref(t, u, e.sub)}">Open this ${NOUN[t][0]} only ${IC.arrow}</a>` : ''}</div>
@@ -747,7 +761,7 @@ export function renderElementPage(t, u, sub, mount) {
     $$('canvas[data-k]', sec).forEach(cv => { const ch = cv.__chart; if (!ch) return; const act = [];
       ch.data.datasets.forEach((ds, di) => { if (ds.isLimit || ds.isRef) return; const i = ds.data.findIndex(p => new Date(p.x).toISOString().slice(0, 10) === tr.dataset.date); if (i >= 0) act.push({ datasetIndex: di, index: i }); });
       ch.setActiveElements(act); ch.tooltip.setActiveElements(act, { x: 0, y: 0 }); ch.update('none'); }); });
-  wireTank(mount, u); wireEditing(mount); wireInteractive(mount);
+  wireTank(mount, u); wireEditing(mount); wireInteractive(mount); wireShare(mount);
 }
 
 // ------------------------------------------------------------------ FY targets page
@@ -755,13 +769,13 @@ const FREQ_TXT = { ct: '400 kV every 2 years · 220 kV every year', bushing: 'ev
 export function targetsPage(mount, focusT) {
   const fyC = curFY(), fyN = nextFY(), adm = isAdmin(), TG = targets();
   const cards = Object.values(TESTS).map(T => {
-    const t = T.key, M = model(t), pc = progress(t, M, fyC), pn = progress(t, M, fyN);
+    const t = T.key, M = model(t), pc = progress(t, M, fyC), pn = progress(t, M, fyN), pl = progress(t, M, prevFY(fyC));
     const row = (fy, p, label) => `<tr><td><b>FY ${fy}</b> <span class="dim">${label}</span></td><td class="r">${p.T.pop}</td><td class="r">${p.T.autoTarget}</td>
       <td class="r">${adm ? `<input class="tgt big" type="number" min="0" data-tgt="${t}|${fy}|*" value="${p.T.override ? p.T.target : ''}" placeholder="${p.T.autoTarget}">` : `<b>${p.T.target}</b>${p.T.override ? ' <span class="tag ver">declared</span>' : ' <span class="dim">(calculated)</span>'}`}</td>
       <td class="r">${p.T.prog}</td><td>${p.T.pct == null ? '<span class="dim">—</span>' : `<div class="pbar big"><span style="width:${p.T.pct}%"></span></div><span class="pnum">${p.T.pct}%</span>`}</td></tr>`;
     return `<section class="card tgt-card ${focusT === t ? 'focus' : ''}" id="tg-${t}"><div class="card-h"><span class="tc-ic">${IC[t]}</span><h2>${esc(T.name)}</h2><span class="sub">${NOUN[t][1]} · ${FREQ_TXT[t]} · circular Sr ${T.sr}</span><div class="sp"></div><a class="btn sm" href="#/test/${t}">Open test ${IC.arrow}</a></div>
       <div class="tbl-wrap"><table class="t prog"><thead><tr><th>Financial year</th><th class="r">${NOUN[t][0][0].toUpperCase() + NOUN[t][0].slice(1)} population</th><th class="r">Calculated target</th><th class="r">Declared annual target</th><th class="r">Done</th><th style="min-width:160px">Progress</th></tr></thead>
-      <tbody>${row(fyC, pc, '(current)')}${row(fyN, pn, '(next)')}</tbody></table></div>
+      <tbody>${row(prevFY(fyC), pl, '(last year)')}${row(fyC, pc, '(current)')}${row(fyN, pn, '(next)')}</tbody></table></div>
       <details class="sec inner" ${focusT === t ? 'open' : ''}><summary><span class="sec-t">${HOLDER[t].includes('bay') ? 'Bay' : 'Unit'}-wise targets</span><span class="dim">calculated from last completed test + circular frequency; overwrite any of them</span><span class="caret">▾</span></summary>
         <div class="sec-b"><div class="stack">${[[fyC, pc], [fyN, pn]].map(([fy, p]) => `<div><h3 class="mb">FY ${fy}</h3>${progressTable(t, p, fy)}</div>`).join('')}</div></div></details></section>`;
   }).join('');
