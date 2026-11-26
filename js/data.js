@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261125.1955';
+import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.0443';
 export { ELEM };
 
-export const BUILD = '20261125.1955';  // set by tools/stamp_version.py
+export const BUILD = '20261126.0443';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -91,6 +91,7 @@ export function codOf(u) {
   return Object.values(DB.site.units).map(x => x.commissioned).filter(Boolean).sort()[0] || null;
 }
 export function fmtDate(x) {
+  if (!x) return '—';
   const d = typeof x === 'string' ? toDate(x) : x;
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }

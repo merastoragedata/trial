@@ -1,12 +1,12 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf } from './data.js?v=20261125.1955';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit } from './rules.js?v=20261125.1955';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261125.1955';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261125.1955';
-import { art } from './art.js?v=20261125.1955';
-import { IC } from './icons.js?v=20261125.1955';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf } from './data.js?v=20261126.0443';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, schedule } from './rules.js?v=20261126.0443';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0443';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0443';
+import { art } from './art.js?v=20261126.0443';
+import { IC } from './icons.js?v=20261126.0443';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -44,8 +44,8 @@ const phOf = (t, sub) => { const p = sub.split('|')[0]; return /^[RYBN]$/.test(p
 export function fyRange(fy) { const y = parseInt(fy, 10); return [new Date(y, 3, 1), new Date(y + 1, 2, 31, 23, 59)]; }
 export const curFY = () => DB.site.substation.fy;
 const inFY = (iso, fy) => { const [a, b] = fyRange(fy), d = toDate(iso); return d >= a && d <= b; };
-export const codDue = (t, u) => { const c = codOf(u); return !c ? null : t === 'la' ? laWindow(c)[1] : addMonths(c, months(t, u)); };
-const months = (t, u) => t === 'ct' ? (kvOf(u) === 220 ? 12 : 24) : { bushing: 12, winding: 24, dga: 6, la: 6, cb_crm: 24, cb_timing: 24 }[t];
+export { codDue };
+const months = (t, u) => intervalMonths(t, u === 'x' ? '404' : u);
 
 // ------------------------------------------------------------------ colour rules (cell → severity)
 const g = (v, th) => { for (const [lim, s] of th) if (v > lim) return s; return 'ok'; };
@@ -61,7 +61,7 @@ export function cellSev(t, k, v, r) {
     case 'R': return v > LIM.crm[kv] ? 'alert' : 'ok';
     case 'open1': case 'open2': return v > LIM.trip[kv] ? 'alert' : v > LIM.trip[kv] * 0.92 ? 'watch' : 'ok';
     case 'close': return v > 150 ? 'alert' : v > 130 ? 'watch' : 'ok';
-    case 'Icorr': case 'Ith': return g(v, [[350, 'critical'], [150, 'alert']]);
+    case 'Icorr': return g(v, [[350, 'critical'], [150, 'alert']]);
     case 'BDV': return v < (oltc ? 40 : 50) ? 'alert' : !oltc && v < 60 ? 'watch' : 'ok';
     case 'H2O': return oltc ? (v > 40 ? 'watch' : 'ok') : v > 20 ? 'alert' : v > 15 ? 'watch' : 'ok';
     case 'TDCG': return oltc ? '' : g(v, [[4630, 'critical'], [1920, 'alert'], [720, 'watch']]);
@@ -70,10 +70,14 @@ export function cellSev(t, k, v, r) {
   return '';
 }
 
+// quantities that have no circular / industry limit: watched for change (> 5 % since the previous test)
+export const NONORM = { ct: ['I', 'P'], bushing: ['I', 'P'], winding: ['I', 'P'], la: ['Ith', 'Itotal', 'IRt', 'IRm', 'IRb', 'IRtot'], cb_timing: ['co1', 'co2'], cb_crm: [], dga: ['acidity', 'DDF', 'resistivity'] };
+const chg5 = (t, k, v, p) => (NONORM[t] || []).includes(k) && v != null && p != null && p !== 0 && Math.abs((v - p) / p * 100) > 5 ? (v - p) / Math.abs(p) * 100 : null;
+
 // ------------------------------------------------------------------ columns per test (as in the sheet)
 const C = (k, label, dp = 2, o = {}) => ({ k, label, dp, ...o });
 const TANCOLS = (iu, pu) => [C('C', 'C (pF)', 1), C('tand', 'Tan δ %', 3), C('U', 'U (kV)', 2), C('I', `I (${iu})`, 2), C('phi', 'Ø°', 2), C('P', `P (${pu})`, 2), C('F', 'F (Hz)', 2), C('temp', 'Temp °C', 0),
-  C('tand20', 'Corr. tan δ % @20 °C', 3, { f: 1 }), C('dTand', 'Tan δ ↑ (< 0.1 %)', 3, { f: 1 }), C('dC', 'C ↑ % (−5 … +10)', 2, { f: 1 })];
+  C('tand20', 'Corr. tan δ % @20 °C', 3, { f: 1 }), C('dTand', 'Tan δ rise (≤ 0.1)', 3, { f: 1 }), C('dC', 'C change % (−5 … +10)', 2, { f: 1 })];
 export const COLS = {
   ct: [C('mode', 'Mode', 0, { txt: 1 }), ...TANCOLS('µA', 'mW')],
   bushing: [C('mode', 'Mode', 0, { txt: 1 }), ...TANCOLS('mA', 'W')],
@@ -144,7 +148,7 @@ const latestOf = (rs, key) => [...groupBy(rs, key).values()].map(s => s.sort((a,
 
 // ------------------------------------------------------------------ yearly progress
 function progress(t, M, fy) {
-  const [, end] = fyRange(fy), [start] = fyRange(fy), TG = targets();
+  const [, end] = fyRange(fy), [start] = fyRange(fy), TG = targets(), SCH = new Map(schedule().filter(x => x.t === t).map(x => [x.unit, x]));
   const rows = M.units.map(({ u, es }) => {
     let pop = es.length, target = 0, prog = 0, extra = 0, last = null, next = null, overdue = 0;
     for (const e of es) {
@@ -160,8 +164,8 @@ function progress(t, M, fy) {
         if (!inside.length && due < DB.today) overdue++;
       }
       const l = dts.at(-1); if (l && (!last || l > last)) last = l;
-      const nd = l ? (t === 'la' ? laWindow(l)[1] : addMonths(l, m)) : (codDue(t, u) ?? start); if (!next || nd < next) next = nd;
     }
+    next = SCH.get(u)?.due ?? null;
     const ov = TG[`${t}|${fy}|${u}`];
     return { u, pop, target: ov ?? target, auto: target, prog, extra, last, next, overdue, pct: (ov ?? target) ? Math.min(100, Math.round(prog / (ov ?? target) * 100)) : null, override: ov != null };
   });
@@ -330,26 +334,35 @@ export function wireInteractive(root) {
 }
 
 // ------------------------------------------------------------------ tables
-function cellHtml(t, r, c) {
+function cellHtml(t, r, c, prev) {
   const v = cellVal(r, c), sev = c.txt ? '' : cellSev(t, c.k, v, r);
+  const ch = !c.txt && prev ? chg5(t, c.k, v, prev.v[c.k]) : null;
   const ed = r.edited?.[c.k], err = r.err?.[c.k];
   const title = [r.f?.[c.k] ? `Formula: ${r.f[c.k]}` : '', ed ? `Edited ${fmtDate(ed.at.slice(0, 10))}${!ed.raw.startsWith('=') && r.v0?.[c.k] != null ? ` · was ${r.v0[c.k]}` : ''}` : '', err ? `Error: ${err}` : ''].filter(Boolean).join('\n');
   const txt = c.txt ? esc(v || '') : err ? '#ERR' : fmt(v, c.dp);
-  return `<td class="r c-${sev} ${c.f ? 'fx' : ''} ${ed ? 'edited' : ''} ${isAdmin() ? 'ed' : ''}" data-src="${esc(r.src)}" data-k="${c.k}" ${title ? `title="${esc(title)}"` : ''}>${txt}</td>`;
+  const tt = [title, ch != null ? `${ch > 0 ? '+' : ''}${fmt(ch, 1)} % since the previous test — no limit exists for this quantity, so a change above 5 % is marked for attention` : ''].filter(Boolean).join('\n');
+  return `<td class="r c-${ch != null && !sev ? 'watch chg5' : sev} ${c.f ? 'fx' : ''} ${['dTand', 'dC'].includes(c.k) ? 'chgc' : ''} ${ed ? 'edited' : ''} ${isAdmin() ? 'ed' : ''}" data-src="${esc(r.src)}" data-k="${c.k}" ${tt ? `title="${esc(tt)}"` : ''}>${txt}${ch != null ? `<sup class="c5">${ch > 0 ? '▲' : '▼'}${fmt(Math.abs(ch), 0)}%</sup>` : ''}</td>`;
 }
 // width of a column = enough for its longest header word and for its numbers, so headers wrap at most once
 function colW(c) {
   const words = String(c.label).replace(/<[^>]+>/g, '').split(/\s+/);
-  const longest = Math.max(...words.map(w => w.length)), total = words.join(' ').length;
-  return Math.round(Math.max(64, longest * 7.4 + 22, total * 3.9 + 22, (c.dp ?? 2) * 8 + 46));
+  const longest = Math.max(...words.map(w => w.length));
+  return Math.round(Math.min(118, Math.max(58, longest * 8.2 + 18, (c.dp ?? 2) * 9 + 46)));
 }
+const remW = (rows) => { const L = Math.max(0, ...rows.map(r => (r.rem || '').length)); return Math.round(Math.min(460, Math.max(180, Math.ceil(L / 3) * 7.6 + 28))); };
 function seqTable(t, e, latestOnly) {
   const cols = COLS[t], rows = latestOnly ? (e.L ? [e.L] : []) : e.rows;
-  const head = `<thead><tr><th data-sort="ses" style="min-width:74px">Session</th><th data-sort="date" style="min-width:108px">Date of test <span class="srt">▾</span></th>${cols.map(c => `<th class="r" data-sort="${c.k}" style="min-width:${colW(c)}px">${c.label}</th>`).join('')}<th style="min-width:170px">Remarks</th>${isAdmin() && !latestOnly ? '<th></th>' : ''}</tr></thead>`;
-  const body = rows.map(r => `<tr data-date="${r.date}" class="${done(r) ? '' : 'nd'} ${r.excluded ? 'xcl' : ''} ${r.src.startsWith('new!') ? 'newrow' : ''}" ${r.excluded ? `title="${esc(r.excluded)}"` : ''}><td>${esc(r.ses || '')}</td><td class="${isAdmin() ? 'ed' : ''} ${inFY(r.date, curFY()) ? 'c-fy' : ''}" data-src="${esc(r.src)}" data-k="date">${fmtDate(r.date)}</td>${cols.map(c => cellHtml(t, r, c)).join('')}<td class="rem ${isAdmin() ? 'ed' : ''} ${r.edited?.rem ? 'edited' : ''}" data-src="${esc(r.src)}" data-k="rem">${r.excluded ? '<span class="tag chg">copied row · excluded</span> ' : ''}${esc(r.rem || (done(r) || r.excluded ? '' : 'Not recorded'))}</td>${isAdmin() && !latestOnly ? `<td>${r.src.startsWith('new!') ? `<button class="btn sm ghost" data-del="${esc(r.src)}" title="Delete added row">✕</button>` : ''}</td>` : ''}</tr>`).join('') || `<tr><td colspan="${cols.length + 3}" class="dim">No test on record — counted as pending.</td></tr>`;
+  const head = `<thead><tr><th data-sort="ses" style="min-width:70px">Session</th><th data-sort="date" style="min-width:112px">Date of test <span class="srt">▾</span></th>${cols.map(c => `<th class="r ${['dTand', 'dC'].includes(c.k) ? 'chgc' : ''}" data-sort="${c.k}" style="min-width:${colW(c)}px">${c.label}</th>`).join('')}<th class="remh" style="min-width:${remW(rows)}px">Remarks</th>${isAdmin() && !latestOnly ? '<th></th>' : ''}</tr></thead>`;
+  // the latest two tests stay visible; the admin may fold older history away (accessibility menu)
+  const ds = [...new Set(e.done.map(r => r.date))], cut = ds.length > 2 ? ds.at(-2) : '';   // latest two tests + any later attempt stay
+  const keep = { has: (d) => d >= cut };
+  const prevOf = (r) => { const i = e.done.indexOf(r); return i > 0 ? e.done.slice(0, i).reverse().find(x => (x.pos || '') === (r.pos || '')) : null; };
+  const nOld = rows.filter(r => !keep.has(r.date) && !r.excluded).length;
+  const body = rows.map(r => `<tr data-date="${r.date}" class="${done(r) ? '' : 'nd'} ${r.excluded ? 'xcl' : ''} ${!keep.has(r.date) && !r.excluded ? 'old' : ''} ${r.src.startsWith('new!') ? 'newrow' : ''}" ${r.excluded ? `title="${esc(r.excluded)}"` : ''}><td>${esc(r.ses || '')}</td><td class="dt ${isAdmin() ? 'ed' : ''} ${inFY(r.date, curFY()) ? 'c-fy' : ''}" data-src="${esc(r.src)}" data-k="date">${fmtDate(r.date)}</td>${cols.map(c => cellHtml(t, r, c, done(r) ? prevOf(r) : null)).join('')}<td class="rem ${isAdmin() ? 'ed' : ''} ${r.edited?.rem ? 'edited' : ''}" data-src="${esc(r.src)}" data-k="rem">${r.excluded ? '<span class="tag chg">copied row · excluded</span> ' : ''}${esc(r.rem || (done(r) || r.excluded ? '' : 'Not recorded'))}</td>${isAdmin() && !latestOnly ? `<td>${r.src.startsWith('new!') ? `<button class="btn sm ghost" data-del="${esc(r.src)}" title="Delete added row">✕</button>` : ''}</td>` : ''}</tr>`).join('') || `<tr><td colspan="${cols.length + 3}" class="dim">No test on record — counted as pending.</td></tr>`;
   const nx = rows.filter(r => r.excluded).length;
   const xrow = nx ? `<tr class="xtoggle"><td colspan="${cols.length + 3}"><button class="btn sm ghost" data-xtoggle>${nx} copied / template row${nx === 1 ? '' : 's'} hidden from the sheet — show</button></td></tr>` : '';
-  return `<table class="t seq">${head}<tbody>${body}${xrow}</tbody></table>${isAdmin() && !latestOnly ? `<button class="btn sm" data-add="${esc(t + '|' + e.u + '|' + e.sub)}">＋ Add test row</button>` : ''}`;
+  const orow = nOld ? `<tr class="oldnote"><td colspan="${cols.length + 3}">${nOld} older test${nOld === 1 ? '' : 's'} folded away — the admin can show the full history from the accessibility menu</td></tr>` : '';
+  return `<table class="t seq">${head}<tbody>${orow}${body}${xrow}</tbody></table>${isAdmin() && !latestOnly ? `<button class="btn sm" data-add="${esc(t + '|' + e.u + '|' + e.sub)}">＋ Add test row</button>` : ''}`;
 }
 // Latest results: the latest test with everything needed to verify it — previous and first test of the
 // same element, and the change since each (absolute and %), coloured by the circular's change rules.
@@ -362,15 +375,15 @@ function latestTable(t, e) {
   const L = at(Ld), P = Pd ? at(Pd) : [], F = Fd ? at(Fd) : [];
   const twin = (r, set) => set.find(x => (x.pos || '') === (r.pos || '')) || (set.length === 1 ? set[0] : null);
   const plain = (r, c) => `<td class="r">${c.txt ? esc(cellVal(r, c) || '') : fmt(cellVal(r, c), c.dp)}</td>`;
-  const row = (cls, tag, r) => `<tr class="${cls}" data-date="${r.date}"><td class="lt-tag">${tag}</td><td class="${cls === 'lt-l' && inFY(r.date, curFY()) ? 'c-fy' : ''}">${fmtDate(r.date)}</td>${cols.map(c => cls === 'lt-l' ? cellHtml(t, r, c) : plain(r, c)).join('')}<td class="rem">${esc(r.rem || '')}</td></tr>`;
-  const diff = (tag, a, b, pct) => !b ? '' : `<tr class="lt-d ${pct ? 'pct' : ''}"><td class="lt-tag">${tag}</td><td class="dim">${fmtDate(b.date)} → ${fmtDate(a.date)}</td>${cols.map(c => {
+  const row = (cls, tag, r) => `<tr class="${cls}" data-date="${r.date}"><td class="lt-tag">${tag}</td><td class="dt ${cls === 'lt-l' && inFY(r.date, curFY()) ? 'c-fy' : ''}">${fmtDate(r.date)}</td>${cols.map(c => cls === 'lt-l' ? cellHtml(t, r, c, twin(r, P)) : plain(r, c)).join('')}<td class="rem">${esc(r.rem || '')}</td></tr>`;
+  const diff = (tag, a, b, pct) => !b ? '' : `<tr class="lt-d ${pct ? 'pct' : ''}"><td class="lt-tag">${tag}</td><td class="dim rng">${fmtDate(b.date)} →<br>${fmtDate(a.date)}</td>${cols.map(c => {
       if (c.txt) return `<td>${c.k === 'pos' ? esc(a.pos || '') : ''}</td>`;
       if (NODIFF.has(c.k)) return '<td class="r dim">·</td>';
       const x = a.v[c.k], y = b.v[c.k]; if (x == null || y == null) return '<td class="r dim">—</td>';
       const d = pct ? (y ? (x - y) / Math.abs(y) * 100 : null) : x - y;
-      const sv = !pct && c.k === 'tand20' ? cellSev(t, 'dTand', d, a) : pct && c.k === 'C' ? cellSev(t, 'dC', d, a) : '';
+      const sv = !pct && c.k === 'tand20' ? cellSev(t, 'dTand', d, a) : pct && c.k === 'C' ? cellSev(t, 'dC', d, a) : pct && (NONORM[t] || []).includes(c.k) && d != null && Math.abs(d) > 5 ? 'watch' : '';
       return `<td class="r ${sv ? 'c-' + sv : ''}">${d == null ? '—' : (d > 0 ? '+' : d < 0 ? '−' : '') + fmt(Math.abs(d), pct ? 2 : Math.max(c.dp, 1))}${pct && d != null ? ' %' : ''}</td>`; }).join('')}<td></td></tr>`;
-  const head = `<thead><tr><th style="min-width:150px">Row</th><th style="min-width:150px">Date of test</th>${cols.map(c => `<th class="r" style="min-width:${colW(c)}px">${c.label}</th>`).join('')}<th style="min-width:170px">Remarks</th></tr></thead>`;
+  const head = `<thead><tr><th style="min-width:128px">Row</th><th style="min-width:116px">Date of test</th>${cols.map(c => `<th class="r ${['dTand', 'dC'].includes(c.k) ? 'chgc' : ''}" style="min-width:${colW(c)}px">${c.label}</th>`).join('')}<th class="remh" style="min-width:${remW([...L, ...P, ...F])}px">Remarks</th></tr></thead>`;
   const body = L.map(r => row('lt-l', 'Latest test', r)).join('')
     + P.map(r => row('lt-p', 'Previous test', r)).join('')
     + L.map(r => diff('Change since previous', r, twin(r, P), false) + diff('% change since previous', r, twin(r, P), true)).join('')
@@ -396,7 +409,7 @@ function phaseCompare(t, U) {
     <div class="el-tbl"><table class="t seq pc"><thead><tr><th style="min-width:150px">Element</th><th style="min-width:170px">Parameter</th><th class="r" style="min-width:96px"><span class="ph R">R</span></th><th class="r" style="min-width:96px"><span class="ph Y">Y</span></th><th class="r" style="min-width:96px"><span class="ph B">B</span></th><th class="r" style="min-width:90px">Mean</th><th class="r" style="min-width:150px">Largest deviation from mean</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
 }
 function elementBlock(t, e, latestOnly) {
-  const sch = e.L ? (t === 'la' ? laWindow(e.L.date)[1] : addMonths(e.L.date, months(t, e.u))) : codDue(t, e.u);
+  const sch = elemDue(t, e.u, e.L?.date);
   const st = e.L ? statusOf(e.L) : 'none', od = sch && sch < DB.today;
   return `<div class="el" data-ph="${e.ph}" data-el="${esc(e.u + '|' + e.sub)}">
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
@@ -470,7 +483,7 @@ function wireEditing(root) {
 }
 
 // ------------------------------------------------------------------ admin view toggles
-export const applyView = () => document.documentElement.classList.toggle('no-graphs', !viewPref('graphs'));
+export const applyView = () => { const h = document.documentElement; h.classList.toggle('no-graphs', !viewPref('graphs')); h.classList.toggle('no-history', !viewPref('history')); h.dataset.ts = viewPref('text') || 0; };
 const gBtn = () => isAdmin() ? `<button class="tg-btn ${viewPref('graphs') ? 'on' : ''}" data-gtog title="Admin: show or hide all graphs in the results">${IC.trend || ''}<span>Graphs ${viewPref('graphs') ? 'on' : 'off'}</span><i></i></button>` : '';
 function wireToggles(root) {
   $$('[data-gtog]', root).forEach(b => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); setViewPref('graphs', !viewPref('graphs')); applyView();
@@ -586,14 +599,16 @@ export function renderSections(t, mount) {
     <div class="sec-b"><div class="toolbar"><a class="btn pri" href="#/targets?t=${t}">${IC.schedule} Set FY targets</a><div class="seg" id="fySeg">${FYS().map(f => `<button class="${f === fy ? 'on' : ''}" data-fy="${f}">FY ${f}${f === nextFY() ? ' (next)' : ''}</button>`).join('')}</div><span class="note">${months(t, 'x') < 12 || t === 'ct' ? `Frequency: ${t === 'ct' ? '400 kV 2-yearly · 220 kV yearly' : t === 'la' ? 'pre- and post-monsoon (2 per year)' : t === 'dga' ? '½-yearly (2 per year)' : ''}` : `Frequency: every ${months(t, 'x') / 12 === 1 ? 'year' : months(t, 'x') / 12 + ' years'}`}</span></div>
     ${progressTable(t, pr, fy)}</div></details>
 
-  ${t === 'winding' ? `<details class="sec" open id="secWL"><summary><span class="sec-t">${IC.findings} Latest tan δ results · cross-checked</span><span class="dim">latest test of each phase unit with the sheet's checks — C(HV-LV) from both ends, GST = GSTg + UST (C and tan δ), and R / Y / B compared</span>${gBtn()}<span class="caret">▾</span></summary>
+  ${t === 'winding' ? `<details class="sec" open id="secWL"><summary><span class="sec-t">${IC.findings} Latest tan δ results · cross-checked</span><span class="dim">latest test of each phase unit with the sheet's checks — C(HV-LV) from both ends, GST = GSTg + UST (C and tan δ), and R / Y / B compared</span><span class="caret">▾</span></summary>
     <div class="sec-b"><div id="secWLb">${windingLatest(M)}</div><p class="note">Checks are measurement-consistency rules used in practice (Doble / IEEE C57.152 test-set-up checks): within 1 % consistent, 1–2 % check the set-up, over 2 % re-test. They validate the readings; the insulation itself is judged on corrected tan δ against the circular.</p></div></details>` : ''}
 
-  <details class="sec" open id="secAll"><summary><span class="sec-t">${IC.norms} Detailed test results · sequence-wise</span><span class="dim">every test of every ${N[0]}, as in the sheet — click a ${HOLDER[t].split(' ')[0]} or ${N[0]} to open it</span>${gBtn()}<span class="caret">▾</span></summary>
+  <details class="sec" open id="secLatest"><summary><span class="sec-t">${IC.findings} Latest test results</span><span class="dim">latest completed test of each ${N[0]} with previous & first test and the change since each · graphs always show the full history</span><span class="caret">▾</span></summary>
+    <div class="sec-b"><div id="seqLatest"></div></div></details>
+
+  <details class="sec" open id="secAll"><summary><span class="sec-t">${IC.norms} Detailed test results · sequence-wise</span><span class="dim">every test of every ${N[0]}, as in the sheet — click a ${HOLDER[t].split(' ')[0]} or ${N[0]} to open it</span><span class="caret">▾</span></summary>
     <div class="sec-b"><div class="toolbar">${filterUI(t, M)}<span class="legend">${legend(t)}</span></div><div id="seqAll"></div></div></details>
 
-  <details class="sec" open id="secLatest"><summary><span class="sec-t">${IC.findings} Latest test results</span><span class="dim">latest completed test of each ${N[0]} with previous & first test and the change since each · graphs always show the full history</span>${gBtn()}<span class="caret">▾</span></summary>
-    <div class="sec-b"><div id="seqLatest"></div></div></details>`;
+`;
   mount.innerHTML = html;
   const drawSeq = () => {
     const sel = FILTER[t], us = M.units.filter(U => (!sel || sel.has(U.u)) && (viewPref('blank') || U.es.some(e => e.done.length)));
@@ -698,7 +713,7 @@ export function renderElementPage(t, u, sub, mount) {
   const GRP = ['ct', 'bushing', 'winding'].includes(t) ? [['tand20', 'dTand'], ['C', 'dC']] : big.map(b => [b[0]]);
   const bl = (k) => big.find(b => b[0] === k)?.[1] || k;
   const charts = (e, n) => GRP.slice(0, n ?? GRP.length).map((g) => `<div class="chart-card gx"><div class="card-h"><h3>${g.length > 1 ? (g[0] === 'tand20' ? 'Tan δ' : 'Capacitance') : bl(g[0])}</h3><span class="sub">${esc(fullName(t, u, e.sub))}</span>${g.length > 1 ? `<div class="mc-chips sm">${g.map((k, j) => `<button class="${j ? '' : 'on'}" data-bk="${k}">${bl(k)}</button>`).join('')}</div>` : ''}</div><div class="chart-box" style="height:270px"><canvas data-k="${g[0]}" data-e="${esc(e.sub)}"></canvas></div><div class="legend-note">grid at a round step ≈ 20 % of this ${NOUN[t][0]}'s average · dashed = circular / industry limit · hover a table row to find it here</div></div>`).join('');
-  const tabs = `<nav class="tabs el-tabs">${gBtn() ? `<span class="tabs-tools">${gBtn()}</span>` : ''}<a class="${sub ? '' : 'on'}" href="${elHref(t, u, null)}">All ${NOUN[t][1]} (${U.es.length})</a>${pus[0][0] !== null
+  const tabs = `<nav class="tabs el-tabs"><a class="${sub ? '' : 'on'}" href="${elHref(t, u, null)}">All ${NOUN[t][1]} (${U.es.length})</a>${pus[0][0] !== null
       ? pus.map(([ph, list]) => `<a class="${sub === ph || (one && one.ph === ph) ? 'on' : ''}" href="${elHref(t, u, ph)}"><span class="dot-ph ph-${ph}"></span>${ph}-phase unit <span class="dim">(${list.length})</span></a>`).join('')
       : U.es.map(e => `<a class="${e.sub === sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${e.ph !== '-' ? `<span class="dot-ph ph-${e.ph}"></span>` : ''}${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>
     ${(isPU || (one && pus[0][0] !== null)) ? `<nav class="tabs el-tabs sub">${pus.find(p => p[0] === (isPU ? sub : one.ph))[1].map(e => `<a class="${one && e.sub === one.sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>` : ''}`;
