@@ -1,15 +1,15 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1804';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1804';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1804';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1804';
-import { art } from './art.js?v=20261126.1804';
-import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1804';
-import { dgaAnalysis } from './dga.js?v=20261126.1804';
-import { shareButtons, wireShare } from './report.js?v=20261126.1804';
-import { IC } from './icons.js?v=20261126.1804';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1906';
+import { findingsFor, LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1906';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1906';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1906';
+import { art } from './art.js?v=20261126.1906';
+import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1906';
+import { dgaAnalysis } from './dga.js?v=20261126.1906';
+import { shareButtons, wireShare } from './report.js?v=20261126.1906';
+import { IC } from './icons.js?v=20261126.1906';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -64,7 +64,7 @@ export function cellSev(t, k, v, r) {
     case 'tand': return '';                         // measured value shown for record; judged on corrected
     case 'tand20': return g(v, TAN);
     case 'dTand': return g(v, [[0.1, 'alert'], [0.07, 'watch']]);
-    case 'dC': return v > 10 || v < -5 ? 'alert' : v > 8 || v < -4 ? 'watch' : 'ok';
+    case 'dC': return v > 10 || v < -5 ? 'alert' : 'ok';   // circular: change in C of −5 % to +10 % is acceptable
     case 'R': return v > LIM.crm[kv] ? 'alert' : 'ok';
     case 'open1': case 'open2': return v > LIM.trip[kv] ? 'alert' : v > LIM.trip[kv] * 0.92 ? 'watch' : 'ok';
     case 'close': return v > 150 ? 'alert' : v > 130 ? 'watch' : 'ok';
@@ -84,7 +84,7 @@ const chg5 = (t, k, v, p) => (NONORM[t] || []).includes(k) && v != null && p != 
 // ------------------------------------------------------------------ columns per test (as in the sheet)
 const C = (k, label, dp = 2, o = {}) => ({ k, label, dp, ...o });
 const TANCOLS = (iu, pu) => [C('C', 'C (pF)', 1), C('tand', 'Tan δ %', 3), C('U', 'U (kV)', 2), C('I', `I (${iu})`, 2), C('phi', 'Ø°', 2), C('P', `P (${pu})`, 2), C('F', 'F (Hz)', 2), C('temp', 'Temp °C', 0),
-  C('tand20', 'Corr. tan δ % @20 °C', 3, { f: 1 }), C('dTand', 'Tan δ rise (≤ 0.1)', 3, { f: 1 }), C('dC', 'C change % (−5 … +10)', 2, { f: 1 })];
+  C('tand20', 'Corr. tan δ % @20 °C', 3, { f: 1 }), C('dTand', 'Tan δ rise (≤ 0.1)', 3, { f: 1 }), C('dC', 'C change % (−5 % to +10 %)', 2, { f: 1 })];
 export const COLS = {
   ct: [C('mode', 'Mode', 0, { txt: 1 }), ...TANCOLS('µA', 'mW')],
   bushing: [C('mode', 'Mode', 0, { txt: 1 }), ...TANCOLS('mA', 'W')],
@@ -161,7 +161,7 @@ const latestOf = (rs, key) => [...groupBy(rs, key).values()].map(s => s.sort((a,
 // Per bay the calculated figure is what falls due under the circular; the admin may declare any target.
 export const policyTarget = (t, pop) => t === 'la' ? pop : Math.floor(pop / 2) + 1;
 export const prevFY = (fy) => { const y = parseInt(fy, 10) - 1; return `${y}-${String(y + 1).slice(2)}`; };
-function progress(t, M, fy) {
+export function progress(t, M, fy) {
   const [start, end] = fyRange(fy), TG = targets(), SCH = new Map(schedule().filter(x => x.t === t).map(x => [x.unit, x]));
   const h1End = new Date(start.getFullYear(), 8, 30, 23, 59);
   const rows = M.units.map(({ u, es }) => {
@@ -410,9 +410,9 @@ function latestTable(t, e) {
   const head = `<thead><tr><th style="min-width:128px">Row</th><th style="min-width:116px">Date of test</th>${cols.map(c => `<th class="r ${['dTand', 'dC'].includes(c.k) ? 'chgc' : ''}" style="min-width:${colW(c)}px">${c.label}</th>`).join('')}<th class="remh" style="min-width:${remW([...L, ...P, ...F])}px">Remarks</th></tr></thead>`;
   const body = L.map(r => row('lt-l', 'Latest test', r)).join('')
     + P.map(r => row('lt-p', 'Previous test', r)).join('')
-    + L.map(r => diff('Change since previous', r, twin(r, P), false) + diff('% change since previous', r, twin(r, P), true)).join('')
+    + L.map(r => diff('Change since previous', r, twin(r, P), false)).join('')
     + F.map(r => row('lt-p lt-f', 'First test (baseline)', r)).join('')
-    + L.map(r => diff('Change since first', r, twin(r, F), false) + diff('% change since first', r, twin(r, F), true)).join('');
+    + L.map(r => diff('Change since first', r, twin(r, F), false)).join('');
   return `<table class="t seq lt">${head}<tbody>${body}</tbody></table>`;
 }
 // latest values of sister phases side by side (same bay / unit, same design) — a cross-check, not a pass/fail rule
@@ -440,7 +440,7 @@ function elementBlock(t, e, latestOnly) {
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
       ${e.ph !== '-' && !(PH_UNIT(e.u, e.ph) && ['bushing', 'winding', 'dga'].includes(t)) ? phase(e.ph) : ''}<b>${esc(fullName(t, e.u, e.sub))}</b>${hChip(e.health)}${pill(st)}
       <span class="el-due">${e.L ? 'Next due' : 'Never tested · due'} ${dueTxt(sch)}</span>
-      ${t === 'bushing' && e.rows[0]?.mk ? `<span class="dim el-mk">${esc(e.rows[0].mk.replace(/\n/g, ' '))}</span>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button><span class="el-open">${IC.arrow}</span></div>
+      ${t === 'bushing' && e.rows.find(r => r.mk)?.mk ? `<span class="el-sr">Bushing ${esc(e.rows.find(r => r.mk).mk.replace(/\n/g, ' ').replace(/^MAKE\s*:\s*/i, 'make ').replace(/SNO\.\s*-\s*/i, '· Sr no. '))}</span>` : ''}${isTF(e.u) && DB.site.units[e.u]?.serials?.[e.ph] ? `<span class="el-sr">Unit Sr no. ${esc(DB.site.units[e.u].serials[e.ph])}</span>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button><span class="el-open">${IC.arrow}</span></div>
     <div class="el-b"><div class="el-tbl">${latestOnly ? latestTable(t, e) : seqTable(t, e, false)}</div>${e.done.length ? `<div class="el-ch gx ${CHARTG[t] ? 'two' : ''}">${elemChart(t, e)}</div>` : ''}</div></div>`;
 }
 function unitBlock(t, U, latestOnly) {
@@ -614,12 +614,6 @@ export function renderSections(t, mount) {
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
   const ringPct = pr.T.pct ?? 0;
   const html = `
-  <section class="fcards">
-    ${card('c-blue', IC[t], `${cap(N[1])} tested in FY ${fy}`, `${testedFY}<small> / ${M.elements.length}</small>`, `across ${unitsFY} ${unitsFY === 1 ? holder.replace(/s$/, '') : holder} · population ${M.elements.length} ${N[1]}`)}
-    ${card('c-teal', IC.schedule, `FY ${fy} progress`, `${pr.T.pct ?? '—'}<small>%</small>`, `${pr.T.prog} of ${pr.T.target} ${N[1]} targeted this FY (${pr.T.override ? 'declared' : 'policy 50 % + 1'})`, `<div class="fc-bar"><span style="width:${ringPct}%"></span></div>`)}
-    ${card(bad ? 'c-amber' : 'c-green', IC.findings, 'Outside circular limit', `${bad}<small> ${bad === 1 ? N[0] : N[1]}</small>`, `${watch} more on watch · ${latest.length - bad - watch} normal`)}
-    ${card('c-violet', IC.equipment, `Average ${N[0]} health`, `${avgH ?? '—'}<small>/100</small>`, weakest ? `weakest: ${fullName(t, weakest.u, weakest.sub)} (${weakest.health})` : '—')}
-  </section>
   ${neverPanel(t, M)}
 
   <details class="sec" id="secRank"><summary><span class="sec-t">${IC.standards} Fleet ranking</span><span class="dim">${N[1]} of the same voltage class / rating ranked by any circular parameter</span><span class="caret">▾</span></summary>
@@ -630,10 +624,10 @@ export function renderSections(t, mount) {
     <div class="sec-b"><div class="toolbar"><a class="btn pri" href="#/targets?t=${t}">${IC.schedule} Set FY targets</a><div class="seg" id="fySeg">${FYS().map(f => `<button class="${f === fy ? 'on' : ''}" data-fy="${f}">FY ${f}${f === nextFY() ? ' (next)' : ''}</button>`).join('')}</div><span class="note">${months(t, 'x') < 12 || t === 'ct' ? `Frequency: ${t === 'ct' ? '400 kV 2-yearly · 220 kV yearly' : t === 'la' ? 'pre- and post-monsoon (2 per year)' : t === 'dga' ? '½-yearly (2 per year)' : ''}` : `Frequency: every ${months(t, 'x') / 12 === 1 ? 'year' : months(t, 'x') / 12 + ' years'}`}</span></div>
     ${lastFyStrip(t, M, fy, pr)}${progressTable(t, pr, fy)}</div></details>
 
-  ${t === 'winding' ? `<details class="sec" open id="secWL"><summary><span class="sec-t">${IC.findings} Latest tan δ results · cross-checked</span><span class="dim">latest test of each phase unit with the sheet's checks — C(HV-LV) from both ends, GST = GSTg + UST (C and tan δ), and R / Y / B compared</span><span class="caret">▾</span></summary>
+  ${t === 'winding' ? `<details class="sec" id="secWL"><summary><span class="sec-t">${IC.findings} Latest tan δ results · cross-checked</span><span class="dim">latest test of each phase unit with the sheet's checks — C(HV-LV) from both ends, GST = GSTg + UST (C and tan δ), and R / Y / B compared</span><span class="caret">▾</span></summary>
     <div class="sec-b"><div id="secWLb">${windingLatest(M)}</div><p class="note">Checks are measurement-consistency rules used in practice (Doble / IEEE C57.152 test-set-up checks): within 1 % consistent, 1–2 % check the set-up, over 2 % re-test. They validate the readings; the insulation itself is judged on corrected tan δ against the circular.</p></div></details>` : ''}
 
-  <details class="sec" open id="secLatest"><summary><span class="sec-t">${IC.findings} Latest test results</span><span class="dim">latest completed test of each ${N[0]} with previous & first test and the change since each · graphs always show the full history</span><span class="caret">▾</span></summary>
+  <details class="sec" id="secLatest"><summary><span class="sec-t">${IC.findings} Latest test results</span><span class="dim">latest completed test of each ${N[0]} with previous & first test and the change since each · graphs always show the full history</span><span class="caret">▾</span></summary>
     <div class="sec-b"><div class="toolbar">${tvSwitch(t)}</div>${tvBanner(t)}<div id="seqLatest"></div></div></details>
 
   <details class="sec" open id="secAll"><summary><span class="sec-t">${IC.norms} Detailed test results · sequence-wise</span><span class="dim">every test of every ${N[0]}, as in the sheet — click a ${HOLDER[t].split(' ')[0]} or ${N[0]} to open it</span><span class="caret">▾</span></summary>
@@ -653,7 +647,7 @@ export function renderSections(t, mount) {
   $$('#secWLb [data-open]', mount).forEach(el => el.onclick = () => openElement('winding', el.dataset.open));
   wireInteractive(mount);
   wireFilter(mount, t, M, () => CTX.rerender({ keepScroll: true }));
-  $$('#fySeg button', mount).forEach(b => b.onclick = () => { FY_SEL = b.dataset.fy; CTX.rerender({ keepScroll: true }); });
+  $$('#fySeg button, .ly-prev', mount).forEach(b => b.onclick = () => { FY_SEL = b.dataset.fy; CTX.rerender({ keepScroll: true }); });
   $$('[data-tgt]', mount).forEach(inp => inp.onchange = () => { setTarget(inp.dataset.tgt, inp.value === '' ? null : inp.value); CTX.rerender({ keepScroll: true }); });
   // ranking (drawn when opened)
   const drawRank = () => rankChart(t, M, RANK_SEL[t] ?? 0, mount);
@@ -669,7 +663,7 @@ function lastFyStrip(t, M, fy, pr) {
   const pf = prevFY(fy), pp = progress(t, M, pf);
   const chip = (k, v, d = '') => `<div class="ly-c"><span>${k}</span><b>${v}</b>${d ? `<small>${d}</small>` : ''}</div>`;
   return `<div class="ly">
-    <div class="ly-g"><div class="ly-h">FY ${pf} <span class="dim">last year</span></div>${chip('Target', pp.T.target, pp.T.override ? 'declared' : 'policy')}${chip('Achieved', pp.T.prog, `${pp.T.pct ?? 0} %`)}</div>
+    <div class="ly-g ly-prev" data-fy="${pf}" role="button" title="Show the FY ${pf} list"><div class="ly-h">FY ${pf} <span class="dim">last year · open ›</span></div>${chip('Target', pp.T.target, pp.T.override ? 'declared' : 'policy')}${chip('Achieved', pp.T.prog, `${pp.T.pct ?? 0} %`)}</div>
     <div class="ly-g cur"><div class="ly-h">FY ${fy} <span class="dim">selected</span></div>${chip('Target', pr.T.target, pr.T.override ? 'declared' : 'policy')}${chip('Achieved', pr.T.prog, `${pr.T.pct ?? 0} %`)}${t === 'la' ? chip('By 30 Sep', `${pr.T.h1} / ${pr.T.h1Target}`, 'half-year: 50 %') : ''}${chip('Pending', Math.max(0, pr.T.target - pr.T.prog))}</div></div>`;
 }
 function progressTable(t, pr, fy) {
@@ -768,6 +762,7 @@ export function renderElementPage(t, u, sub, mount) {
     ${es.map(e => `<section class="el-sec el" data-ph="${e.ph}"><div class="row-flex"><h2 style="margin:0">${e.ph !== '-' ? phase(e.ph) : ''} ${esc(fullName(t, u, e.sub))}</h2>${hChip(e.health)}${e.L ? pill(statusOf(e.L)) : pill('none', `never tested · due ${fmtDate(codDue(t, u))}`)}${!one ? `<a class="btn sm" href="${elHref(t, u, e.sub)}">Open this ${NOUN[t][0]} only ${IC.arrow}</a>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button></div>
       <div class="card mt"><div class="card-h"><h3>Test results</h3><span class="sub">click a column header to sort · hover a row to find it on the graphs</span><div class="sp"></div><span class="note">${e.rows.length} rows</span></div><div class="tbl-wrap">${seqTable(t, e, false)}</div></div>
       <div class="grid g2 mt">${charts(e, one ? null : 2)}</div></section>`).join('')}
+    ${findingsSection([t], u, isPU ? sub : one && /^[RYB]$/.test(one.ph) ? one.ph : null)}
     ${dgaPanels}`;
   $$('[data-norms]', mount).forEach(b => b.onclick = () => openNorms(t));
   const drawBig = (cv) => { Chart.getChart(cv)?.destroy(); const e = es.find(x => x.sub === cv.dataset.e); const def = big.find(b => b[0] === cv.dataset.k); if (!def) return; const lim = typeof def[2] === 'function' ? def[2](u) : def[2];
@@ -828,4 +823,11 @@ export function openNorms(t) {
   const close = () => { d.classList.remove('open'); setTimeout(() => d.remove(), 200); };
   d.querySelector('.x').onclick = close;
   document.addEventListener('keydown', function k(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', k); } });
+}
+
+/** Collapsed findings section for an element / phase-unit page (exports include it only when open). */
+export function findingsSection(ts, u, ph) {
+  const fs = ts.flatMap(t => findingsFor({ t, unit: u })).filter(f => !ph || !f.ph || f.ph === ph || f.ph === '-').sort((a, b) => (SEV[b.sev] ?? 0) - (SEV[a.sev] ?? 0));
+  const li = fs.map(f => `<article class="finding"><span class="pill s-${f.sev}">${esc(SEV_LABEL[f.sev] || f.sev)}</span><div><div class="ttl">${esc(f.title)}</div><div class="where">${esc(f.where || '')}</div>${f.detail ? `<div class="det">${esc(f.detail)}</div>` : ''}${f.action ? `<div class="act"><b>Recommended:</b> ${esc(f.action)}</div>` : ''}<div class="meta"><span class="tag b">${esc(TESTS[f.t]?.short || f.t)}</span><span class="tag">Basis: ${esc(f.basis || '')}</span><span class="tag">${fmtDate(f.date)}</span></div></div></article>`).join('');
+  return `<details class="sec fnd-sec"><summary><span class="sec-t">Findings</span><span class="dim">${fs.length ? `${fs.length} observation${fs.length > 1 ? 's' : ''} with recommended action` : 'all evaluated values within limits'} · included in image / PDF exports only when this section is open</span><span class="caret">▾</span></summary><div class="sec-b">${li || '<div class="empty">All evaluated values within limits.</div>'}</div></details>`;
 }
