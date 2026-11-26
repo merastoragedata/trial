@@ -1,7 +1,8 @@
 // Technical illustrations of EHV equipment (SVG, theme-aware), with a nameplate.
 // A site photo placed at assets/photos/<asset>.jpg (e.g. ICT1.jpg, 403.jpg)
 // automatically replaces the illustration.
-import { esc } from './ui.js?v=20261126.0651';
+import { ctLive, cbLive, ict, A2 } from './art2.js?v=20261126.0941';
+import { esc } from './ui.js?v=20261126.0941';
 
 const P = { porc: '#8a6a52', porcD: '#6e523f', porcL: '#a8866b', steel: '#8e9aa8', steelD: '#66727f', steelL: '#c4ccd6', tank: '#5f7a8c', tankD: '#465d6c', tankL: '#7d97a8', al: '#b7c0ca', ring: '#c9d1da', cu: '#b87333' };
 
@@ -98,7 +99,7 @@ function bay(kv) {          // CT + CB + LA in a gantry, for bay headers
   return [W, H, s];
 }
 
-const KINDS = { transformer: () => transformer(), reactor: () => transformer({ reactor: true }), breaker2: () => breaker(2), breaker1: () => breaker(1), ct, la, bay400: () => bay(400), bay220: () => bay(220) };
+const KINDS = { transformer: () => [A2.W, A2.H, ict()], reactor: () => [A2.W, A2.H, ict({ reactor: true })], breaker2: () => [A2.W, A2.H, cbLive()], breaker1: () => [A2.W, A2.H, cbLive()], ct: () => [A2.W, A2.H, ctLive()], la, bay400: () => bay(400), bay220: () => bay(220) };
 
 /** Illustration with optional nameplate; a matching site photo, if present, is shown instead. */
 export function art(kind, { photo, plate, alt } = {}) {

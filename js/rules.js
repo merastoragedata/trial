@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.0651';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.0941';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -261,40 +261,47 @@ export function laWindow(iso) {             // returns [season just done, due da
   return ['Post-monsoon', new Date(m <= 2 ? y : y + 1, 4, 31)];                 // next: pre-monsoon by 31 May
 }
 // ---- the one due-date engine (every page uses these) ----------------------------------------------
-/** Circular interval in months for a test on a bay / unit. */
-export const intervalMonths = (t, u) => t === 'ct' ? (kvOf(u) === 220 ? 12 : 24) : t === 'la' ? 6 : MONTHS[t];
-/** Next due date counted from a completed test (LA: next monsoon window). */
-export const dueFrom = (t, u, iso) => t === 'la' ? laWindow(iso)[1] : addMonths(iso, intervalMonths(t, u));
+// Exactly the diagnostic sheet's rule: next due = latest row date of the element (a dated attempt such
+// as "Rain! couldn't be tested" counts, as in the sheet) + a fixed number of days per test.
+const DAYS = { bushing: 365, winding: 730, cb_crm: 730, cb_timing: 728, dga: 182, la: 182 };
+/** Interval in days, as the sheet adds it (CT: 400 kV 364 × 2, 220 kV 364). */
+export const intervalDays = (t, u) => t === 'ct' ? (kvOf(u) === 220 ? 364 : 728) : DAYS[t];
+/** Interval in months (for wording and FY planning). */
+export const intervalMonths = (t, u) => Math.round(intervalDays(t, u) / 30.4);
+export const dueFrom = (t, u, iso) => { const d = toDate(iso); d.setDate(d.getDate() + intervalDays(t, u)); return d; };
 /** Never tested: due one interval after commissioning. */
 export const codDue = (t, u) => { const c = codOf(u); return c ? dueFrom(t, u, c) : null; };
-/** Due date of one element (phase / bushing / point) from its own latest completed test, else from commissioning. */
+/** Due date of one element from its latest row date (as the sheet), else from commissioning. */
 export const elemDue = (t, u, lastIso) => lastIso ? dueFrom(t, u, lastIso) : codDue(t, u);
+/** Latest row date of a list of rows (excluded template rows never count). */
+export const lastRowDate = (rows) => rows.filter(r => !r.excluded && r.date).map(r => r.date).sort().pop() || null;
 
-// One entry per EQUIPMENT (bay / unit) per TEST. Due = from the latest completed campaign; an element
-// never tested since commissioning makes the equipment due one interval after commissioning; an element
-// left out of the latest campaign keeps its own (earlier) due date — the equipment is due at the earliest.
+// One entry per EQUIPMENT (bay / unit) per TEST: due at the earliest due date of its elements; the
+// element that sets it is named, so a lagging OLTC or phase is visible next to the date.
 export function schedule() {
   const out = [];
   for (const t of Object.keys(TESTS)) {
-    const pop = population(t), ok = recsOK(t).filter(done);
+    const pop = population(t), all = recsOK(t), ok = all.filter(done);
     const units = [...new Set([...pop.map(([u]) => u), ...ok.map(r => r.unit)])];
     for (const unit of units) {
-      const g0 = ok.filter(r => r.unit === unit);
+      const g0 = ok.filter(r => r.unit === unit), ga = all.filter(r => r.unit === unit);
       const last = g0.map(r => r.date).sort().pop() || null;
       const months = intervalMonths(t, unit), sr = t === 'ct' ? (kvOf(unit) === 220 ? 19 : 18) : TESTS[t].sr;
-      let due = last ? dueFrom(t, unit, last) : codDue(t, unit);
-      const freq = t === 'la' ? `½-yearly${last ? ' · ' + laWindow(last)[0].toLowerCase() + ' done' : ''}` : months === 12 ? 'yearly' : months === 6 ? '½-yearly' : `${months / 12}-yearly`;
-      // elements of this equipment: lagging behind the latest campaign, or never tested
-      const lastOf = new Map(); for (const r of g0) { const k = ELEM[t](r); if (!lastOf.has(k) || r.date > lastOf.get(k)) lastOf.set(k, r.date); }
-      const lag = [];
-      for (const [u, sub] of pop.filter(([u]) => u === unit)) { const k = `${u}|${sub}`;
-        const d = lastOf.get(k), ed = elemDue(t, unit, d);
-        if (!d) lag.push({ k: sub.replace(/\|/g, ' ').trim() || '—', last: null, never: true });
-        else if (last && years(d, last) > 60 / 365) lag.push({ k: sub.replace(/\|/g, ' ').trim(), last: d });
-        if (ed && (!due || ed < due)) due = ed; }
+      const freq = months <= 6 ? '½-yearly' : months <= 12 ? 'yearly' : `${Math.round(months / 12)}-yearly`;
+      const lastOf = new Map(); for (const r of ga) { const k = ELEM[t](r); if (!lastOf.has(k) || r.date > lastOf.get(k)) lastOf.set(k, r.date); }
+      const lastAny = ga.map(r => r.date).sort().pop() || null;
+      const els = pop.filter(([u]) => u === unit).map(([u, sub]) => `${u}|${sub}`);
+      for (const k of lastOf.keys()) if (!els.includes(k)) els.push(k);
+      let due = null, by = null; const lag = [];
+      for (const k of els) {
+        const d = lastOf.get(k), ed = elemDue(t, unit, d), sub = (k.split('|').slice(1).join(' ').trim() || '—').replace(/^([RYB])(?= |$)/, '$1ph').replace(/^- /, '');
+        if (!d) lag.push({ k: sub, last: null, never: true });
+        else if (lastAny && years(d, lastAny) > 60 / 365) lag.push({ k: sub, last: d });
+        if (ed && (!due || ed < due)) { due = ed; by = { k: sub, last: d || null }; }
+      }
       if (!due) continue;
       const days = Math.round((due - DB.today) / 864e5);
-      out.push({ t, key: unit, unit, last, due, days, months, freq, sr, lag, never: !last, n: new Set(g0.map(r => r.date)).size,
+      out.push({ t, key: unit, unit, last, due, by, days, months, freq, sr, lag, never: !last, n: new Set(g0.map(r => r.date)).size,
         status: days < 0 ? 'overdue' : days <= 120 ? 'due' : 'ok' });
     }
   }

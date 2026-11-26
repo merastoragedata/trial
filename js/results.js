@@ -1,14 +1,14 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf } from './data.js?v=20261126.0651';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, schedule } from './rules.js?v=20261126.0651';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0651';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0651';
-import { art } from './art.js?v=20261126.0651';
-import { dgaAnalysis } from './dga.js?v=20261126.0651';
-import { shareButtons, wireShare } from './report.js?v=20261126.0651';
-import { IC } from './icons.js?v=20261126.0651';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.0941';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.0941';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.0941';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.0941';
+import { art } from './art.js?v=20261126.0941';
+import { dgaAnalysis } from './dga.js?v=20261126.0941';
+import { shareButtons, wireShare } from './report.js?v=20261126.0941';
+import { IC } from './icons.js?v=20261126.0941';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -139,6 +139,7 @@ export function model(t) {
   const el = new Map(pop.map(([u, sub]) => [u + '|' + sub, { u, sub, rows: [] }]));
   for (const r of all) { const k = ELEM[t](r); if (!el.has(k)) el.set(k, { u: r.unit, sub: subOf(t, r), rows: [] }); el.get(k).rows.push(r); }
   for (const e of el.values()) { e.rows.sort((a, b) => a.date.localeCompare(b.date)); e.done = e.rows.filter(done); e.L = e.done.at(-1); e.health = elemHealth(t, e.L); e.ph = phOf(t, e.sub); }
+  if (VIEW.tv === 5 && TANT.includes(t)) for (const [k, e] of [...el]) if (!e.rows.length) el.delete(k);   // 5 kV view: only elements tested at 5 kV
   const units = [...groupBy([...el.values()], e => e.u)].sort((a, b) => sortUnits(a[0], b[0])).map(([u, es]) => ({ u, es: es.sort((a, b) => subSort(t, a.sub, b.sub)) }));
   return { units, elements: [...el.values()] };
 }
@@ -165,14 +166,14 @@ function progress(t, M, fy) {
     for (const e of es) {
       const m = months(t, u), dts = e.done.map(r => r.date);
       const before = dts.filter(d => toDate(d) < start).pop(), inside = dts.filter(d => inFY(d, fy));
-      const isDue = m < 12 ? true : (before ? addMonths(before, m) : dts.length ? start : (codDue(t, u) ?? start)) <= end;
+      const isDue = m < 12 ? true : (before ? dueFrom(t, u, before) : dts.length ? start : (codDue(t, u) ?? start)) <= end;
       if (isDue) due++;
       if (inside.length) { prog++; if (!isDue) extra++; }
       if (inside.some(d => toDate(d) <= h1End)) h1++;
       const l = dts.at(-1); if (l && (!last || l > last)) last = l;
     }
     const ov = TG[`${t}|${fy}|${u}`], target = ov ?? due;
-    return { u, pop, target, auto: due, prog, h1, extra, last, next: SCH.get(u)?.due ?? null, pct: target ? Math.min(100, Math.round(prog / target * 100)) : null, override: ov != null };
+    return { u, pop, target, auto: due, prog, h1, extra, last, next: SCH.get(u)?.due ?? null, by: SCH.get(u)?.by, pct: target ? Math.min(100, Math.round(prog / target * 100)) : null, override: ov != null };
   });
   const tot = (k) => rows.reduce((a, r) => a + (r[k] || 0), 0);
   const pop = tot('pop'), policy = policyTarget(t, pop), totOv = TG[`${t}|${fy}|*`];
@@ -415,7 +416,7 @@ function phaseCompare(t, U) {
 }
 function elementBlock(t, e, latestOnly) {
   if (latestOnly && !e.done.length) return '';
-  const sch = elemDue(t, e.u, e.L?.date);
+  const sch = elemDue(t, e.u, lastRowDate(e.rows));
   const st = e.L ? statusOf(e.L) : 'none', od = sch && sch < DB.today;
   return `<div class="el" data-ph="${e.ph}" data-el="${esc(e.u + '|' + e.sub)}">
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
@@ -482,11 +483,16 @@ function wireEditing(root) {
   $$('[data-add]', root).forEach(b => b.onclick = (ev) => {
     ev.stopPropagation(); const [t, u, ...sub] = b.dataset.add.split('|'); const s = sub.join('|'), L = DB.records.filter(r => r.t === t && r.unit === u && ELEM[t](r) === `${u}|${s}`).at(-1);
     const today = new Date().toISOString().slice(0, 10);
-    addRow({ t, unit: u, pos: L?.pos ?? (t === 'bushing' || t === 'dga' ? s.split('|')[t === 'bushing' ? 0 : 1] : ''), ph: L?.ph ?? phOf(t, s), acting: L?.acting, mode: L?.mode, date: today, ses: '', v: {}, rem: '' });
+    addRow({ t, ...(TANT.includes(t) && VIEW.tv === 5 ? { tv: 5 } : {}), unit: u, pos: L?.pos ?? (t === 'bushing' || t === 'dga' ? s.split('|')[t === 'bushing' ? 0 : 1] : ''), ph: L?.ph ?? phOf(t, s), acting: L?.acting, mode: L?.mode, date: today, ses: '', v: {}, rem: '' });
     refresh(); CTX.rerun(); CTX.rerender();
   });
   $$('[data-del]', root).forEach(b => b.onclick = (ev) => { ev.stopPropagation(); if (confirm('Delete this added row?')) { deleteNewRow(b.dataset.del); refresh(); CTX.rerun(); CTX.rerender(); } });
 }
+
+// ------------------------------------------------------------------ test voltage (tan δ tests): 10 kV default, 5 kV on request
+export const tvSwitch = (t) => TANT.includes(t) ? `<div class="seg tvseg" title="Tan δ / capacitance results at the chosen test voltage; 10 kV is the default and is used for every judgement">${[10, 5].map(v => `<button class="${VIEW.tv === v ? 'on' : ''}" data-tv="${v}">${v} kV${v === 10 ? ' (default)' : ''}</button>`).join('')}</div>` : '';
+const tvBanner = (t) => TANT.includes(t) && VIEW.tv === 5 ? `<div class="tv-ban">Showing <b>5 kV</b> results (${DB.r5.filter(r => r.t === t).length} on record). Health, findings, due dates and targets always use the 10 kV results.</div>` : '';
+function wireTV(root) { $$('[data-tv]', root).forEach(b => b.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); setTestVoltage(+b.dataset.tv); CTX.rerender({ keepScroll: true }); }); }
 
 // ------------------------------------------------------------------ admin view toggles
 export const applyView = () => { const h = document.documentElement; h.classList.toggle('no-graphs', !viewPref('graphs')); h.classList.toggle('no-history', !viewPref('history')); h.dataset.ts = viewPref('text') || 0; };
@@ -501,6 +507,7 @@ function wireToggles(root) {
 // ------------------------------------------------------------------ never tested since commissioning
 function neverPanel(t, M) {
   const N = NOUN[t], holder = HOLDER[t].includes('bay') ? 'bays' : 'units';
+  if (VIEW.tv === 5 && TANT.includes(t)) return '';
   const blank = M.elements.filter(e => !e.done.length); if (!blank.length) return '';
   const blankUnits = M.units.filter(U => U.es.every(e => !e.done.length));
   const interval = t === 'la' ? 'first monsoon window' : t === 'ct' ? '12 / 24 months' : `${months(t, 'x')} months`;
@@ -609,10 +616,10 @@ export function renderSections(t, mount) {
     <div class="sec-b"><div id="secWLb">${windingLatest(M)}</div><p class="note">Checks are measurement-consistency rules used in practice (Doble / IEEE C57.152 test-set-up checks): within 1 % consistent, 1–2 % check the set-up, over 2 % re-test. They validate the readings; the insulation itself is judged on corrected tan δ against the circular.</p></div></details>` : ''}
 
   <details class="sec" open id="secLatest"><summary><span class="sec-t">${IC.findings} Latest test results</span><span class="dim">latest completed test of each ${N[0]} with previous & first test and the change since each · graphs always show the full history</span><span class="caret">▾</span></summary>
-    <div class="sec-b"><div id="seqLatest"></div></div></details>
+    <div class="sec-b"><div class="toolbar">${tvSwitch(t)}</div>${tvBanner(t)}<div id="seqLatest"></div></div></details>
 
   <details class="sec" open id="secAll"><summary><span class="sec-t">${IC.norms} Detailed test results · sequence-wise</span><span class="dim">every test of every ${N[0]}, as in the sheet — click a ${HOLDER[t].split(' ')[0]} or ${N[0]} to open it</span><span class="caret">▾</span></summary>
-    <div class="sec-b"><div class="toolbar">${filterUI(t, M)}<span class="legend">${legend(t)}</span></div><div id="seqAll"></div></div></details>
+    <div class="sec-b"><div class="toolbar">${filterUI(t, M)}${tvSwitch(t)}<span class="legend">${legend(t)}</span></div>${tvBanner(t)}<div id="seqAll"></div></div></details>
 
 `;
   mount.innerHTML = html;
@@ -624,7 +631,7 @@ export function renderSections(t, mount) {
     wireEditing(mount); wireChartChips(mount);
   };
   drawSeq();
-  applyView(); wireToggles(mount);
+  applyView(); wireToggles(mount); wireTV(mount);
   $$('#secWLb [data-open]', mount).forEach(el => el.onclick = () => openElement('winding', el.dataset.open));
   wireInteractive(mount);
   wireFilter(mount, t, M, () => CTX.rerender({ keepScroll: true }));
@@ -654,7 +661,7 @@ function progressTable(t, pr, fy) {
     <td class="r">${adm ? `<input class="tgt" type="number" min="0" data-tgt="${t}|${fy}|${esc(r.u)}" value="${r.override ? r.target : ''}" placeholder="${r.auto}">` : `${r.target}${r.override ? ' <span class="tag ver" title="Set by admin">set</span>' : ''}`}</td>
     <td class="r">${r.prog}${r.extra ? ` <span class="dim" title="Tested though not due">+${r.extra}</span>` : ''}</td>
     <td>${r.pct == null ? '<span class="dim">not due</span>' : `<div class="pbar"><span style="width:${r.pct}%" class="${r.pct >= 100 ? 'full' : ''}"></span></div><span class="pnum">${r.pct}%</span>`}</td>
-    <td class="r ${r.last && inFY(r.last, fy) ? 'c-fy' : ''}">${r.last ? fmtDate(r.last) : '<span class="dim">never</span>'}</td><td class="r">${dueTxt(r.next)}</td><td class="r"><b>${Math.max(0, r.target - r.prog)}</b></td></tr>`).join('')}
+    <td class="r ${r.last && inFY(r.last, fy) ? 'c-fy' : ''}">${r.last ? fmtDate(r.last) : '<span class="dim">never</span>'}</td><td class="r">${dueTxt(r.next)}${r.by && r.next && (!r.last || r.by.last !== r.last) ? `<div class="due-by">${esc(r.by.k)} · ${r.by.last ? 'last ' + fmtDate(r.by.last) : 'never tested'}</div>` : ''}</td><td class="r"><b>${Math.max(0, r.target - r.prog)}</b></td></tr>`).join('')}
   </tbody><tfoot><tr><td><b>Total</b></td><td class="r"><b>${pr.T.pop}</b></td><td class="r">${adm ? `<input class="tgt" type="number" min="0" data-tgt="${t}|${fy}|*" value="${pr.T.override ? pr.T.target : ''}" placeholder="${pr.T.autoTarget}" title="Annual target (blank = policy ⌊N/2⌋+1${t === 'la' ? ', LA 100 %' : ''})">` : `<b>${pr.T.target}</b>`}</td><td class="r"><b>${pr.T.prog}</b></td><td>${pr.T.pct == null ? '' : `<div class="pbar big"><span style="width:${pr.T.pct}%"></span></div><span class="pnum"><b>${pr.T.pct}%</b></span>`}</td><td></td><td></td><td class="r"><b>${Math.max(0, pr.T.target - pr.T.prog)}</b></td></tr></tfoot></table></div>
   <p class="note"><b>Target policy:</b> ${t === 'la' ? `all ${pr.T.pop} LAs every year (100 %) and half of them (${pr.T.h1Target}) by 30 Sep` : `one more than half of the population every year — ⌊${pr.T.pop} ÷ 2⌋ + 1 = <b>${pr.T.policy}</b>`}; per ${HOLDER[t].includes('bay') ? 'bay' : 'unit'} the calculated figure is what falls due under the circular (${pr.T.due} in total). </p>
   <p class="note">Next due: <b class="due due-red">overdue</b> <b class="due due-yel">within a month</b> <b class="due due-grn">not yet due</b> · <span class="lg c-fy">tested in FY ${fy}</span>. ${adm ? 'Type a number in "Target" to declare the annual target (leave blank for the calculated value).' : 'Admin can declare the annual target.'}</p>`;
@@ -726,7 +733,7 @@ export function renderElementPage(t, u, sub, mount) {
   const GRP = ['ct', 'bushing', 'winding'].includes(t) ? [['tand20', 'dTand'], ['C', 'dC']] : big.map(b => [b[0]]);
   const bl = (k) => big.find(b => b[0] === k)?.[1] || k;
   const charts = (e, n) => GRP.slice(0, n ?? GRP.length).map((g) => `<div class="chart-card gx"><div class="card-h"><h3>${g.length > 1 ? (g[0] === 'tand20' ? 'Tan δ' : 'Capacitance') : bl(g[0])}</h3><span class="sub">${esc(fullName(t, u, e.sub))}</span>${g.length > 1 ? `<div class="mc-chips sm">${g.map((k, j) => `<button class="${j ? '' : 'on'}" data-bk="${k}">${bl(k)}</button>`).join('')}</div>` : ''}</div><div class="chart-box" style="height:270px"><canvas data-k="${g[0]}" data-e="${esc(e.sub)}"></canvas></div><div class="legend-note">grid at a round step ≈ 20 % of this ${NOUN[t][0]}'s average · dashed = circular / industry limit · hover a table row to find it here</div></div>`).join('');
-  const tabs = `<nav class="tabs el-tabs"><a class="${sub ? '' : 'on'}" href="${elHref(t, u, null)}">All ${NOUN[t][1]} (${U.es.length})</a>${pus[0][0] !== null
+  const tabs = `${TANT.includes(t) ? `<div class="row-flex mb">${tvSwitch(t)}${tvBanner(t)}</div>` : ''}<nav class="tabs el-tabs"><a class="${sub ? '' : 'on'}" href="${elHref(t, u, null)}">All ${NOUN[t][1]} (${U.es.length})</a>${pus[0][0] !== null
       ? pus.map(([ph, list]) => `<a class="${sub === ph || (one && one.ph === ph) ? 'on' : ''}" href="${elHref(t, u, ph)}"><span class="dot-ph ph-${ph}"></span>${ph}-phase unit <span class="dim">(${list.length})</span></a>`).join('')
       : U.es.map(e => `<a class="${e.sub === sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${e.ph !== '-' ? `<span class="dot-ph ph-${e.ph}"></span>` : ''}${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>
     ${(isPU || (one && pus[0][0] !== null)) ? `<nav class="tabs el-tabs sub">${pus.find(p => p[0] === (isPU ? sub : one.ph))[1].map(e => `<a class="${one && e.sub === one.sub ? 'on' : ''}" href="${elHref(t, u, e.sub)}">${esc(subLabel(t, e.sub))}</a>`).join('')}</nav>` : ''}`;
@@ -761,7 +768,7 @@ export function renderElementPage(t, u, sub, mount) {
     $$('canvas[data-k]', sec).forEach(cv => { const ch = cv.__chart; if (!ch) return; const act = [];
       ch.data.datasets.forEach((ds, di) => { if (ds.isLimit || ds.isRef) return; const i = ds.data.findIndex(p => new Date(p.x).toISOString().slice(0, 10) === tr.dataset.date); if (i >= 0) act.push({ datasetIndex: di, index: i }); });
       ch.setActiveElements(act); ch.tooltip.setActiveElements(act, { x: 0, y: 0 }); ch.update('none'); }); });
-  wireTank(mount, u); wireEditing(mount); wireInteractive(mount); wireShare(mount);
+  wireTank(mount, u); wireEditing(mount); wireInteractive(mount); wireShare(mount); wireTV(mount);
 }
 
 // ------------------------------------------------------------------ FY targets page

@@ -1,9 +1,9 @@
 // Planning & reporting pages: pending tests by horizon, and results by date.
-import { DB, TESTS, fmt, fmtDate, toDate, kvOf, isTF, unitName, bayTitle, done, recs, ELEM } from './data.js?v=20261126.0651';
-import { elemDue, statusOf } from './rules.js?v=20261126.0651';
-import { model, fullName, dueTxt, fyRange, curFY, cellSev, NOUN, elHref, COLS } from './results.js?v=20261126.0651';
-import { esc, $, $$, pill } from './ui.js?v=20261126.0651';
-import { IC } from './icons.js?v=20261126.0651';
+import { DB, TESTS, fmt, fmtDate, toDate, kvOf, isTF, unitName, bayTitle, done, recs, ELEM } from './data.js?v=20261126.0941';
+import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.0941';
+import { model, fullName, dueTxt, fyRange, curFY, cellSev, NOUN, elHref, COLS } from './results.js?v=20261126.0941';
+import { esc, $, $$, pill } from './ui.js?v=20261126.0941';
+import { IC } from './icons.js?v=20261126.0941';
 
 const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
@@ -22,7 +22,7 @@ export function pendingPage(mount, q, head) {
   const tests = tSel === 'all' ? TKEYS() : [tSel];
   const all = [];
   for (const t of tests) for (const e of model(t).elements) {
-    const due = elemDue(t, e.u, e.L?.date); if (!due || due > horizon) continue;
+    const due = elemDue(t, e.u, lastRowDate(e.rows)); if (!due || due > horizon) continue;
     all.push({ t, e, due });
   }
   const od = all.filter(x => x.due < today).length;
