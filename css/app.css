@@ -1676,3 +1676,9 @@ svg.pf{width:100%;height:auto;color:#3f4f61;margin-bottom:14px}
 .tgt-card table.prog{width:100%!important}.tgt-card table.prog td:last-child,.tgt-card table.prog th:last-child{min-width:0!important}.tgt-card table.prog td.r,.tgt-card table.prog th.r{white-space:normal!important}.tgt-card table.prog th,.tgt-card table.prog td{padding:8px 8px!important}.main table td .due-by{white-space:normal!important;font-size:14px}
 .glance.g5{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:12px}.glance.g5 .gl{min-width:0;flex:none!important}.glance.g5 .gl small{white-space:normal;overflow-wrap:break-word}
 .main table td.ex-note{font:500 15px Inter,sans-serif!important;color:var(--ink-2);text-align:left!important;width:32%}
+
+/* CB nameplate */
+details.cb-np{margin-top:16px}
+.cb-facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.cb-facts div{background:#f3f6fa;border:1.5px solid #c9d3de;border-radius:10px;padding:8px 12px}
+.cb-facts span{display:block;font-size:13.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}.cb-facts b{font-size:18px;overflow-wrap:anywhere}

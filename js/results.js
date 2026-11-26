@@ -1,15 +1,15 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1917';
-import { findingsFor, LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1917';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1917';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1917';
-import { art } from './art.js?v=20261126.1917';
-import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1917';
-import { dgaAnalysis } from './dga.js?v=20261126.1917';
-import { shareButtons, wireShare } from './report.js?v=20261126.1917';
-import { IC } from './icons.js?v=20261126.1917';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1921';
+import { findingsFor, LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1921';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1921';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1921';
+import { art } from './art.js?v=20261126.1921';
+import { cbInfo, nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1921';
+import { dgaAnalysis } from './dga.js?v=20261126.1921';
+import { shareButtons, wireShare } from './report.js?v=20261126.1921';
+import { IC } from './icons.js?v=20261126.1921';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -440,7 +440,7 @@ function elementBlock(t, e, latestOnly) {
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
       ${e.ph !== '-' && !(PH_UNIT(e.u, e.ph) && ['bushing', 'winding', 'dga'].includes(t)) ? phase(e.ph) : ''}<b>${esc(fullName(t, e.u, e.sub))}</b>${hChip(e.health)}${pill(st)}
       <span class="el-due">${e.L ? 'Next due' : 'Never tested · due'} ${dueTxt(sch)}</span>
-      ${t === 'bushing' && e.rows.find(r => r.mk)?.mk ? `<span class="el-sr">Bushing ${esc(e.rows.find(r => r.mk).mk.replace(/\n/g, ' ').replace(/^MAKE\s*:\s*/i, 'make ').replace(/SNO\.\s*-\s*/i, '· Sr no. '))}</span>` : ''}${isTF(e.u) && DB.site.units[e.u]?.serials?.[e.ph] ? `<span class="el-sr">Unit Sr no. ${esc(DB.site.units[e.u].serials[e.ph])}</span>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button><span class="el-open">${IC.arrow}</span></div>
+      ${t === 'bushing' && e.rows.find(r => r.mk)?.mk ? `<span class="el-sr">Bushing ${esc(e.rows.find(r => r.mk).mk.replace(/\n/g, ' ').replace(/^MAKE\s*:\s*/i, 'make ').replace(/SNO\.\s*-\s*/i, '· Sr no. '))}</span>` : ''}${['cb_crm', 'cb_timing'].includes(t) && cbInfo(e.u) ? `<span class="el-sr">CB ${esc(cbInfo(e.u).type)} · Sr no. ${esc(cbInfo(e.u).serial)}</span>` : ''}${isTF(e.u) && DB.site.units[e.u]?.serials?.[e.ph] ? `<span class="el-sr">Unit Sr no. ${esc(DB.site.units[e.u].serials[e.ph])}</span>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button><span class="el-open">${IC.arrow}</span></div>
     <div class="el-b"><div class="el-tbl">${latestOnly ? latestTable(t, e) : seqTable(t, e, false)}</div>${e.done.length ? `<div class="el-ch gx ${CHARTG[t] ? 'two' : ''}">${elemChart(t, e)}</div>` : ''}</div></div>`;
 }
 function unitBlock(t, U, latestOnly) {
@@ -753,7 +753,7 @@ export function renderElementPage(t, u, sub, mount) {
   mount.innerHTML = `
     <section class="el-hero"><div class="eh-art">${art(kind, { photo: one ? `${u}-${one.ph}` : u, alt: T.name })}</div>
       <div class="eh-body"><div class="eyebrow">${esc(T.name)} · ${isTF(u) ? esc(DB.site.units[u].rating) : `${kvOf(u)} kV bay`} · circular Sr ${sr}</div>
-        <h1>${esc(unitName(u, true))}${title ? `<span class="h1-sub">${esc(title)}</span>` : ''}</h1>
+        <h1>${esc(unitName(u, true))}${title ? `<span class="h1-sub">${esc(title)}</span>` : ''}</h1>${['cb_crm', 'cb_timing'].includes(t) && cbInfo(u) ? `<div class="row-flex"><span class="el-sr">CB ${esc(cbInfo(u).type)} · Sr no. ${esc(cbInfo(u).serial)} · ${esc(cbInfo(u).operation)} · mfg ${cbInfo(u).year}</span></div>` : ''}
         <p class="lede">${one ? `An independent unit with its own history and health, judged only against the MSETCL circular and industry standards.` : isPU ? `The ${sub}-phase single-phase unit of ${esc(unitName(u))} — ${es.length} ${NOUN[t][1]}, each monitored on its own.` : `${U.es.length} ${NOUN[t][1]} — each monitored on its own. Open a ${pus[0][0] !== null ? 'phase unit' : NOUN[t][0]} to see it alone.`}</p>
         <div class="row-flex mt">${circularBtn(sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button><a class="btn" href="#/test/${t}">${IC.arrow} All ${NOUN[t][1]}</a></div>
         <div class="row-flex mt">${shareButtons(u, isPU ? sub : one && one.ph !== '-' && one.ph !== 'N' ? one.ph : null)}</div></div></section>

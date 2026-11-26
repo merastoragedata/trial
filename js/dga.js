@@ -1,10 +1,10 @@
 // DGA analysis report for one tank (an ICT phase unit's main tank, the spare ICT or the reactor):
 // every recognised interpretation method applied to the samples on record, oil quality, paper
 // condition, top/bottom and OLTC cross-checks, and correlation with the same unit's electrical tests.
-import { DB, recs, fmt, fmtDate, toDate, done, unitName } from './data.js?v=20261126.1917';
-import { duval1, oltcCorrelation, LIM } from './rules.js?v=20261126.1917';
-import { duvalSVG, esc, chem } from './ui.js?v=20261126.1917';
-import { svgChart } from './results.js?v=20261126.1917';
+import { DB, recs, fmt, fmtDate, toDate, done, unitName } from './data.js?v=20261126.1921';
+import { duval1, oltcCorrelation, LIM } from './rules.js?v=20261126.1921';
+import { duvalSVG, esc, chem } from './ui.js?v=20261126.1921';
+import { svgChart } from './results.js?v=20261126.1921';
 
 const GASES = ['H2', 'CH4', 'C2H6', 'C2H4', 'C2H2', 'CO', 'CO2'];
 const GC = { H2: '#2f6fd0', CH4: '#0f766e', C2H4: '#c2410c', C2H6: '#7c3aed', C2H2: '#c4161c', CO: '#a16207', CO2: '#64748b', TDCG: '#0b3d6e' };

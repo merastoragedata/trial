@@ -1,10 +1,10 @@
 // Test page header: engineering facts as compact cards, a test-principle diagram (SVG) per test and
 // an at-a-glance strip computed from the data.
-import { DB, TESTS, fmt, fmtDate, kvOf, unitName } from './data.js?v=20261126.1917';
-import { LIM, schedule, statusOf } from './rules.js?v=20261126.1917';
-import { model, RANKP, NOUN, curFY, fyRange, dueTxt, fullName } from './results.js?v=20261126.1917';
-import { esc } from './ui.js?v=20261126.1917';
-import { IC } from './icons.js?v=20261126.1917';
+import { DB, TESTS, fmt, fmtDate, kvOf, unitName } from './data.js?v=20261126.1921';
+import { LIM, schedule, statusOf } from './rules.js?v=20261126.1921';
+import { model, RANKP, NOUN, curFY, fyRange, dueTxt, fullName } from './results.js?v=20261126.1921';
+import { esc } from './ui.js?v=20261126.1921';
+import { IC } from './icons.js?v=20261126.1921';
 
 const SR = '@SR';   // replaced by the test's circular serial number
 const F = (ic, k, v, s = '') => ({ ic, k, v, s });
