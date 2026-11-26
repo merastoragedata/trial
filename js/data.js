@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.1201';
+import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.1426';
 export { ELEM };
 
-export const BUILD = '20261126.1201';  // set by tools/stamp_version.py
+export const BUILD = '20261126.1426';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -134,10 +134,12 @@ export function fmt(v, dp = 2) {
 export function unitsFor(t) {
   return [...new Set(DB.records.filter(r => r.t === t).map(r => r.unit))].sort(sortUnits);
 }
+/** Order of equipment everywhere: highest voltage first (400 kV transformers / reactor and 400 kV bays),
+ *  then 220 kV, then lower voltage levels; within a level by unit / bay number. */
 export function sortUnits(a, b) {
   const o = { ICT1: 1, ICT2: 2, SPARE_ICT: 3, BUS_REACTOR: 4 };
-  if (o[a] || o[b]) return (o[a] || 99) - (o[b] || 99);
-  return Number(a) - Number(b);
+  const kv = (u) => o[u] ? 1000 : kvOf(u);
+  return (kv(b) - kv(a)) || ((o[a] || 0) - (o[b] || 0)) || (Number(a) - Number(b)) || String(a).localeCompare(String(b));
 }
 export function testsForUnit(u) {
   return Object.keys(TESTS).filter(t => DB.records.some(r => r.t === t && r.unit === u));

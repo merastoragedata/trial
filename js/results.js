@@ -1,15 +1,15 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1201';
-import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1201';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1201';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1201';
-import { art } from './art.js?v=20261126.1201';
-import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1201';
-import { dgaAnalysis } from './dga.js?v=20261126.1201';
-import { shareButtons, wireShare } from './report.js?v=20261126.1201';
-import { IC } from './icons.js?v=20261126.1201';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1426';
+import { LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1426';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1426';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1426';
+import { art } from './art.js?v=20261126.1426';
+import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1426';
+import { dgaAnalysis } from './dga.js?v=20261126.1426';
+import { shareButtons, wireShare } from './report.js?v=20261126.1426';
+import { IC } from './icons.js?v=20261126.1426';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -139,7 +139,8 @@ export function model(t) {
   const pop = population(t);
   const all = recs(t);
   const el = new Map(pop.map(([u, sub]) => [u + '|' + sub, { u, sub, rows: [] }]));
-  for (const r of all) { const k = ELEM[t](r); if (!el.has(k)) el.set(k, { u: r.unit, sub: subOf(t, r), rows: [] }); el.get(k).rows.push(r); }
+  const live = (u) => isTF(u) || (DB.site.bays[u] && !/FUTURE/i.test(DB.site.bays[u]));   // future / unregistered bays are never listed
+  for (const r of all) { if (!live(r.unit)) continue; const k = ELEM[t](r); if (!el.has(k)) el.set(k, { u: r.unit, sub: subOf(t, r), rows: [] }); el.get(k).rows.push(r); }
   for (const e of el.values()) { e.rows.sort((a, b) => a.date.localeCompare(b.date)); e.done = e.rows.filter(done); e.L = e.done.at(-1); e.health = elemHealth(t, e.L); e.ph = phOf(t, e.sub); }
   if (VIEW.tv === 5 && TANT.includes(t)) for (const [k, e] of [...el]) if (!e.rows.length) el.delete(k);   // 5 kV view: only elements tested at 5 kV
   const units = [...groupBy([...el.values()], e => e.u)].sort((a, b) => sortUnits(a[0], b[0])).map(([u, es]) => ({ u, es: es.sort((a, b) => subSort(t, a.sub, b.sub)) }));

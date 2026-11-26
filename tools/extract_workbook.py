@@ -241,6 +241,16 @@ if __name__ == '__main__':
         for r in x5: r.setdefault('pos', ''); out.append(r)
         ISSUES.append({'src': '5 kV readings', 'field': 'tv', 'text': f'{len(x5)} tan δ / capacitance readings at 5 kV added from data/extra_5kv.json (shown with the 5 kV switch; 10 kV is the default)', 'calc': True})
 
+    # --- spare-ICT bays (400 kV bay 400, 220 kV bay 200) hold ONE spare CT / CB pole / LA each; the sheet
+    # labels them with arbitrary phases (CT "B", CB CRM "B", CB timing "Y"), so they are one un-phased unit
+    SPARE_BAYS = {'400', '200'}
+    for r in out:
+        if r['unit'] in SPARE_BAYS and r['t'] in ('ct', 'cb_crm', 'cb_timing', 'la') and r['ph'] != '-':
+            r['ph'] = '-'
+    for t in ('ct', 'cb_crm', 'cb_timing', 'la'):
+        if t in POP: POP[t] = {(u, '-' if str(u) in SPARE_BAYS else ph) for u, ph in POP[t]}
+    ISSUES.append({'src': 'Spare ICT bays 400 / 200', 'field': 'ph', 'text': 'The sheet labels the single spare CT as B-phase, the spare CB pole as B-phase (CRM) and Y-phase (timing); treated as one un-phased spare unit each', 'calc': True})
+
     # --- copied rows: identical readings in many different sampling points / elements on one date
     # Different tanks / phases cannot return identical multi-parameter readings, so such rows are
     # template or pasted data. They are kept (visible, greyed) but flagged and excluded from analysis.

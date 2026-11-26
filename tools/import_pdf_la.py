@@ -46,7 +46,7 @@ def main(src, dst):
                 rest = ' '.join(t for t in toks[3:] if t != '|').strip()
                 rem = ' '.join(bad).replace('NOVALUE', 'NO VALUE')
                 if rest: rem = (rem + ' ' + rest).strip()
-                block['rows'].append({'date': iso(dm), 'season': row[4], 'v': {k: x for k, x in v.items() if x is not None}, 'rem': rem, 'src': f'PDF p.{pno}'})
+                block['rows'].append({'date': iso(dm), 'season': row[4], 'v': {k: x for k, x in v.items() if x is not None}, 'rem': rem, 'src': f'PDF p.{pno} line {i + 1}'})
             mk = re.match(r'^\s{0,3}(\d{3})\b(.*)$', line)
             if mk and block is not None and block['bay'] is None:
                 block['bay'] = mk[1]

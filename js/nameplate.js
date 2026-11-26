@@ -1,7 +1,7 @@
 // Nameplates: recreated plates (from the site photographs), photo viewer and per-unit uploads.
 // ICT plates are identical for all single-phase units except the serial number.
-import { DB, isTF, unitName } from './data.js?v=20261126.1201';
-import { esc, $, $$ } from './ui.js?v=20261126.1201';
+import { DB, isTF, unitName } from './data.js?v=20261126.1426';
+import { esc, $, $$ } from './ui.js?v=20261126.1426';
 
 let NP = null;
 export async function loadNameplates() { if (!NP) NP = await fetch(`data/nameplates.json?v=${Date.now() >> 16}`).then(r => r.json()).catch(() => ({})); return NP; }
@@ -130,14 +130,16 @@ export function detailsCard(u) {
   const serials = k === 'ict' && DB.site.units[u]?.serials ? ['R', 'Y', 'B'].map(p => [`Sr No · ${p}-phase unit`, serialOf(u, p)]) : [];
   const all = [...serials, ...rows.filter(r => r[1] !== '@SERIAL')].map(([a, b]) => [a, b]);
   const shown = all.filter(([a]) => !H.includes(a));
-  return `<section class="card eqd" data-eqd="${k}"><div class="card-h"><h3>Equipment details · as per nameplate</h3><span class="sub">${shown.length} of ${all.length} fields shown · ✕ removes a field (kept in this browser)</span><div class="sp"></div>${H.length ? `<button class="btn sm" data-eqd-reset>Restore all ${H.length} removed</button>` : ''}</div>
-    <div class="eqd-g">${shown.map(([a, b]) => `<div class="eqd-i"><span>${esc(a)}</span><b class="${/verify|illegible|cut on photo|hidden/.test(b) ? 'np-ver' : ''}">${esc(b)}</b><button class="eqd-x" data-eqd-x="${esc(a)}" title="Remove this field">✕</button></div>`).join('')}</div></section>`;
+  return `<details class="sec inner eqd" data-eqd="${k}"><summary><span class="sec-t">📋 Equipment details · as per nameplate</span><span class="dim">${shown.length} of ${all.length} fields shown · ✕ removes a field (kept in this browser)</span>${H.length ? `<button class="btn sm" data-eqd-reset>Restore all ${H.length} removed</button>` : ''}<span class="caret">▾</span></summary>
+    <div class="eqd-g">${shown.map(([a, b]) => `<div class="eqd-i"><span>${esc(a)}</span><b class="${/verify|illegible|cut on photo|hidden/.test(b) ? 'np-ver' : ''}">${esc(b)}</b><button class="eqd-x" data-eqd-x="${esc(a)}" title="Remove this field">✕</button></div>`).join('')}</div></details>`;
 }
+let EQD_OPEN = false;
 export function wireDetails(root, rerender) {
   $$('[data-eqd]', root).forEach(card => {
+    card.open = EQD_OPEN; card.addEventListener('toggle', () => { EQD_OPEN = card.open; });
     const k = card.dataset.eqd;
     $$('[data-eqd-x]', card).forEach(b => b.onclick = () => { const h = hidden(); h[k] = [...new Set([...(h[k] || []), b.dataset.eqdX])]; setHidden(h); rerender(); });
-    const r = card.querySelector('[data-eqd-reset]'); if (r) r.onclick = () => { const h = hidden(); delete h[k]; setHidden(h); rerender(); };
+    const r = card.querySelector('[data-eqd-reset]'); if (r) r.onclick = (ev) => { ev.preventDefault(); ev.stopPropagation(); const h = hidden(); delete h[k]; setHidden(h); rerender(); };
   });
 }
 export { kindOf as nameplateKind };

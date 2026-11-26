@@ -1,9 +1,9 @@
 // Planning & reporting pages: pending tests by horizon, and results by date.
-import { DB, TESTS, fmt, fmtDate, toDate, kvOf, isTF, unitName, bayTitle, done, recs, ELEM } from './data.js?v=20261126.1201';
-import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1201';
-import { model, fullName, dueTxt, fyRange, curFY, cellSev, NOUN, elHref, COLS } from './results.js?v=20261126.1201';
-import { esc, $, $$, pill } from './ui.js?v=20261126.1201';
-import { IC } from './icons.js?v=20261126.1201';
+import { DB, TESTS, fmt, fmtDate, toDate, kvOf, isTF, unitName, bayTitle, done, recs, ELEM, sortUnits } from './data.js?v=20261126.1426';
+import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1426';
+import { model, fullName, dueTxt, fyRange, curFY, cellSev, NOUN, elHref, COLS } from './results.js?v=20261126.1426';
+import { esc, $, $$, pill } from './ui.js?v=20261126.1426';
+import { IC } from './icons.js?v=20261126.1426';
 
 const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
@@ -58,7 +58,7 @@ export function resultsPage(mount, q, head) {
   else { from = iso(fs); to = iso(fe); }
   const base = (o) => '#/results' + qs({ m, d: q.get('d'), from: q.get('from'), to: q.get('to'), t: tSel, ...o });
   const tests = tSel === 'all' ? TKEYS() : [tSel];
-  const pick = (t) => recs(t).filter(r => done(r) && r.date >= from && r.date <= to).sort((a, b) => a.date.localeCompare(b.date) || String(a.unit).localeCompare(String(b.unit)));
+  const pick = (t) => recs(t).filter(r => done(r) && r.date >= from && r.date <= to).sort((a, b) => sortUnits(a.unit, b.unit) || a.date.localeCompare(b.date) || (a.ph || '').localeCompare(b.ph || ''));
   const sets = tests.map(t => [t, pick(t)]);
   const total = sets.reduce((a, [, r]) => a + r.length, 0);
   const sevOf = (t, r) => { const s = statusOf(r); return s === 'none' ? 'ok' : s; };
