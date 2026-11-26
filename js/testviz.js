@@ -1,18 +1,18 @@
 // Test page header: engineering facts as compact cards, a test-principle diagram (SVG) per test and
 // an at-a-glance strip computed from the data.
-import { DB, TESTS, fmt, fmtDate, kvOf, unitName } from './data.js?v=20261126.1804';
-import { LIM, schedule } from './rules.js?v=20261126.1804';
-import { model, RANKP, NOUN, curFY, fyRange, dueTxt, fullName } from './results.js?v=20261126.1804';
-import { esc } from './ui.js?v=20261126.1804';
-import { IC } from './icons.js?v=20261126.1804';
+import { DB, TESTS, fmt, fmtDate, kvOf, unitName } from './data.js?v=20261126.1906';
+import { LIM, schedule, statusOf } from './rules.js?v=20261126.1906';
+import { model, RANKP, NOUN, curFY, fyRange, dueTxt, fullName } from './results.js?v=20261126.1906';
+import { esc } from './ui.js?v=20261126.1906';
+import { IC } from './icons.js?v=20261126.1906';
 
 const SR = '@SR';   // replaced by the test's circular serial number
 const F = (ic, k, v, s = '') => ({ ic, k, v, s });
 export const FACTS = {
   ct: [F('⚡', 'Test voltage', '10 kV · 50 Hz', '5 kV optional'), F('⎍', 'Mode', 'UST', 'via the test tap'), F('🌡', 'Correction', 'to 20 °C', 'sheet K table'), F('⚑', 'tan δ limit', '≤ 0.7 %', 'circular · 0.5 % IEC watch'),
-    F('Δ', 'Change limits', 'Δtan δ ≤ 0.1 % · ΔC −5…+10 %', 'vs previous test'), F('⟳', 'Interval', '400 kV 2 yr · 220 kV 1 yr', 'circular Sr 18 / 19')],
+    F('Δ', 'Change limits', 'Δtan δ ≤ 0.1 % · ΔC −5 % to +10 %', 'vs previous test'), F('⟳', 'Interval', '400 kV 2 yr · 220 kV 1 yr', 'circular Sr 18 / 19')],
   bushing: [F('⚡', 'Test voltage', '10 kV · 50 Hz', '5 kV optional'), F('⎍', 'Mode', 'UST · C₁', 'via the test tap'), F('🌡', 'Correction', 'to 20 °C', 'sheet K table'), F('⚑', 'tan δ limit', '≤ 0.7 %', 'circular · IEC 60137'),
-    F('Δ', 'Change limits', 'Δtan δ ≤ 0.1 % · ΔC −5…+10 %', 'ΔC > +5 % = shorted layer'), F('⟳', 'Interval', 'every year', SR)],
+    F('Δ', 'Change limits', 'Δtan δ ≤ 0.1 % · ΔC −5 % to +10 %', 'C change vs previous test'), F('⟳', 'Interval', 'every year', SR)],
   winding: [F('⚡', 'Test voltage', '10 kV · 50 Hz', '5 kV optional'), F('⎍', 'Modes', 'UST · GSTg · GST', 'HV-LV and LV-HV'), F('✓', 'Cross-checks', 'GST = GSTg + UST', 'C(HV-LV) both ends equal'), F('⚑', 'tan δ limit', '≤ 0.7 %', 'circular · IEEE C57.152'),
     F('🌡', 'Correction', 'to 20 °C', 'sheet K table'), F('⟳', 'Interval', 'every 2 years', SR)],
   dga: [F('🧪', 'Samples', 'Top · Bottom · OLTC', 'one main tank per phase unit'), F('⚑', 'Key limits', 'H₂ 100 · C₂H₂ 1 · TDCG 720', 'IEEE C57.104 Cond. 1'), F('◭', 'Fault type', 'Duval · IEC ratios', 'IEC 60599'), F('🛢', 'Oil quality', 'BDV ≥ 50 kV · H₂O ≤ 20 ppm', 'IS 1866'),
@@ -45,7 +45,7 @@ function principle(t) {
       <path d="M20 70A38 38 0 0 1 32 72" stroke="#7c3aed" stroke-width="2" fill="none"/>${T(36, 66, 'δ', 13, '#7c3aed', 'start')}
       ${T(100, 70, 'small δ = dry,', 9.5, '#334155', 'start', 500)}${T(100, 84, 'clean insulation', 9.5, '#334155', 'start', 500)}</g>
     <g transform="translate(14 124)">${T(110, 8, 'Judged on', 11, '#5b6675', 'middle', 600)}
-      ${[['tan δ @20 °C', '≤ 0.7 %', '#0f766e'], ['Δ tan δ', '≤ 0.1 %', '#1a6fc2'], ['Δ C', '−5 … +10 %', '#c2410c']].map(([a, b, c], i) => `<rect x="0" y="${20 + i * 30}" width="220" height="24" rx="6" fill="#fff" stroke="${c}" stroke-width="1.3"/>${T(10, 36 + i * 30, a, 10.5, c, 'start')}${T(210, 36 + i * 30, b, 10.5, '#1d2a36', 'end')}`).join('')}</g>`;
+      ${[['tan δ @20 °C', '≤ 0.7 %', '#0f766e'], ['Δ tan δ', '≤ 0.1 %', '#1a6fc2'], ['Δ C', '−5 % to +10 %', '#c2410c']].map(([a, b, c], i) => `<rect x="0" y="${20 + i * 30}" width="220" height="24" rx="6" fill="#fff" stroke="${c}" stroke-width="1.3"/>${T(10, 36 + i * 30, a, 10.5, c, 'start')}${T(210, 36 + i * 30, b, 10.5, '#1d2a36', 'end')}`).join('')}</g>`;
   if (t === 'cb_crm') return DEF + `
     <g transform="translate(20 30)"><path d="M60 80H320" stroke="#5b6675" stroke-width="6" stroke-linecap="round"/>
       <rect x="160" y="62" width="60" height="36" rx="6" fill="#e3e8ee" stroke="#34557a" stroke-width="1.5"/>${T(190, 84, 'contacts', 10.5)}
@@ -82,13 +82,12 @@ function glance(t) {
   const sch = schedule().filter(s => s.t === t), od = sch.filter(s => s.status === 'overdue').length, nx = sch.filter(s => s.due >= DB.today).sort((a, b) => a.due - b.due)[0];
   const med = vals.length ? vals.map(x => x.v).sort((a, b) => a - b)[vals.length >> 1] : null;
   const card = (k, v, s, cls = '') => `<div class="gl ${cls}"><span>${k}</span><b>${v}</b><small>${s}</small></div>`;
-  return `<div class="glance">
+  const bad = L.filter(e => ['alert', 'critical'].includes(statusOf(e.L))).length;
+  return `<div class="glance g5">
     ${card('Population', M.elements.length, `${NOUN[t][1]} in ${M.units.length} ${['bushing', 'winding', 'dga'].includes(t) ? 'units' : 'bays'}`)}
-    ${card(`Tested FY ${curFY()}`, testedFY, `${M.elements.length ? Math.round(testedFY / M.elements.length * 100) : 0} % of population`)}
-    ${card('Latest test', lastAll ? fmtDate(lastAll) : '—', 'most recent result on record')}
-    ${card('Overdue', od, `${od === 1 ? 'bay / unit' : 'bays / units'} past the sheet's due date`, od ? 'bad' : 'good')}
-    ${card('Next due', nx ? dueTxt(nx.due) : '—', nx ? esc(unitName(nx.unit)) : '')}
-    ${card(`Median ${P.label.replace(/ \(.*\)/, '')}`, med == null ? '—' : `${fmt(med, P.dp)} <i>${P.unit}</i>`, 'latest test of each')}
+    ${card(`Tested in FY ${curFY()}`, `${testedFY}`, `${M.elements.length ? Math.round(testedFY / M.elements.length * 100) : 0} % of population · latest ${lastAll ? fmtDate(lastAll) : '—'}`)}
+    ${card('Beyond circular limit', bad, bad ? `${bad === 1 ? NOUN[t][0] : NOUN[t][1]} for planned action` : 'all within the circular limit', bad ? 'bad' : 'good')}
+    ${card('Overdue', od, `${od === 1 ? 'bay / unit' : 'bays / units'} past the due date${nx ? ` · next ${fmtDate(nx.due)}` : ''}`, od ? 'bad' : 'good')}
     ${card(`Highest ${P.label.replace(/ \(.*\)/, '')}`, worst ? `${fmt(worst.v, P.dp)} <i>${P.unit}</i>` : '—', worst ? esc(fullName(t, worst.e.u, worst.e.sub)) : '', '')}
   </div>`;
 }
@@ -100,6 +99,6 @@ export function testHeader(t, artHtml, actions) {
     <div class="th2-mid"><div class="eyebrow">${esc(Tt.eq)} · circular Sr ${Tt.sr}</div><h1>${esc(Tt.name)}</h1>
       <div class="facts">${FACTS[t].map(f => `<div class="fact"><span class="fi">${f.ic}</span><div><span class="fk">${f.k}</span><b>${f.v}</b>${f.s ? `<small>${f.s === SR ? `circular Sr ${t === 'ct' ? '18 / 19' : Tt.sr}` : f.s}</small>` : ''}</div></div>`).join('')}</div>
       <div class="th2-act">${actions}</div></div>
-    <div class="th2-pr"><div class="pr-h">Test principle</div><svg viewBox="0 0 420 230" role="img" aria-label="Test principle">${principle(t)}</svg></div>
-  </section>${glance(t)}`;
+  </section>${glance(t)}
+  <details class="sec th2-prd"><summary><span class="sec-t">How the test works</span><span class="dim">measuring circuit, what is judged and the limits</span><span class="caret">▾</span></summary><div class="sec-b"><div class="th2-pr"><svg viewBox="0 0 420 230" role="img" aria-label="Test principle">${principle(t)}</svg></div></div></details>`;
 }

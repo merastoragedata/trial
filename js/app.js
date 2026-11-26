@@ -1,20 +1,20 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1804';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1804';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1804';
-import { IC, LOGO } from './icons.js?v=20261126.1804';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1804';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1804';
-import { art, skyline } from './art.js?v=20261126.1804';
-import { shareButtons, wireShare } from './report.js?v=20261126.1804';
-import { testHeader } from './testviz.js?v=20261126.1804';
-import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1804';
-import { loadExtra, extraUnits } from './extra.js?v=20261126.1804';
-import { bayArt } from './bayart.js?v=20261126.1804';
-import { puCards, puPage } from './pu.js?v=20261126.1804';
-import { pendingPage, resultsPage } from './pages.js?v=20261126.1804';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1804';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1804';
-import { refresh } from './data.js?v=20261126.1804';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1906';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1906';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1906';
+import { IC, LOGO } from './icons.js?v=20261126.1906';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1906';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1906';
+import { art, skyline } from './art.js?v=20261126.1906';
+import { shareButtons, wireShare } from './report.js?v=20261126.1906';
+import { testHeader } from './testviz.js?v=20261126.1906';
+import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1906';
+import { loadExtra, extraUnits } from './extra.js?v=20261126.1906';
+import { bayArt } from './bayart.js?v=20261126.1906';
+import { puCards, puPage } from './pu.js?v=20261126.1906';
+import { pendingPage, resultsPage, keyVals } from './pages.js?v=20261126.1906';
+import { progress, curFY, model as tModel, renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1906';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1906';
+import { refresh } from './data.js?v=20261126.1906';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => {
@@ -299,13 +299,19 @@ function vOverview() {
   function row(u) { const h = assetHealth(u); return `<tr><td><a href="#/eq/${u}"><b>${esc(unitName(u))}</b></a> <span class="dim">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</span></td><td class="r">${h ? `<span class="band-${h.band[1]}" style="font-weight:600">${h.hi}</span>` : '<span class="dim">—</span>'}</td>${tests.map(t => `<td>${cell(u, t)}</td>`).join('')}</tr>`; }
 }
 
+/** Key values of the latest completed test of this equipment and test (one line per phase / element tested that day). */
+function lastRes(s) {
+  const rs = DB.records.filter(r => r.unit === s.unit && r.t === s.t && done(r)); if (!rs.length) return '<span class="dim">never tested</span>';
+  const d = rs.map(r => r.date).sort().pop(), day = rs.filter(r => r.date === d).slice(0, 3);
+  return `<div class="lr-d">${fmtDate(d)}</div>` + day.map(r => `<div class="lr">${r.ph && r.ph !== '-' ? `<b class="lr-ph">${r.ph}</b>` : ''}${keyVals(s.t, r)}</div>`).join('');
+}
 function schedTable(list, compact) {
   if (!list.length) return `<div class="empty">${pill('ok', 'Nothing overdue or due in the next 120 days')}</div>`;
   const lagTxt = (s) => s.lag.length ? s.lag.map(l => l.never ? `${l.k} never tested` : `${l.k} last ${fmtDate(l.last)}`).join(" · ") : "";
-  return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th><th>Equipment</th>${compact ? '' : '<th>Circular</th><th class="r">Last completed</th>'}<th class="r">Next due</th><th>Status</th>${compact ? '' : '<th>Not covered in last campaign</th>'}</tr></thead><tbody>
-  ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td><td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a>${compact && s.lag.length ? ` <span class="tag ver" title="${esc(lagTxt(s))}">${s.lag.length} lagging</span>` : ''}</td>
+  return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th>${compact ? '' : '<th>Equipment</th>'}${compact ? '' : '<th>Circular</th><th class="r">Last completed</th>'}<th class="r">Last result</th><th class="r">Next due</th><th>Status</th>${compact ? '' : '<th>Not covered in last campaign</th>'}</tr></thead><tbody>
+  ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td>${compact ? '' : `<td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a></td>`}
   ${compact ? '' : `<td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · ${esc(s.freq)}</button></td><td class="r">${fmtDate(s.last)}</td>`}
-  <td class="r" title="Last completed ${fmtDate(s.last)}">${dueTxt(s.due)}</td>
+  <td class="r keyv">${lastRes(s)}</td><td class="r" title="Last completed ${fmtDate(s.last)}">${dueTxt(s.due)}</td>
   <td>${s.status === 'overdue' ? pill('watch', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}${s.by && (!s.last || s.by.last !== s.last) ? `<div class="due-by">${esc(s.by.k)} · ${s.by.last ? 'last ' + fmtDate(s.by.last) : 'never tested'}</div>` : ''}</td>
   ${compact ? '' : `<td style="white-space:normal">${s.lag.length ? `<span class="note">${esc(lagTxt(s))}</span>` : '<span class="dim">—</span>'}</td>`}</tr>`).join('')}</tbody></table></div>`;
 }
@@ -373,9 +379,9 @@ function vUnit(u, q) {
     ${info ? '' : `<section class="card bay-art-card"><div class="card-h"><h2>Bay layout</h2><span class="sub">equipment in the order it is connected, as on the single-line diagram · click CT, CB or LA</span></div><div class="card-b">${bayArt(u)}</div></section>`}
     ${ts.length ? `<div class="sec-h" style="margin-top:4px"><h2>Diagnostic tests</h2><span class="note">click a test for full results, graphs and history</span></div>
     <div class="test-cards">${ts.map(t => testCard(u, t)).join('')}</div>
-    <div class="grid g-7-5 mt">${h ? `<div class="card"><div class="card-h"><h2>${isTF(u) ? 'Health index' : 'Bay health'}</h2><span class="sub">what drives the score</span></div><div class="card-b">${hiPanel(u)}</div></div>` : '<div></div>'}
+    <div class="grid g2 mt eq-2">${h ? `<div class="card"><div class="card-h"><h2>${isTF(u) ? 'Health index' : 'Bay health'}</h2><span class="sub">what drives the score</span></div><div class="card-b">${hiPanel(u)}</div></div>` : '<div></div>'}
       <div class="card"><div class="card-h"><h2>Schedule</h2><span class="sub">per test, from the latest completed test</span></div>${schedTable(sch, true)}</div></div>
-    <div class="card mt"><div class="card-h"><h2>Findings</h2><span class="sub">${fs.length}</span></div>${findingList(fs)}</div>`
+    <details class="sec fnd-sec mt"><summary><span class="sec-t">Findings</span><span class="dim">${fs.length ? `${fs.length} observation${fs.length > 1 ? 's' : ''} with recommended action` : 'all evaluated values within limits'} · included in image / PDF exports only when this section is open</span><span class="caret">▾</span></summary><div class="sec-b">${findingList(fs)}</div></details>`
     : '<div class="card empty">Proposed bay — equipment and tests will be added once it is commissioned.</div>'}`;
   $$('[data-detail]').forEach(b => b.onclick = (e) => { e.preventDefault(); openElement(b.dataset.detail, u, null); });  // navigates to #/el/…
   $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openElement(t, u, null); } });
@@ -409,8 +415,24 @@ function vTest(t, q) {
 
 function vTests() {
   setCrumbs([['Tests']]);
-  view().innerHTML = pageHead('Diagnostics', 'Tests', 'Test-wise view across all equipment, each with its governing circular clause and the industry comparison.')
-    + `<div class="tiles">${Object.values(TESTS).map(T => { const fs = findings().filter(f => f.t === T.key); const w = fs.length ? worst(fs.map(f => f.sev)) : 'ok'; return `<a class="tile sev-${w}" href="#/test/${T.key}"><div class="row"><span style="width:22px;height:22px;color:var(--brand-2);display:grid">${IC[T.key]}</span><span class="n">${esc(T.name)}</span><span style="flex:1"></span>${pill(w)}</div><div class="m">${esc(T.eq)} · circular Sr ${T.sr}</div><div class="m">${recs(T.key).length} records · ${unitsFor(T.key).length} ${T.key === 'ct' || T.key.startsWith('cb') || T.key === 'la' ? 'bays' : 'units'} · ${fs.length} findings</div></a>`; }).join('')}</div>`;
+  const fy = curFY();
+  const KIND = { bushing: 'transformer', winding: 'transformer', dga: 'transformer', ct: 'ct', cb_crm: 'breaker2', cb_timing: 'breaker2', la: 'la' };
+  const WHAT = { bushing: 'HV, IV, LV and neutral bushings of every ICT phase unit, the spare ICT and the bus reactor', winding: 'insulation between windings and to earth of every transformer and reactor unit', dga: 'gases dissolved in the oil of the main tank and the OLTC, with oil quality', ct: 'insulation of every 400 kV and 220 kV current transformer', cb_crm: 'main-contact resistance of every breaker pole', cb_timing: 'trip and close times of every breaker pole', la: 'third-harmonic resistive leakage current of every lightning arrester' };
+  const ring = (p) => { const r = 34, c = 2 * Math.PI * r; return `<svg viewBox="0 0 84 84" class="tc-rg"><circle cx="42" cy="42" r="${r}" class="bg"/><circle cx="42" cy="42" r="${r}" class="fg" stroke-dasharray="${c * Math.min(1, p / 100)} ${c}" transform="rotate(-90 42 42)"/><text x="42" y="48" text-anchor="middle">${p}%</text></svg>`; };
+  const cards = Object.values(TESTS).map(T => {
+    const t = T.key, M = tModel(t), pr = progress(t, M, fy);
+    const sv = M.elements.filter(e => e.L).map(e => statusOf(e.L));
+    const nA = sv.filter(s => SEV[s] >= 3).length, nW = sv.filter(s => s === 'watch').length, nOk = sv.length - nA - nW, tot = Math.max(1, sv.length);
+    const sch = SCHED.filter(s => s.t === t), od = sch.filter(s => s.status === 'overdue').length, nx = sch.filter(s => s.due >= DB.today).sort((a, b) => a.due - b.due)[0];
+    return `<a class="tcard" href="#/test/${t}"><div class="tc-art">${art(KIND[t], { alt: T.name })}</div>
+      <div class="tc-b"><div class="tc-eq">${esc(T.eq)} · circular Sr ${T.sr}</div><h2>${esc(T.name)}</h2><p class="tc-what">${esc(WHAT[t])}</p>
+        <div class="tc-row"><div class="tc-prog">${ring(pr.T.pct ?? 0)}<div><span>FY ${fy} progress</span><b>${pr.T.prog} of ${pr.T.target}</b><small>${esc(NOUN[t][1])} tested / targeted</small></div></div>
+          <div class="tc-hl"><span>Latest results</span><div class="hbar"><i class="ok" style="flex:${nOk}"></i><i class="w" style="flex:${nW}"></i><i class="a" style="flex:${nA}"></i></div>
+            <div class="hk"><b class="ok">${nOk}</b> healthy <b class="w">${nW}</b> monitor <b class="a">${nA}</b> planned action</div></div></div>
+        <div class="tc-f"><span><b>${M.elements.length}</b> ${esc(NOUN[t][1])}</span><span class="${od ? 'od' : 'okk'}">${od ? `${od} overdue` : 'none overdue'}</span><span>next due <b>${nx ? fmtDate(nx.due) : '—'}</b></span><span class="go">Open ${IC.arrow}</span></div></div></a>`;
+  }).join('');
+  view().innerHTML = heroHead('Diagnostics', 'Diagnostic tests', 'Seven condition tests cover every transformer, bushing, current transformer, breaker and lightning arrester at Karjat. Each card shows this year\'s progress, the split of the latest results and what falls due next — open a card for the full results, graphs and history.')
+    + `<div class="tcards">${cards}</div>`;
 }
 
 function vFindings(q) {
@@ -418,7 +440,7 @@ function vFindings(q) {
   const sev = q.get('sev') || 'all', tt = q.get('t') || 'all';
   const fs = findings().filter(f => (sev === 'all' || f.sev === sev) && (tt === 'all' || f.t === tt));
   const link = (k, v) => { const p = new URLSearchParams(q); p.set(k, v); return '#/findings?' + p; };
-  view().innerHTML = pageHead('Engineering review', 'Findings', '<b>◆ Critical / ▲ Alert</b>: a circular limit is breached. <b>● Watch</b>: an industry benchmark or adverse trend, still inside the circular. <b>i Info</b>: a measurement or data-quality check. Every finding names its basis and a recommended action.', printBtn)
+  view().innerHTML = pageHead('Engineering review', 'Needs attention', '<b>Priority action / Planned action</b>: a circular limit is exceeded. <b>Monitor</b>: an industry benchmark or adverse trend, still inside the circular. <b>Info</b>: a measurement or data-quality check. Every finding names its basis and a recommended action.', printBtn)
     + `<div class="toolbar"><div class="chips">${['all', 'critical', 'alert', 'watch', 'info'].map(s => `<a class="chip ${sev === s ? 'on' : ''}" href="${link('sev', s)}">${s === 'all' ? 'All' : SEV_LABEL[s]} <span class="num">${findings().filter(f => (s === 'all' || f.sev === s) && (tt === 'all' || f.t === tt)).length}</span></a>`).join('')}</div><div class="sp"></div>
     <select class="sel" aria-label="Filter by test" onchange="location.hash='${link('t', '__')}'.replace('__',this.value)"><option value="all">All tests</option>${Object.values(TESTS).map(T => `<option value="${T.key}" ${tt === T.key ? 'selected' : ''}>${esc(T.name)}</option>`).join('')}</select></div>
     <div class="card">${findingList(fs)}</div>`;
@@ -869,23 +891,28 @@ function fitPrint(orient) {
 // 33 kV level: the ICT tertiary (LV) bushings 3.1 / 3.2 are the only 33 kV equipment with diagnostic results
 /** Substation profile for the home page: capacity, where power comes from and goes, feeders, projects. */
 function aboutCard() {
-  const box = (x, y, w, t1, t2, cls = '') => `<g class="pf-n ${cls}"><rect x="${x}" y="${y}" width="${w}" height="54" rx="10"/><text x="${x + w / 2}" y="${y + 23}" text-anchor="middle" class="pf-t">${t1}</text><text x="${x + w / 2}" y="${y + 42}" text-anchor="middle" class="pf-s">${t2}</text></g>`;
-  const arr = (x1, y1, x2, y2, cls = '') => `<path class="pf-a ${cls}" d="M${x1} ${y1} L${x2} ${y2}" marker-end="url(#pfm)"/>`;
-  const feeders = ['Ahilyanagar', 'Bhose', 'Shirsuphal', 'Bhigwan', 'Jeur Ckt 1', 'Jeur Ckt 2'];
-  const svg = `<svg class="pf" viewBox="0 0 1120 330" role="img" aria-label="Power flow through Karjat substation">
-    <defs><marker id="pfm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker></defs>
-    ${box(10, 30, 220, 'MSPGCL Parli generation', 'connected at Girawali', 'gen')}
-    ${arr(230, 57, 290, 57)}
-    ${box(290, 30, 200, '400 kV Girawali S/S', 'Ckt 1 & 2 to Karjat', 'src')}
-    ${arr(490, 57, 560, 57)}
-    <g class="pf-n hub"><rect x="560" y="14" width="240" height="88" rx="14"/><text x="680" y="44" text-anchor="middle" class="pf-t big">400 kV Karjat</text><text x="680" y="66" text-anchor="middle" class="pf-s">2 × 501 MVA ICT · 125 MVAr reactor</text><text x="680" y="86" text-anchor="middle" class="pf-s">1½-breaker · 5 diameters</text></g>
-    ${arr(800, 57, 870, 57)}
-    ${box(870, 30, 240, '400 kV Lonikand S/S', 'Ckt 1 & 2 · Pune load centre', 'dst')}
-    ${box(870, 128, 240, '765/400 kV Pune East S/S', '2 × quad · bays 412 & 415 · proposed', 'prop')}
-    ${arr(870, 150, 800, 92, 'prop')}
-    ${arr(680, 102, 680, 168)}
-    <g class="pf-n hub2"><rect x="520" y="168" width="320" height="54" rx="10"/><text x="680" y="191" text-anchor="middle" class="pf-t">220 kV Karjat · double main + transfer bus</text><text x="680" y="210" text-anchor="middle" class="pf-s">ICT 1 & 2 IV · bus coupler · TBC</text></g>
-    ${feeders.map((f, k) => { const x = 40 + k * 180; return `${arr(680, 222, x + 75, 262)}${box(x, 262, 150, '220 kV ' + f.replace(/ Ckt \d/, ''), /Ckt/.test(f) ? f.match(/Ckt \d/)[0] : 'feeder', 'ld')}`; }).join('')}
+  // sources on the left, Karjat in the centre, 400 kV loads on the right, 220 kV loads below — orthogonal lines only
+  const box = (x, y, w, h, t1, t2, cls = '', t3 = '') => `<g class="pf-n ${cls}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/><text x="${x + w / 2}" y="${y + (t3 ? 30 : 34)}" text-anchor="middle" class="pf-t">${t1}</text><text x="${x + w / 2}" y="${y + (t3 ? 54 : 58)}" text-anchor="middle" class="pf-s">${t2}</text>${t3 ? `<text x="${x + w / 2}" y="${y + 76}" text-anchor="middle" class="pf-s">${t3}</text>` : ''}</g>`;
+  const ln = (d, cls = '') => `<path class="pf-l ${cls}" d="${d}"/>`;
+  const head = (x, y, dir, cls = '') => `<path class="pf-h ${cls}" d="${dir === 'r' ? `M${x - 12} ${y - 8}L${x} ${y}L${x - 12} ${y + 8}z` : `M${x - 8} ${y - 12}L${x} ${y}L${x + 8} ${y - 12}z`}"/>`;
+  const lab = (x, y, t, cls = '') => `<text x="${x}" y="${y}" text-anchor="middle" class="pf-lb ${cls}">${t}</text>`;
+  const feeders = [['Ahilyanagar', 'feeder'], ['Bhose', 'feeder'], ['Shirsuphal', 'feeder'], ['Bhigwan', 'feeder'], ['Jeur', 'Ckt 1'], ['Jeur', 'Ckt 2']];
+  const fx = (k) => 100 + k * 200;            // feeder centres
+  const svg = `<svg class="pf" viewBox="0 0 1200 600" role="img" aria-label="Power flow through 400 kV Karjat substation">
+    <text x="160" y="26" text-anchor="middle" class="pf-col">SOURCES</text><text x="600" y="26" text-anchor="middle" class="pf-col">400 kV KARJAT</text><text x="1050" y="26" text-anchor="middle" class="pf-col">400 kV LOADS</text>
+    ${box(20, 44, 280, 70, 'MSPGCL Parli generation', 'connected at 400 kV Girawali', 'gen')}
+    ${ln('M160 114 V140')}${head(160, 140, 'd')}
+    ${box(20, 140, 280, 84, '400 kV Girawali S/S', 'source today', 'src', '')}
+    ${box(20, 262, 280, 96, '765/400 kV Pune East S/S', 'strong 765 kV grid source', 'prop', 'proposed · 2 × quad-bundled')}
+    ${ln('M300 172 H450')}${ln('M300 192 H450')}${head(450, 172, 'r')}${head(450, 192, 'r')}${lab(375, 162, 'Girawali Ckt 1 & 2')}
+    ${ln('M300 300 H380 V228 H450', 'prop')}${ln('M300 320 H400 V248 H450', 'prop')}${head(450, 228, 'r', 'prop')}${head(450, 248, 'r', 'prop')}${lab(375, 350, 'bays 412 & 415', 'prop')}
+    <g class="pf-n hub"><rect x="450" y="140" width="300" height="130" rx="16"/><text x="600" y="180" text-anchor="middle" class="pf-t big">400 kV Karjat</text><text x="600" y="208" text-anchor="middle" class="pf-s">one-and-a-half breaker · 5 diameters</text><text x="600" y="232" text-anchor="middle" class="pf-s">125 MVAr bus reactor</text><text x="600" y="254" text-anchor="middle" class="pf-s">1002 MVA → 1503 MVA with ICT 3</text></g>
+    ${ln('M750 182 H900')}${ln('M750 202 H900')}${head(900, 182, 'r')}${head(900, 202, 'r')}${lab(825, 172, 'Lonikand Ckt 1 & 2')}
+    ${box(900, 140, 280, 96, '400 kV Lonikand S/S', 'Pune load centre', 'dst', '')}
+    ${[['ICT 1', '501 MVA', ''], ['ICT 2', '501 MVA', ''], ['ICT 3', '501 MVA · proposed', 'prop']].map(([n, s, c], k) => { const x = 440 + k * 110; return `${ln(`M${x + 30} 270 V300`, c)}<g class="pf-n ict ${c}"><rect x="${x}" y="300" width="60" height="58" rx="8"/><circle cx="${x + 30}" cy="318" r="9"/><circle cx="${x + 30}" cy="332" r="9"/><text x="${x + 66}" y="334" class="pf-s b">${n}</text></g>${ln(`M${x + 30} 358 V420`, c)}`; }).join('')}
+    <text x="600" y="396" text-anchor="middle" class="pf-s"> </text>
+    <path class="pf-bus" d="M40 420 H1160"/><text x="44" y="410" class="pf-lb l">220 kV Karjat bus · double main + transfer</text>
+    ${feeders.map(([n, s], k) => `${ln(`M${fx(k)} 420 V488`)}${head(fx(k), 488, 'd')}${box(fx(k) - 92, 488, 184, 84, n, '220 kV · ' + s, 'ld')}`).join('')}
   </svg>`;
   return `<section class="card about mt"><div class="card-h"><h2>About the substation</h2><span class="sub">capacity · power flow · feeders · projects</span></div>
     <div class="card-b">${svg}
@@ -894,6 +921,7 @@ function aboutCard() {
       <div><h3>Power flow</h3><p>Power arrives over <b>400 kV Karjat - Girawali Ckt 1 & 2</b> from 400 kV Girawali substation, where <b>MSPGCL Parli</b> generation is connected, and is forwarded over <b>400 kV Karjat - Lonikand Ckt 1 & 2</b> to the Pune load centre. The two ICTs step it down to 220 kV for the district network.</p></div>
       <div><h3>220 kV feeders</h3><p>${feeders.map(f => `<b>220 kV ${f}</b>`).join(' · ')}. A bus coupler and a transfer bus coupler keep any feeder in service during breaker maintenance.</p></div>
       <div class="up"><h3>Growth ahead</h3><p><b>ICT 3 project</b> (501 MVA, bays 409 / 202) is being initiated and will raise transformation capacity to <b>1503 MVA</b>. Two <b>400 kV quad-bundled circuits</b> from the <b>765/400 kV Pune East</b> substation will terminate at bays <b>412</b> and <b>415</b> as <b>400 kV Pune East Ckt 1 and Ckt 2</b>, making Karjat a stronger link in the 400 kV grid.</p></div>
+      <div><h3>Norms used</h3><p>Every reading is judged against <b>MSETCL circular 06961 (18 Oct 2024)</b>: corrected tan δ (20 °C) within <b>0.7 %</b>, rise within <b>0.1 %</b> since the previous test and change in capacitance within <b>−5 % to +10 %</b> for bushings, windings and CTs, with the circular's limits for contact resistance, operating time, LA leakage current and DGA. IEC / IEEE practice is shown alongside for reference only.</p></div>
       <div><h3>Diagnostic programme</h3><p>Seven condition tests — bushing and winding C & tan δ, DGA and oil quality, CT C & tan δ, CB contact resistance, CB operating time and LA leakage current — run on the MSETCL circular schedule. Each result is compared with the circular limit, with the unit's own history and with its sister units.</p></div>
     </div></div></section>`;
 }

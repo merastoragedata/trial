@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.1804';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.1906';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Priority action', alert: 'Planned action', watch: 'Monitor', info: 'Info', ok: 'Healthy', none: 'No data' };
@@ -57,8 +57,7 @@ function tandSeries(t, keyFn, opt) {
     }
     if (L.v.C != null && B.v.C != null && L !== B) {
       const dc = pctChange(B.v.C, L.v.C);
-      if (dc < LIM.cLo || dc > LIM.cHi) add({ ...base, sev: 'alert', recIds: [B.id, L.id], title: `Capacitance changed ${dc > 0 ? '+' : ''}${fmt(dc, 1)} % from baseline`, detail: `${label(L)}: ${fmt(B.v.C, 1)} pF (${B.date}) → ${fmt(L.v.C, 1)} pF.`, action: 'Outside −5/+10 % band. Repeat test; for bushings/CTs a C1 step points to shorted capacitor layers.', basis: opt.basis + ' cl.1' });
-      else if (opt.cWatch && Math.abs(dc) >= 5) add({ ...base, sev: 'watch', recIds: [B.id, L.id], title: `Capacitance +${fmt(dc, 1)} % — inside circular band, beyond IEEE ±5 %`, detail: `${label(L)}: ${fmt(B.v.C, 1)} → ${fmt(L.v.C, 1)} pF.`, action: 'Industry practice investigates at ±5 %. Verify with next test.', basis: 'IEEE C57.152 practice' });
+      if (dc < LIM.cLo || dc > LIM.cHi) add({ ...base, sev: 'alert', recIds: [B.id, L.id], title: `Capacitance changed ${dc > 0 ? '+' : ''}${fmt(dc, 1)} % from baseline`, detail: `${label(L)}: ${fmt(B.v.C, 1)} pF (${B.date}) → ${fmt(L.v.C, 1)} pF.`, action: 'Outside the circular band of −5 % to +10 %. Repeat test; for bushings/CTs a C1 step points to shorted capacitor layers.', basis: opt.basis + ' cl.1' });
     }
   }
 }

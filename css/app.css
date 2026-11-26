@@ -1600,3 +1600,78 @@ details.home-fold .kv-sec{margin:0}details.home-fold .kv-sec>.kv-h{display:none}
 .bay-art .ba-dim{fill:#5b6876;font-weight:600}
 .bay-art .ba-end{font:800 12.5px Inter,sans-serif;fill:#14365e}.bay-art .ba-sub{font:500 10.5px Inter,sans-serif;fill:#566577}
 .bay-art .ba-lnk{fill:#1a5fc2}.bay-art a:hover text{text-decoration:underline}
+
+/* ================================================================ v18 · tables that never overlap, column lines in every browser */
+/* Safari honours max-width on cells and lets nowrap text run into the next column — let every cell wrap instead */
+.main table td,.main table th{max-width:none!important}
+.main table td,.main table td a,.main table td b,.main table td span:not(.kv1):not(.pill):not(.due){white-space:normal!important;overflow-wrap:anywhere;word-break:normal}
+.main table td.r,.main table td.dt{overflow-wrap:normal}
+.main table td .pill,.main table td b.due,.main table td .kv1{white-space:nowrap!important}
+/* inner column separators drawn as a dotted background stripe (works with collapsed or separated borders, Safari and Chrome) */
+.main table td,.main table th{border-right:0!important;background-image:linear-gradient(to bottom,#8f8160 0 55%,transparent 55% 100%)!important;background-size:1.8px 7px!important;background-repeat:repeat-y!important;background-position:right top!important}
+.main table thead th{background-image:linear-gradient(to bottom,rgba(110,85,20,.65) 0 55%,transparent 55% 100%)!important}
+.main table tr>td:last-child,.main table tr>th:last-child,.main table tr.grp>td{background-image:none!important}
+.main table thead th{background-color:#f6ebcc}
+.main table td{border-bottom:1.8px dotted #8f8160!important}
+/* top bar always inside the page */
+.top{max-width:100vw}
+.top .search-btn{width:auto;min-width:0;padding:0 12px}.top .search-btn span,.top .search-btn kbd{display:none}
+.tnav{gap:2px;flex-wrap:nowrap;min-width:0}.tnav .tn{padding:8px 12px;white-space:nowrap}
+html,body{overflow-x:clip}
+/* sections */
+.glance.g5{grid-template-columns:repeat(5,1fr)!important}
+.glance .gl b{font-size:32px}.glance .gl span{font-size:16px}.glance .gl small{font-size:15px}
+details.th2-prd .th2-pr{max-width:760px;margin:0 auto}
+.th2{grid-template-columns:minmax(220px,300px) 1fr!important}
+.ly-prev{cursor:pointer}.ly-prev:hover{outline:2px solid #1a6fc2}
+.eq-2{grid-template-columns:1fr 1fr!important}
+.lr-d{font-size:14px;color:var(--ink-3)}.lr{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:2px}.lr-ph{font-size:14px;color:var(--ink-2);margin-right:2px}
+details.fnd-sec{margin-top:18px}
+
+/* power-flow sketch v2 */
+svg.pf{width:100%;height:auto;color:#3f4f61;margin-bottom:14px}
+.pf-col{font:800 15px Inter,sans-serif;letter-spacing:.12em;fill:#7a8796}
+.pf-t{font:800 20px Inter,sans-serif!important;fill:#1f2d3d}.pf-t.big{font-size:28px!important}
+.pf-s{font:600 15.5px Inter,sans-serif!important;fill:#4f5f71}.pf-s.b{font-weight:800;fill:#1f2d3d}
+.pf-lb{font:700 15px Inter,sans-serif;fill:#3f4f61}.pf-lb.l{text-anchor:start}.pf-lb.prop{fill:#6d28d9}
+.pf-l{stroke:#3f4f61;stroke-width:3;fill:none}.pf-l.prop{stroke:#7c3aed;stroke-dasharray:9 6}
+.pf-h{fill:#3f4f61}.pf-h.prop{fill:#7c3aed}
+.pf-bus{stroke:#1a5fc2;stroke-width:8;stroke-linecap:round}
+.pf-n.ict rect{fill:#eef4ff;stroke:#1a5fc2;stroke-width:2}.pf-n.ict circle{fill:none;stroke:#1a5fc2;stroke-width:2.4}
+.pf-n.ict.prop rect{fill:#f5f0ff;stroke:#7c3aed;stroke-dasharray:6 4}.pf-n.ict.prop circle{stroke:#7c3aed}
+.pf-n.prop rect{stroke-width:2.4}
+
+/* tests page cards */
+.tcards{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:20px}
+.tcard{display:grid;grid-template-columns:220px 1fr;border-radius:20px;overflow:hidden;background:linear-gradient(150deg,#ffffff,#f4f7fb);border:2px solid #c9d3de;text-decoration:none!important;color:var(--ink);box-shadow:0 14px 30px -22px rgba(15,45,85,.65);transition:transform .15s,box-shadow .15s}
+.tcard:hover{transform:translateY(-3px);box-shadow:0 22px 40px -24px rgba(15,45,85,.75);border-color:#1a6fc2}
+.tc-art{background:linear-gradient(180deg,#dbe9f6,#f3efe6);display:flex;align-items:center}.tc-art .art{margin:0;width:100%;box-shadow:none}.tc-art svg{width:100%;height:auto;display:block}
+.tc-b{padding:18px 22px;display:flex;flex-direction:column;gap:10px}
+.tc-eq{font:800 13px Inter,sans-serif;text-transform:uppercase;letter-spacing:.08em;color:#1a6fc2}
+.tc-b h2{margin:0;font-size:26px}.tc-what{margin:0;font-size:17px;color:var(--ink-2);line-height:1.45}
+.tc-row{display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+.tc-prog{display:flex;align-items:center;gap:10px}.tc-prog span{display:block;font-size:14px;color:var(--ink-3)}.tc-prog b{display:block;font-size:22px}.tc-prog small{font-size:13.5px;color:var(--ink-3)}
+.tc-rg{width:84px;height:84px}.tc-rg .bg{fill:none;stroke:#e3e8ee;stroke-width:9}.tc-rg .fg{fill:none;stroke:#1f8a4c;stroke-width:9;stroke-linecap:round}.tc-rg text{font:800 19px Inter,sans-serif;fill:#1f2d3d}
+.tc-hl>span{font-size:14px;color:var(--ink-3)}
+.hbar{display:flex;height:14px;border-radius:99px;overflow:hidden;background:#e3e8ee;margin:5px 0}.hbar i{display:block}.hbar .ok{background:#2f9e5f}.hbar .w{background:#e0a72e}.hbar .a{background:#d9702a}
+.hk{font-size:15px;color:var(--ink-2)}.hk b{font-size:17px;margin-left:6px}.hk b.ok{color:#1f8a4c}.hk b.w{color:#a86b0c}.hk b.a{color:#c2561b}
+.tc-f{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;border-top:1.5px dotted #c9d3de;padding-top:10px;font-size:16px}
+.tc-f .od{color:#b4232c;font-weight:800}.tc-f .okk{color:#1f8a4c;font-weight:700}.tc-f .go{margin-left:auto;color:#1a6fc2;font-weight:800;display:flex;align-items:center;gap:4px}.tc-f .go svg{width:16px;height:16px}
+@media (max-width:1100px){.tcards{grid-template-columns:1fr}}
+.el-sr{font:700 15px Inter,sans-serif;color:#3b4a5c;background:#eef3f8;border:1.5px solid #c9d3de;border-radius:8px;padding:2px 8px;white-space:nowrap}
+/* v18b · wrap words, never digits */
+.main table td,.main table td a,.main table td b,.main table td span:not(.kv1):not(.pill):not(.due){overflow-wrap:break-word!important}
+.main table td.r,.main table td.r *,.main table td.keyv *,.main table td .kv1,.main table td .kv1 *{overflow-wrap:normal!important;word-break:keep-all}
+.main table td .kv1,.main table td .kv1 *{white-space:nowrap!important}
+.main table td.keyv .kv1{display:inline-flex;margin:2px 3px}
+/* tests page: progress and result split stacked */
+.tcard{grid-template-columns:200px 1fr}.tc-row{grid-template-columns:1fr!important;gap:10px}
+.hk{display:flex;flex-wrap:wrap;gap:4px 14px}.hk b{margin-left:0}
+/* top bar fits */
+.top .search-btn{width:46px!important;padding:0!important;justify-content:center}
+.top .search-btn i{color:var(--ink,#1f2d3d)}
+.topnav .brand .t{font-size:17px!important}.tnav .tn{font-size:17px!important;padding:8px 10px!important}
+.top .search-btn{display:flex!important;min-width:46px!important;width:46px!important;height:40px!important;background:#fff!important;border:1.5px solid #c9d3de!important;border-radius:10px!important;flex:0 0 auto}.top .search-btn i{display:grid!important;width:20px!important;height:20px!important;color:#1f2d3d}
+.top{padding:0 16px!important;gap:8px!important}.topnav .brand{gap:8px}.tnav{margin-left:4px}
+.tgt-card table.prog{width:100%!important}.tgt-card table.prog td:last-child,.tgt-card table.prog th:last-child{min-width:0!important}.tgt-card table.prog td.r,.tgt-card table.prog th.r{white-space:normal!important}.tgt-card table.prog th,.tgt-card table.prog td{padding:8px 8px!important}.main table td .due-by{white-space:normal!important;font-size:14px}
+.glance.g5{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:12px}.glance.g5 .gl{min-width:0;flex:none!important}.glance.g5 .gl small{white-space:normal;overflow-wrap:break-word}

@@ -1,9 +1,9 @@
 // Shareable test results of one phase unit / bay (or one phase of a bay) in the portal's own sheet
 // format, exported as PNG (image) or PDF; on phones the system share sheet is offered.
-import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1804';
-import { findingsFor, SEV } from './rules.js?v=20261126.1804';
-import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1804';
-import { esc } from './ui.js?v=20261126.1804';
+import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1906';
+import { findingsFor, SEV } from './rules.js?v=20261126.1906';
+import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1906';
+import { esc } from './ui.js?v=20261126.1906';
 
 const SEVTXT = { ok: 'Healthy', watch: 'Monitor', alert: 'Planned action', critical: 'Priority action', none: 'Healthy' };
 
@@ -35,7 +35,7 @@ function section(t, S, n) {
   return { t, html: `<section class="rblk"><h2>${n}. ${esc(TESTS[t].name)}</h2>${tables}</section>`, es };
 }
 
-export function buildReport(S) {
+export function buildReport(S, withFindings = !!document.querySelector('details.fnd-sec[open]')) {
   const secs = [];
   let n = 1; for (const t of S.tests) { const s = section(t, S, n); if (s) { secs.push(s); n++; } }
   const fs = S.tests.flatMap(t => findingsFor({ t, unit: S.u })).filter(f => !S.ph || !f.ph || f.ph === S.ph || f.ph === '-').sort((a, b) => (SEV[b.sev] ?? 0) - (SEV[a.sev] ?? 0));
@@ -43,7 +43,7 @@ export function buildReport(S) {
     <header class="rblk rhead"><div class="rorg">${esc(DB.site.substation.org)} · ${esc(DB.site.substation.name)}</div><h1>Diagnostic test results</h1><div class="rsub">${esc(S.title)}</div>
       <p class="rnote" style="text-align:center">Colours: green within limit · yellow watch · orange beyond circular · red critical — MSETCL circular 06961 (18 Oct 2024) and industry practice. Generated ${fmtDate(new Date())}.</p></header>
     ${secs.map(s => s.html).join('')}
-    ${fs.length ? `<section class="rblk"><h2>${n}. Findings</h2><ul class="robs">${fs.map(f => `<li class="o-${f.sev}"><b>${esc(SEVTXT[f.sev] || f.sev)} · ${esc(f.where || '')}</b> — ${esc(f.title)}. ${esc(f.detail || '')} <i>Action: ${esc(f.action || '—')}</i></li>`).join('')}</ul></section>` : ''}
+    ${withFindings && fs.length ? `<section class="rblk"><h2>${n}. Findings</h2><ul class="robs">${fs.map(f => `<li class="o-${f.sev}"><b>${esc(SEVTXT[f.sev] || f.sev)} · ${esc(f.where || '')}</b> — ${esc(f.title)}. ${esc(f.detail || '')} <i>Action: ${esc(f.action || '—')}</i></li>`).join('')}</ul></section>` : ''}
   </div>`;
 }
 
