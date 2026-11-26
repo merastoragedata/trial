@@ -1,8 +1,8 @@
 // Transformer Health Index — weighted-factor method in the spirit of CIGRE TB 761 and
 // Jahromi et al. (2009). Indicative only: weights and break-points are set here, openly,
 // so S.E. PAC can tune them. Each factor keeps the reading that drove its score.
-import { DB, recs, groupBy } from './data.js?v=20261126.1456';
-import { LIM } from './rules.js?v=20261126.1456';
+import { DB, recs, groupBy } from './data.js?v=20261126.1804';
+import { LIM } from './rules.js?v=20261126.1804';
 
 const lerp = (x, pts) => {           // piecewise-linear: pts = [[x,score],...] ascending x
   if (x <= pts[0][0]) return pts[0][1];
@@ -16,7 +16,7 @@ const latestBy = (rs, key) => [...groupBy(rs, key).values()].map(s => s.sort((a,
 
 const recsOK = (t, f) => recs(t, f).filter(r => !r.excluded);
 export const HI_WEIGHTS = { dga: 30, oil: 15, winding: 25, bushing: 30 };
-export const HI_BANDS = [[85, 1, 'Very good', 'Normal ageing — continue routine tests'], [70, 2, 'Good', 'Routine tests at circular frequency'], [50, 3, 'Fair', 'Increase monitoring; plan investigation'], [30, 4, 'Poor', 'Plan corrective action / outage'], [0, 5, 'Very poor', 'Immediate risk assessment']];
+export const HI_BANDS = [[85, 1, 'Excellent', 'Normal ageing — continue routine tests'], [70, 2, 'Good', 'Routine tests at circular frequency'], [50, 3, 'Satisfactory', 'Closer monitoring; plan investigation'], [30, 4, 'Needs care', 'Plan corrective action at next outage'], [0, 5, 'Priority care', 'Priority assessment']];
 export const band = (hi) => HI_BANDS.find(b => hi >= b[0]);
 
 const GAS_W = { H2: 2, CH4: 3, C2H6: 3, C2H4: 3, C2H2: 5, CO: 1, CO2: 1 };
@@ -81,7 +81,7 @@ export function gaugeSVG(hi, size = 76) {
 // CRM is scored against the fleet median of the same voltage class (healthy-fleet
 // baseline), because the circular's 400 kV 50 µΩ figure does not match per-pole
 // measurement (see finding); the circular limit is still shown on every chart.
-import { kvOf, done } from './data.js?v=20261126.1456';
+import { kvOf, done } from './data.js?v=20261126.1804';
 export const BAY_WEIGHTS = { cb_crm: 20, cb_timing: 20, ct: 30, la: 30 };
 const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 const latestPh = (t, unit) => latestBy(recsOK(t, { unit }).filter(done), r => r.ph);

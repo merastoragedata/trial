@@ -1,14 +1,14 @@
 // ICT phase units (R / Y / B single-phase 167 MVA units): big cards on the ICT page and a dedicated
 // phase-unit page bringing bushing, winding and DGA results of one unit together.
-import { DB, fmt, fmtDate, unitName } from './data.js?v=20261126.1456';
-import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1456';
-import { model, fullName, elemHealth, elHref, dueTxt, cellSev } from './results.js?v=20261126.1456';
-import { extraSection } from './extra.js?v=20261126.1456';
-import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1456';
-import { shareButtons, wireShare } from './report.js?v=20261126.1456';
-import { art } from './art.js?v=20261126.1456';
-import { esc, $, pill } from './ui.js?v=20261126.1456';
-import { IC } from './icons.js?v=20261126.1456';
+import { DB, fmt, fmtDate, unitName } from './data.js?v=20261126.1804';
+import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1804';
+import { model, fullName, elemHealth, elHref, dueTxt, cellSev } from './results.js?v=20261126.1804';
+import { extraSection } from './extra.js?v=20261126.1804';
+import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1804';
+import { shareButtons, wireShare } from './report.js?v=20261126.1804';
+import { art } from './art.js?v=20261126.1804';
+import { esc, $, pill } from './ui.js?v=20261126.1804';
+import { IC } from './icons.js?v=20261126.1804';
 
 const TESTS3 = [['bushing', 'Bushings', 'tand20', 'Corr. tan δ', '%', 3], ['winding', 'Winding insulation', 'tand20', 'Corr. tan δ', '%', 3], ['dga', 'Main tank & OLTC (DGA)', 'TDCG', 'TDCG', 'ppm', 0]];
 const PHC = { R: '#c4161c', Y: '#b78a00', B: '#1a5fc2' };
@@ -64,8 +64,8 @@ export function puPage(u, ph, mount, { setCrumbs, rerender }) {
       <div class="row-flex mt">${['R', 'Y', 'B'].map(p => `<a class="btn ${p === ph ? 'pri' : ''}" href="#/pu/${u}/${p}">${p}-phase unit</a>`).join('')}<a class="btn" href="#/eq/${u}">${IC.arrow} ${esc(unitName(u))}</a></div>
       <div class="row-flex mt">${shareButtons(u, ph)}</div></div>
       <div class="asset-art">${art('transformer', { photo: `${u}-${ph}`, alt: `${unitName(u)} ${ph}-phase unit` })}</div></section>
+    <div class="np-wrap">${nameplateSection(u, ph)}</div>
     <div class="pu-blocks">${blocks}</div>
-    ${extraSection(u, ph)}
-    <div class="np-wrap">${nameplateSection(u, ph)}</div>`;
+    ${extraSection(u, ph)}`;
   wireNameplates(mount); wireShare(mount);
 }

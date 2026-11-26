@@ -1,9 +1,9 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.1456';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.1804';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
-export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
+export const SEV_LABEL = { critical: 'Priority action', alert: 'Planned action', watch: 'Monitor', info: 'Info', ok: 'Healthy', none: 'No data' };
 
 const LIM = {
   tand: 0.7, tandHard: 1.0, rise: 0.1, cLo: -5, cHi: 10,
