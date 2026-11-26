@@ -1,20 +1,20 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1914';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1914';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1914';
-import { IC, LOGO } from './icons.js?v=20261126.1914';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1914';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1914';
-import { art, skyline } from './art.js?v=20261126.1914';
-import { shareButtons, wireShare } from './report.js?v=20261126.1914';
-import { testHeader } from './testviz.js?v=20261126.1914';
-import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1914';
-import { loadExtra, extraUnits } from './extra.js?v=20261126.1914';
-import { bayArt } from './bayart.js?v=20261126.1914';
-import { puCards, puPage } from './pu.js?v=20261126.1914';
-import { pendingPage, resultsPage, keyVals } from './pages.js?v=20261126.1914';
-import { progress, curFY, model as tModel, renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1914';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1914';
-import { refresh } from './data.js?v=20261126.1914';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1917';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1917';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1917';
+import { IC, LOGO } from './icons.js?v=20261126.1917';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1917';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1917';
+import { art, skyline } from './art.js?v=20261126.1917';
+import { shareButtons, wireShare } from './report.js?v=20261126.1917';
+import { testHeader } from './testviz.js?v=20261126.1917';
+import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1917';
+import { loadExtra, extraUnits } from './extra.js?v=20261126.1917';
+import { bayArt } from './bayart.js?v=20261126.1917';
+import { puCards, puPage } from './pu.js?v=20261126.1917';
+import { pendingPage, resultsPage, keyVals } from './pages.js?v=20261126.1917';
+import { progress, curFY, model as tModel, renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1917';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1917';
+import { refresh } from './data.js?v=20261126.1917';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => {

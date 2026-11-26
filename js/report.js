@@ -1,9 +1,9 @@
 // Shareable test results of one phase unit / bay (or one phase of a bay) in the portal's own sheet
 // format, exported as PNG (image) or PDF; on phones the system share sheet is offered.
-import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1914';
-import { findingsFor, SEV } from './rules.js?v=20261126.1914';
-import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1914';
-import { esc } from './ui.js?v=20261126.1914';
+import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1917';
+import { findingsFor, SEV } from './rules.js?v=20261126.1917';
+import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1917';
+import { esc } from './ui.js?v=20261126.1917';
 
 const SEVTXT = { ok: 'Healthy', watch: 'Monitor', alert: 'Planned action', critical: 'Priority action', none: 'Healthy' };
 

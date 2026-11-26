@@ -1,8 +1,8 @@
 // Transformer Health Index — weighted-factor method in the spirit of CIGRE TB 761 and
 // Jahromi et al. (2009). Indicative only: weights and break-points are set here, openly,
 // so S.E. PAC can tune them. Each factor keeps the reading that drove its score.
-import { DB, recs, groupBy } from './data.js?v=20261126.1914';
-import { LIM } from './rules.js?v=20261126.1914';
+import { DB, recs, groupBy } from './data.js?v=20261126.1917';
+import { LIM } from './rules.js?v=20261126.1917';
 
 const lerp = (x, pts) => {           // piecewise-linear: pts = [[x,score],...] ascending x
   if (x <= pts[0][0]) return pts[0][1];
@@ -81,7 +81,7 @@ export function gaugeSVG(hi, size = 76) {
 // CRM is scored against the fleet median of the same voltage class (healthy-fleet
 // baseline), because the circular's 400 kV 50 µΩ figure does not match per-pole
 // measurement (see finding); the circular limit is still shown on every chart.
-import { kvOf, done } from './data.js?v=20261126.1914';
+import { kvOf, done } from './data.js?v=20261126.1917';
 export const BAY_WEIGHTS = { cb_crm: 20, cb_timing: 20, ct: 30, la: 30 };
 const med = (a) => { const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
 const latestPh = (t, unit) => latestBy(recsOK(t, { unit }).filter(done), r => r.ph);
