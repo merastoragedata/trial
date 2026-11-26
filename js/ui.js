@@ -1,6 +1,6 @@
 // Small DOM, chart and circular-viewer helpers.
-import { DB, fmtDate, toDate } from './data.js?v=20261126.1921';
-import { SEV_LABEL } from './rules.js?v=20261126.1921';
+import { DB, fmtDate, toDate } from './data.js?v=20261126.1953';
+import { SEV_LABEL } from './rules.js?v=20261126.1953';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Shape-coded status (readable without colour): ◆ critical · ▲ alert · ● watch · ✓ normal · i info · – no data

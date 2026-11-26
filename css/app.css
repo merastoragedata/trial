@@ -1682,3 +1682,20 @@ details.cb-np{margin-top:16px}
 .cb-facts{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
 .cb-facts div{background:#f3f6fa;border:1.5px solid #c9d3de;border-radius:10px;padding:8px 12px}
 .cb-facts span{display:block;font-size:13.5px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.05em}.cb-facts b{font-size:18px;overflow-wrap:anywhere}
+/* last result grid */
+.kvg{display:inline-grid;gap:0;border:1.5px solid #c9d3de;border-radius:10px;overflow:hidden;background:#fff;min-width:140px;vertical-align:middle;text-align:center}
+.kvg .kvh{background:#eef3f8;font:700 13px Inter,sans-serif!important;color:#3b4a5c;padding:4px 8px;border-bottom:1.5px solid #c9d3de;white-space:nowrap}
+.kvg .kvh small{display:block;font-size:11.5px;font-weight:600;color:#6b7a8c}
+.kvg .kvv{font:800 17px 'IBM Plex Mono',monospace!important;padding:5px 8px;border-top:1px dotted #d5dde6;white-space:nowrap;color:#1f2d3d}
+.kvg .kvp{font:800 14px Inter,sans-serif;padding:5px 4px;border-top:1px dotted #d5dde6;display:flex;align-items:center;justify-content:center}
+.kvg .kvp.ph-R{color:#b4232c}.kvg .kvp.ph-Y{color:#a86b0c}.kvg .kvp.ph-B{color:#1a5fc2}
+.kvg .kvv.c-watch{background:#fff6dc;color:#8a5a00}.kvg .kvv.c-alert{background:#ffe8d9;color:#a8410f}.kvg .kvv.c-critical{background:#ffe0e0;color:#9b1c1c}
+.lr-d{font-size:14px;color:var(--ink-3);margin-bottom:4px}
+/* OLTC held */
+.due-held{display:inline-block;font:800 15px Inter,sans-serif;color:#5b21b6;background:#f3edff;border:1.5px solid #c4b0f3;border-radius:8px;padding:3px 8px;white-space:nowrap}
+.held-rem{font-size:14px;color:#5b21b6;margin-top:3px;line-height:1.35}
+.oltc-bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:6px 0 14px;padding:10px 14px;border-radius:12px;background:#f5f0ff;border:1.5px solid #c4b0f3;font-size:17px}
+.oltc-bar b{color:#5b21b6}
+.ly-g.on{outline:2px solid #1a6fc2}
+.page-host{position:absolute;left:-10000px;top:0;background:#fff;padding:16px}
+.kvg .kvp.ph-R{background:#c93434!important;color:#fff!important}.kvg .kvp.ph-Y{background:#c99a12!important;color:#fff!important}.kvg .kvp.ph-B{background:#2563c9!important;color:#fff!important}

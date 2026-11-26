@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.1921';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.1953';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Priority action', alert: 'Planned action', watch: 'Monitor', info: 'Info', ok: 'Healthy', none: 'No data' };
@@ -271,7 +271,13 @@ export const dueFrom = (t, u, iso) => { const d = toDate(iso); d.setDate(d.getDa
 /** Never tested: due one interval after commissioning. */
 export const codDue = (t, u) => { const c = codOf(u); return c ? dueFrom(t, u, c) : null; };
 /** Due date of one element from its latest row date (as the sheet), else from commissioning. */
-export const elemDue = (t, u, lastIso) => lastIso ? dueFrom(t, u, lastIso) : codDue(t, u);
+// OLTC oil sampling is restricted by higher authorities at this substation (no OLTC operations are done):
+// OLTC compartments stay in every list, but carry no scheduled date — only the remark, which the admin can edit.
+export const OLTC_DEFAULT = 'Not scheduled — OLTC DGA restricted by higher authorities (no OLTC operations at this substation)';
+export const oltcHeld = (t, sub) => t === 'dga' && /OLTC$/.test(String(sub || ''));
+export const oltcRemark = () => { try { return localStorage.getItem('oltcRemark') || OLTC_DEFAULT; } catch { return OLTC_DEFAULT; } };
+export const setOltcRemark = (txt) => { try { txt ? localStorage.setItem('oltcRemark', txt) : localStorage.removeItem('oltcRemark'); } catch { } };
+export const elemDue = (t, u, lastIso, sub) => oltcHeld(t, sub) ? null : lastIso ? dueFrom(t, u, lastIso) : codDue(t, u);
 /** Latest row date of a list of rows (excluded template rows never count). */
 export const lastRowDate = (rows) => rows.filter(r => !r.excluded && r.date).map(r => r.date).sort().pop() || null;
 
@@ -291,16 +297,18 @@ export function schedule() {
       const lastAny = ga.map(r => r.date).sort().pop() || null;
       const els = pop.filter(([u]) => u === unit).map(([u, sub]) => `${u}|${sub}`);
       for (const k of lastOf.keys()) if (!els.includes(k)) els.push(k);
-      let due = null, by = null; const lag = [];
+      let due = null, by = null; const lag = [], held = [];
       for (const k of els) {
-        const d = lastOf.get(k), ed = elemDue(t, unit, d), sub = (k.split('|').slice(1).join(' ').trim() || '—').replace(/^([RYB])(?= |$)/, '$1ph').replace(/^- /, '');
-        if (!d) lag.push({ k: sub, last: null, never: true });
+        const d = lastOf.get(k), ed = elemDue(t, unit, d, k), sub = (k.split('|').slice(1).join(' ').trim() || '—').replace(/^([RYB])(?= |$)/, '$1ph').replace(/^- /, '');
+        if (oltcHeld(t, k)) { /* held: no date, not lagging */ }
+        else if (!d) lag.push({ k: sub, last: null, never: true });
         else if (lastAny && years(d, lastAny) > 60 / 365) lag.push({ k: sub, last: d });
+        if (oltcHeld(t, k)) { held.push(sub); continue; }
         if (ed && (!due || ed < due)) { due = ed; by = { k: sub, last: d || null }; }
       }
       if (!due) continue;
       const days = Math.round((due - DB.today) / 864e5);
-      out.push({ t, key: unit, unit, last, due, by, days, months, freq, sr, lag, never: !last, n: new Set(g0.map(r => r.date)).size,
+      out.push({ t, key: unit, unit, last, due, by, days, months, freq, sr, lag, held, never: !last, n: new Set(g0.map(r => r.date)).size,
         status: days < 0 ? 'overdue' : days <= 120 ? 'due' : 'ok' });
     }
   }

@@ -1,20 +1,20 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1921';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1921';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1921';
-import { IC, LOGO } from './icons.js?v=20261126.1921';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1921';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1921';
-import { art, skyline } from './art.js?v=20261126.1921';
-import { shareButtons, wireShare } from './report.js?v=20261126.1921';
-import { testHeader } from './testviz.js?v=20261126.1921';
-import { cbNameplateSection, loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1921';
-import { loadExtra, extraUnits } from './extra.js?v=20261126.1921';
-import { bayArt } from './bayart.js?v=20261126.1921';
-import { puCards, puPage } from './pu.js?v=20261126.1921';
-import { pendingPage, resultsPage, keyVals } from './pages.js?v=20261126.1921';
-import { progress, curFY, model as tModel, renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1921';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1921';
-import { refresh } from './data.js?v=20261126.1921';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1953';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1953';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1953';
+import { IC, LOGO } from './icons.js?v=20261126.1953';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1953';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1953';
+import { art, skyline } from './art.js?v=20261126.1953';
+import { pageShareButtons, wirePageShare, shareButtons, wireShare } from './report.js?v=20261126.1953';
+import { testHeader } from './testviz.js?v=20261126.1953';
+import { cbNameplateSection, loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1953';
+import { loadExtra, extraUnits } from './extra.js?v=20261126.1953';
+import { bayArt } from './bayart.js?v=20261126.1953';
+import { puCards, puPage } from './pu.js?v=20261126.1953';
+import { pendingPage, resultsPage, keyVals, keyGrid } from './pages.js?v=20261126.1953';
+import { progress, curFY, model as tModel, renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1953';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1953';
+import { refresh } from './data.js?v=20261126.1953';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => {
@@ -302,8 +302,8 @@ function vOverview() {
 /** Key values of the latest completed test of this equipment and test (one line per phase / element tested that day). */
 function lastRes(s) {
   const rs = DB.records.filter(r => r.unit === s.unit && r.t === s.t && done(r)); if (!rs.length) return '<span class="dim">never tested</span>';
-  const d = rs.map(r => r.date).sort().pop(), day = rs.filter(r => r.date === d).slice(0, 3);
-  return `<div class="lr-d">${fmtDate(d)}</div>` + day.map(r => `<div class="lr">${r.ph && r.ph !== '-' ? `<b class="lr-ph">${r.ph}</b>` : ''}${keyVals(s.t, r)}</div>`).join('');
+  const d = rs.map(r => r.date).sort().pop(), day = rs.filter(r => r.date === d).sort((a, b) => 'RYBN-'.indexOf(a.ph) - 'RYBN-'.indexOf(b.ph)).slice(0, 4);
+  return `<div class="lr-d">tested ${fmtDate(d)}</div>${keyGrid(s.t, day)}`;
 }
 function schedTable(list, compact) {
   if (!list.length) return `<div class="empty">${pill('ok', 'Nothing overdue or due in the next 120 days')}</div>`;
@@ -312,7 +312,7 @@ function schedTable(list, compact) {
   ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td>${compact ? '' : `<td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a></td>`}
   ${compact ? '' : `<td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · ${esc(s.freq)}</button></td><td class="r">${fmtDate(s.last)}</td>`}
   <td class="r keyv">${lastRes(s)}</td><td class="r" title="Last completed ${fmtDate(s.last)}">${dueTxt(s.due)}</td>
-  <td>${s.status === 'overdue' ? pill('watch', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}${s.by && (!s.last || s.by.last !== s.last) ? `<div class="due-by">${esc(s.by.k)} · ${s.by.last ? 'last ' + fmtDate(s.by.last) : 'never tested'}</div>` : ''}</td>
+  <td>${s.status === 'overdue' ? pill('watch', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}${s.by && (!s.last || s.by.last !== s.last) ? `<div class="due-by">${esc(s.by.k)} · ${s.by.last ? 'last ' + fmtDate(s.by.last) : 'never tested'}</div>` : ''}${s.held?.length ? `<div class="held-rem">${esc(s.held.join(', '))}: not scheduled — OLTC DGA restricted</div>` : ''}</td>
   ${compact ? '' : `<td style="white-space:normal">${s.lag.length ? `<span class="note">${esc(lagTxt(s))}</span>` : '<span class="dim">—</span>'}</td>`}</tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -402,13 +402,13 @@ function vTest(t, q) {
   const chip = (k, l) => { const s = ['all', '400', '220'].includes(k) ? null : unitStatus(k, t); return `<a class="chip ${f === k ? 'on' : ''}" href="#/test/${t}${k === 'all' ? '' : '?u=' + k}">${s && SEV[s] >= 2 ? `<span class="dot ${s}"></span>` : ''}${esc(l)}</a>`; };
   const A = analytics(t, recs(t));
   const heroArt = art(t === 'cb_crm' || t === 'cb_timing' ? 'breaker2' : t === 'ct' ? 'ct' : t === 'la' ? 'la' : 'transformer', { alt: T.name });
-  view().innerHTML = `${testHeader(t, heroArt, `${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button>${printBtn}`)}
+  view().innerHTML = `${testHeader(t, heroArt, `${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button>${printBtn}${pageShareButtons(T.name)}`)}
     <div id="v4"></div>
     <div class="sec-h mt-l"><h2>More analysis</h2><span class="note">reference · click to expand</span></div>
     <details class="sec"><summary><span class="sec-t">Circular clause & industry practice</span><span class="caret">▾</span></summary><div class="sec-b"><div class="grid g2">${clauseCard(t === 'ct' ? 18 : T.sr, t)}${standardsCard(t)}</div></div></details>
     <details class="sec"><summary><span class="sec-t">Findings</span><span class="dim">${fs.length}</span><span class="caret">▾</span></summary><div class="sec-b"><div class="card">${findingList(fs)}</div></div></details>
 `;
-  renderSections(t, $('#v4'));
+  renderSections(t, $('#v4')); wirePageShare(view());
   $$('[data-norms]').forEach(b => b.onclick = () => openNorms(t));
   normsFab(t);
 
@@ -874,7 +874,7 @@ function setupPrint() {
     d.innerHTML = `<div class="pa-in" role="dialog" aria-label="Print"><b>Print / save as PDF</b><span>The page is scaled to fit the paper width.</span>
       <div class="pa-b"><button class="btn pri" data-o="portrait">▯ Portrait</button><button class="btn pri" data-o="landscape">▭ Landscape</button><button class="btn" data-o="">Cancel</button></div></div>`;
     document.body.appendChild(d);
-    d.onclick = (e) => { const b = e.target.closest('[data-o]'); if (!b && e.target !== d) return; d.remove(); if (b && b.dataset.o) fitPrint(b.dataset.o); };
+    d.onclick = (e) => { const b = e.target.closest('[data-o]'); if (!b && e.target !== d) return; if (d.parentNode) d.parentNode.removeChild(d); if (b && b.dataset.o) fitPrint(b.dataset.o); };
   };
 }
 function fitPrint(orient) {
@@ -883,9 +883,9 @@ function fitPrint(orient) {
   let st = document.getElementById('print-style'); if (!st) { st = document.createElement('style'); st.id = 'print-style'; document.head.appendChild(st); }
   const usable = (orient === 'landscape' ? 277 : 190) * 96 / 25.4, z = orient === 'landscape' ? 0.85 : 0.64;
   const W = Math.floor(usable / z);   // the whole document is laid out at this width; the browser then scales it once to the paper
-  st.textContent = `@page{size:A4 ${orient};margin:10mm}@media print{html,body,.shell,.main,.view{width:${W}px!important;min-width:0!important;max-width:${W}px!important}.view{padding:0!important}}`;
+  st.textContent = `@page{size:A4 ${orient};margin:10mm}@media print{html{zoom:${z}}html,body,.shell,.main,.view{width:${W}px!important;min-width:0!important;max-width:${W}px!important}.view{padding:0!important}.pathbar,.top,.topnav,.a11y,.norms-fab,.share,.print-ask{display:none!important}}`;
   document.querySelectorAll('table.seq thead').forEach(t => { t.style.transform = ''; });
-  setTimeout(() => window.__nativePrint(), 60);
+  window.__nativePrint();                         // synchronous: keeps the user's tap, which mobile Safari requires
 }
 
 
