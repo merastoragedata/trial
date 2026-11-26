@@ -1,10 +1,10 @@
 // Data layer. Today it reads static JSON; later swap `source` for a DB adapter
 // (e.g. Supabase) that returns the same shapes: {substation, bays, units, records, issues}.
 
-import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.0651';
+import { recompute, newRows, ELEM, codOverrides } from './edit.js?v=20261126.0941';
 export { ELEM };
 
-export const BUILD = '20261126.0651';  // set by tools/stamp_version.py
+export const BUILD = '20261126.0941';  // set by tools/stamp_version.py
 
 const JSON_SOURCE = {
   async load() {
@@ -34,19 +34,28 @@ export const DB = { site: null, norms: null, standards: null, today: new Date() 
 export async function loadAll(source = JSON_SOURCE) {
   const d = await source.load();
   Object.assign(DB, d);
-  DB.records = d.site.records.map((r, i) => ({ ...r, id: i }));
   refresh();
   DB.normsBySr = Object.fromEntries(d.norms.rows.map(r => [r.sr, r]));
   return DB;
 }
 
 /** Re-apply admin edits and recompute derived cells (call after any edit). */
+// Test voltage of tan δ / capacitance results: 10 kV is the default (every judgement, schedule and
+// target uses it); 5 kV results are stored too and shown when the 5 kV view is chosen.
+export const TANT = ['ct', 'bushing', 'winding'];
+export const tvOf = (r) => TANT.includes(r.t) ? (r.tv || 10) : 10;
+export const VIEW = { tv: 10 };
 export function refresh() {
-  const base = DB.site.records.length;
-  DB.records = DB.records.filter(r => r.id < base);
-  for (const n of newRows()) DB.records.push({ ...n, id: DB.records.length });
-  recompute(DB.records, DB.site.tempCorrection, done);
+  const all = DB.site.records.map((r, i) => ({ ...r, id: i }));
+  for (const n of newRows()) all.push({ ...n, id: all.length });
+  const r10 = all.filter(r => tvOf(r) === 10), r5 = all.filter(r => tvOf(r) === 5);
+  recompute(r10, DB.site.tempCorrection, done);          // previous-test chains stay within one test voltage
+  recompute(r5, DB.site.tempCorrection, done);
+  DB.all = all; DB.r10 = r10; DB.r5 = r5; DB.byId = new Map(all.map(r => [r.id, r]));
+  DB.records = VIEW.tv === 5 ? [...r10.filter(r => !TANT.includes(r.t)), ...r5] : r10;
 }
+/** Switch the tan δ results shown between 10 kV (default) and 5 kV. */
+export function setTestVoltage(v) { VIEW.tv = v === 5 ? 5 : 10; DB.records = VIEW.tv === 5 ? [...DB.r10.filter(r => !TANT.includes(r.t)), ...DB.r5] : DB.r10; }
 
 /** Equipment population per test: elements present in the sheet's blocks or in the data,
  *  restricted to bays in the register and excluding future bays. */

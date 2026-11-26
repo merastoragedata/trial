@@ -117,7 +117,9 @@ def blocks(wb, sheet, t, hdr_row, fields, date_col=7, ses_col=6, rem_col=None, s
         vals = {k: num(x) for k, x in raw.items()}
         bad = note_text_in_numbers(sheet, i, raw)
         if all(v is None for v in vals.values()) and not bad and season_col is None:
-            continue  # date row with nothing measured yet (LA keeps it: a season with no reading)
+            # a dated row with nothing measured: kept (not a completed test) because the sheet
+            # counts its date for the next-due date, exactly as printed in the PDF
+            rem = rem or 'No reading recorded in the sheet'
         rec = {'t': t, 'unit': str(bay), 'pos': '', 'ph': ph or '-', 'date': d,
                'ses': txt(r[ses_col]) or session_of(d), 'v': vals,
                'rem': '; '.join(x for x in (bad, rem) if x), 'src': f'{sheet}!{i}'}
@@ -231,6 +233,13 @@ if __name__ == '__main__':
         POP['la'] = {(u, '-' if u in SINGLE else ph) for u, ph in POP['la'] if not (u in SINGLE and ph != '-') or True}
         POP['la'] = {(u, ph) for u, ph in POP['la'] if not (u in SINGLE and ph != '-')}
         ISSUES.append({'src': 'PDF of the sheet', 'field': 'LA', 'text': f'{added} LA readings (220 kV side incl. bay 200 spare ICT IV, and the Nov 2026 400 kV campaign) are only in the PDF print of the sheet; imported from the PDF', 'calc': True})
+
+    # --- 5 kV tan δ readings (the sheet holds 10 kV only; 10 kV stays the default for every judgement)
+    p5 = _os.path.join(_os.path.dirname(dst) or '.', 'extra_5kv.json')
+    if _os.path.exists(p5):
+        x5 = json.load(open(p5))['records']
+        for r in x5: r.setdefault('pos', ''); out.append(r)
+        ISSUES.append({'src': '5 kV readings', 'field': 'tv', 'text': f'{len(x5)} tan δ / capacitance readings at 5 kV added from data/extra_5kv.json (shown with the 5 kV switch; 10 kV is the default)', 'calc': True})
 
     # --- copied rows: identical readings in many different sampling points / elements on one date
     # Different tanks / phases cannot return identical multi-parameter readings, so such rows are

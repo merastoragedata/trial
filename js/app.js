@@ -1,15 +1,16 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0651';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0651';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0651';
-import { IC, LOGO } from './icons.js?v=20261126.0651';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0651';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0651';
-import { art, skyline } from './art.js?v=20261126.0651';
-import { shareButtons, wireShare } from './report.js?v=20261126.0651';
-import { pendingPage, resultsPage } from './pages.js?v=20261126.0651';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.0651';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0651';
-import { refresh } from './data.js?v=20261126.0651';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0941';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0941';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0941';
+import { IC, LOGO } from './icons.js?v=20261126.0941';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0941';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0941';
+import { art, skyline } from './art.js?v=20261126.0941';
+import { shareButtons, wireShare } from './report.js?v=20261126.0941';
+import { testHeader } from './testviz.js?v=20261126.0941';
+import { pendingPage, resultsPage } from './pages.js?v=20261126.0941';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.0941';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0941';
+import { refresh } from './data.js?v=20261126.0941';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -339,7 +340,7 @@ function vUnit(u, q) {
   const ts = testsForUnit(u);
   setCrumbs([['Equipment', '#/equipment'], [unitName(u)]]);
   const info = isTF(u) ? DB.site.units[u] : null;
-  const fs = findings().filter(f => f.unit === u || (f.unit === '*' && f.recIds.some(id => DB.records[id].unit === u)));
+  const fs = findings().filter(f => f.unit === u || (f.unit === '*' && f.recIds.some(id => DB.byId.get(id)?.unit === u)));
   const sch = SCHED.filter(s => s.unit === u);
   const st = ts.length ? unitStatus(u) : 'none';
   const h = assetHealth(u);
@@ -374,9 +375,8 @@ function vTest(t, q) {
   const fs = findings().filter(x => x.t === t);
   const chip = (k, l) => { const s = ['all', '400', '220'].includes(k) ? null : unitStatus(k, t); return `<a class="chip ${f === k ? 'on' : ''}" href="#/test/${t}${k === 'all' ? '' : '?u=' + k}">${s && SEV[s] >= 2 ? `<span class="dot ${s}"></span>` : ''}${esc(l)}</a>`; };
   const A = analytics(t, recs(t));
-  view().innerHTML = `<section class="test-hero"><div class="th-art">${art(t === 'cb_crm' || t === 'cb_timing' ? 'breaker2' : t === 'ct' ? 'ct' : t === 'la' ? 'la' : 'transformer', { alt: T.name })}</div>
-      <div class="th-body"><div class="eyebrow">${esc(T.eq)} · circular Sr ${T.sr}</div><h1>${esc(T.name)}</h1><p class="lede">${esc(TEST_ABOUT[t])}</p>
-      <div class="actions" style="display:flex;gap:8px;margin-top:12px">${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button>${printBtn}</div></div></section>
+  const heroArt = art(t === 'cb_crm' || t === 'cb_timing' ? 'breaker2' : t === 'ct' ? 'ct' : t === 'la' ? 'la' : 'transformer', { alt: T.name });
+  view().innerHTML = `${testHeader(t, heroArt, `${circularBtn(t === 'ct' ? 18 : T.sr, 'Circular scan')}<button class="btn" data-norms>${IC.standards}Norms & standards</button>${printBtn}`)}
     <div id="v4"></div>
     <div class="sec-h mt-l"><h2>More analysis</h2><span class="note">reference · click to expand</span></div>
     <details class="sec"><summary><span class="sec-t">Circular clause & industry practice</span><span class="caret">▾</span></summary><div class="sec-b"><div class="grid g2">${clauseCard(t === 'ct' ? 18 : T.sr, t)}${standardsCard(t)}</div></div></details>
@@ -670,7 +670,7 @@ function openDetail(u, t) {
   const all = recs(t, { unit: u }).sort((a, b) => b.date.localeCompare(a.date));
   const rs = all.filter(done);
   const s = unitStatus(u, t), sch = SCHED.find(x => x.unit === u && x.t === t);
-  const fs = findings().filter(f => f.t === t && (f.unit === u || (f.unit === '*' && f.recIds.some(id => DB.records[id].unit === u))));
+  const fs = findings().filter(f => f.t === t && (f.unit === u || (f.unit === '*' && f.recIds.some(id => DB.byId.get(id)?.unit === u))));
   const sr = t === 'ct' && kvOf(u) === 220 ? 19 : (t === 'ct' ? 18 : T.sr);
   const ser = [...groupBy(rs.filter(r => k.get(r) != null), k.sub)].map(([key, x]) => { x.sort((a, b) => a.date.localeCompare(b.date)); const L = x.at(-1), P = x.at(-2), B = x[0]; return { key, L, P, B }; }).sort((a, b) => a.key.localeCompare(b.key));
   const keys = [...new Set(all.flatMap(r => Object.keys(r.v)))].filter(x => FIELD[x] && x !== 'TDCG_sheet');
@@ -718,6 +718,8 @@ function route(opt = {}) {
   const h = location.hash.replace(/^#/, '') || '/';
   const [path, qs] = h.split('?'); const q = new URLSearchParams(qs || '');
   const p = path.split('/').filter(Boolean);
+  { const sec = ['test', 'el', 'results', 'tests'].includes(p[0]) ? 'tests' : p[0] === 'pending' ? 'pending' : !p[0] ? 'home' : '';
+    $$('.tnav .tn').forEach(x => x.classList.toggle('on', (sec === 'home' && x.getAttribute('href') === '#/') || (sec === 'pending' && x.getAttribute('href') === '#/pending') || (sec === 'tests' && x.id === 'tnTests'))); }
   $$('.nav a').forEach(a => { const href = a.getAttribute('href'); a.classList.toggle('on', href === '#/' + (p[0] || '') || (p[0] === 'test' && href === '#/test/' + p[1]) || (p[0] === 'eq' && href === '#/equipment')); });
   $('#sb').classList.remove('open');
   const V = { '': vOverview, equipment: vEquipment, sld: vSld, tests: vTests, findings: vFindings, schedule: vSchedule, norms: vNorms, standards: vStandards, data: vData, about: vAbout };
@@ -737,6 +739,12 @@ function shell() {
   $$('.nav a[data-ic] .ic').forEach(el => el.innerHTML = IC[el.parentElement.dataset.ic] || '');
   $('#menuBtn').innerHTML = IC.menu; $('#printBtn').innerHTML = IC.print; $('#themeBtn').innerHTML = IC.theme; $('#searchIc').innerHTML = IC.search;
   $('#menuBtn').onclick = () => $('#sb').classList.toggle('open');
+  $('#sbClose').onclick = $('#sbBack').onclick = () => $('#sb').classList.toggle('open', false);
+  $$('.tnav [data-ic] .ic').forEach(el => el.innerHTML = IC[el.parentElement.dataset.ic] || ''); $$('.tnav [data-icn]').forEach(el => el.innerHTML = IC[el.dataset.icn] || '');
+  const dd = $('#tnTests'), ddm = $('#tnTestsMenu');
+  dd.onclick = (e) => { e.stopPropagation(); const o = !ddm.classList.contains('open'); ddm.classList.toggle('open', o); dd.setAttribute('aria-expanded', o); };
+  document.addEventListener('pointerdown', (e) => { if (!e.target.closest('.tn-dd')) { ddm.classList.toggle('open', false); dd.setAttribute('aria-expanded', false); } });
+  ddm.addEventListener('click', (e) => { if (e.target.closest('a')) ddm.classList.toggle('open', false); });
   $('#printBtn').onclick = () => window.print();
   $('#searchBtn').onclick = openPalette;
   const ab = document.createElement('button'); ab.className = 'icon-btn admin-btn'; ab.id = 'adminBtn'; ab.title = 'Admin: edit results, remarks and targets'; ab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Admin</span>`;
@@ -756,7 +764,8 @@ function afterLoad() {
   $('#nc-find').textContent = fs.filter(f => SEV[f.sev] >= 3).length || '';
   $('#nc-sched').textContent = SCHED.filter(s => s.status === 'overdue').length || '';
   $('#nav-tests').innerHTML = Object.values(TESTS).map(T => { const w = worst(fs.filter(f => f.t === T.key).map(f => f.sev)); return `<a href="#/test/${T.key}"><span class="ic">${IC[T.key]}</span>${esc(T.short)}${SEV[w] >= 3 ? `<span class="ct" title="${SEV_LABEL[w]}" style="background:var(--${w === 'critical' ? 'crit' : 'alert'});color:#fff">!</span>` : ''}</a>`; }).join('');
-  $('#site-name').textContent = DB.site.substation.name;
+  $('#site-name').textContent = DB.site.substation.name; $('#site-name2').textContent = DB.site.substation.name;
+  $('#tnav-tests').innerHTML = Object.values(TESTS).map(T => `<a href="#/test/${T.key}" role="menuitem"><span class="ic">${IC[T.key]}</span><b>${esc(T.name)}</b></a>`).join('');
   $('#site-fy').textContent = `FY ${DB.site.substation.fy} · ${DB.records.length.toLocaleString('en-IN')} records`;
   // command palette index
   const items = [
