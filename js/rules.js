@@ -1,6 +1,6 @@
 // Engineering rule engine. Every finding records its basis (MSETCL circular Sr./clause
 // or an industry reference) so the reasoning stays auditable.
-import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate } from './data.js?v=20261125.1955';
+import { DB, recs, groupBy, years, kvOf, unitName, addMonths, TESTS, fmt, isTF, done, toDate, codOf, population, ELEM } from './data.js?v=20261126.0443';
 
 export const SEV = { critical: 4, alert: 3, watch: 2, info: 1, ok: 0, none: -1 };
 export const SEV_LABEL = { critical: 'Critical', alert: 'Alert', watch: 'Watch', info: 'Info', ok: 'Normal', none: 'No data' };
@@ -260,21 +260,41 @@ export function laWindow(iso) {             // returns [season just done, due da
   if (m >= 3 && m <= 7) return ['Pre-monsoon', new Date(y, 10, 30)];            // next: post-monsoon by 30 Nov
   return ['Post-monsoon', new Date(m <= 2 ? y : y + 1, 4, 31)];                 // next: pre-monsoon by 31 May
 }
+// ---- the one due-date engine (every page uses these) ----------------------------------------------
+/** Circular interval in months for a test on a bay / unit. */
+export const intervalMonths = (t, u) => t === 'ct' ? (kvOf(u) === 220 ? 12 : 24) : t === 'la' ? 6 : MONTHS[t];
+/** Next due date counted from a completed test (LA: next monsoon window). */
+export const dueFrom = (t, u, iso) => t === 'la' ? laWindow(iso)[1] : addMonths(iso, intervalMonths(t, u));
+/** Never tested: due one interval after commissioning. */
+export const codDue = (t, u) => { const c = codOf(u); return c ? dueFrom(t, u, c) : null; };
+/** Due date of one element (phase / bushing / point) from its own latest completed test, else from commissioning. */
+export const elemDue = (t, u, lastIso) => lastIso ? dueFrom(t, u, lastIso) : codDue(t, u);
+
+// One entry per EQUIPMENT (bay / unit) per TEST. Due = from the latest completed campaign; an element
+// never tested since commissioning makes the equipment due one interval after commissioning; an element
+// left out of the latest campaign keeps its own (earlier) due date — the equipment is due at the earliest.
 export function schedule() {
   const out = [];
   for (const t of Object.keys(TESTS)) {
-    for (const [unit, g0] of groupBy(recsOK(t).filter(done), r => r.unit)) {
-      const last = g0.map(r => r.date).sort().pop();
-      const kv = kvOf(unit);
-      let months = t === 'ct' ? (kv === 220 ? 12 : 24) : MONTHS[t], due, freq;
-      const sr = t === 'ct' ? (kv === 220 ? 19 : 18) : TESTS[t].sr;
-      if (t === 'la') { const [season, nx] = laWindow(last); due = nx; freq = `½-yearly · ${season.toLowerCase()} done`; months = 6; }
-      else { due = addMonths(last, months); freq = months === 12 ? 'yearly' : months === 6 ? '½-yearly' : `${months / 12}-yearly`; }
-      // components not covered in the latest campaign (more than 60 days older)
-      const sub = [...groupBy(g0, SUBKEY[t])].map(([k, s]) => [k, s.map(r => r.date).sort().pop()]);
-      const lag = sub.filter(([, d]) => years(d, last) > 60 / 365).map(([k, d]) => ({ k: k.trim(), last: d }));
+    const pop = population(t), ok = recsOK(t).filter(done);
+    const units = [...new Set([...pop.map(([u]) => u), ...ok.map(r => r.unit)])];
+    for (const unit of units) {
+      const g0 = ok.filter(r => r.unit === unit);
+      const last = g0.map(r => r.date).sort().pop() || null;
+      const months = intervalMonths(t, unit), sr = t === 'ct' ? (kvOf(unit) === 220 ? 19 : 18) : TESTS[t].sr;
+      let due = last ? dueFrom(t, unit, last) : codDue(t, unit);
+      const freq = t === 'la' ? `½-yearly${last ? ' · ' + laWindow(last)[0].toLowerCase() + ' done' : ''}` : months === 12 ? 'yearly' : months === 6 ? '½-yearly' : `${months / 12}-yearly`;
+      // elements of this equipment: lagging behind the latest campaign, or never tested
+      const lastOf = new Map(); for (const r of g0) { const k = ELEM[t](r); if (!lastOf.has(k) || r.date > lastOf.get(k)) lastOf.set(k, r.date); }
+      const lag = [];
+      for (const [u, sub] of pop.filter(([u]) => u === unit)) { const k = `${u}|${sub}`;
+        const d = lastOf.get(k), ed = elemDue(t, unit, d);
+        if (!d) lag.push({ k: sub.replace(/\|/g, ' ').trim() || '—', last: null, never: true });
+        else if (last && years(d, last) > 60 / 365) lag.push({ k: sub.replace(/\|/g, ' ').trim(), last: d });
+        if (ed && (!due || ed < due)) due = ed; }
+      if (!due) continue;
       const days = Math.round((due - DB.today) / 864e5);
-      out.push({ t, key: unit, unit, last, due, days, months, freq, sr, lag, n: new Set(g0.map(r => r.date)).size,
+      out.push({ t, key: unit, unit, last, due, days, months, freq, sr, lag, never: !last, n: new Set(g0.map(r => r.date)).size,
         status: days < 0 ? 'overdue' : days <= 120 ? 'due' : 'ok' });
     }
   }

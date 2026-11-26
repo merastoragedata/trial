@@ -1,13 +1,13 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261125.1955';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261125.1955';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261125.1955';
-import { IC, LOGO } from './icons.js?v=20261125.1955';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261125.1955';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261125.1955';
-import { art, skyline } from './art.js?v=20261125.1955';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName } from './results.js?v=20261125.1955';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount } from './edit.js?v=20261125.1955';
-import { refresh } from './data.js?v=20261125.1955';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0443';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0443';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0443';
+import { IC, LOGO } from './icons.js?v=20261126.0443';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0443';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0443';
+import { art, skyline } from './art.js?v=20261126.0443';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView } from './results.js?v=20261126.0443';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0443';
+import { refresh } from './data.js?v=20261126.0443';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -281,12 +281,12 @@ function vOverview() {
 
 function schedTable(list, compact) {
   if (!list.length) return `<div class="empty">${pill('ok', 'Nothing overdue or due in the next 120 days')}</div>`;
-  const lagTxt = (s) => s.lag.length ? s.lag.map(l => `${l.k} last ${fmtDate(l.last)}`).join(' · ') : '';
+  const lagTxt = (s) => s.lag.length ? s.lag.map(l => l.never ? `${l.k} never tested` : `${l.k} last ${fmtDate(l.last)}`).join(" · ") : "";
   return `<div class="tbl-wrap"><table class="t nw"><thead><tr><th>Test</th><th>Equipment</th>${compact ? '' : '<th>Circular</th><th class="r">Last completed</th>'}<th class="r">Next due</th><th>Status</th>${compact ? '' : '<th>Not covered in last campaign</th>'}</tr></thead><tbody>
   ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td><td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a>${compact && s.lag.length ? ` <span class="tag ver" title="${esc(lagTxt(s))}">${s.lag.length} lagging</span>` : ''}</td>
   ${compact ? '' : `<td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · ${esc(s.freq)}</button></td><td class="r">${fmtDate(s.last)}</td>`}
   <td class="r" title="Last completed ${fmtDate(s.last)}">${fmtDate(s.due)}</td>
-  <td>${s.status === 'overdue' ? pill('critical', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}</td>
+  <td>${s.status === 'overdue' ? pill('watch', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}</td>
   ${compact ? '' : `<td style="white-space:normal">${s.lag.length ? `<span class="note">${esc(lagTxt(s))}</span>` : '<span class="dim">—</span>'}</td>`}</tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -495,30 +495,69 @@ function vTargets(q) {
   setCrumbs([['FY targets']]);
   targetsPage(view(), q.get('t'));
 }
-// floating Norms & standards button: draggable; parks itself on blank space
-function normsFab(t) {
-  const b = document.createElement('button'); b.className = 'fab-norms'; b.title = 'Norms & standards for these results · drag anywhere · double-click to return to the corner';
-  b.innerHTML = `${IC.norms}<span>Norms & standards</span>`;
-  view().appendChild(b);
-  let saved = null; try { saved = JSON.parse(localStorage.getItem('ehv-fab')); } catch { }
-  const place = (x, y) => { b.style.left = Math.max(8, Math.min(innerWidth - b.offsetWidth - 8, x)) + 'px'; b.style.top = Math.max(64, Math.min(innerHeight - b.offsetHeight - 8, y)) + 'px'; };
-  const _blank = (x, y) => { const w = b.offsetWidth, h = b.offsetHeight; b.style.visibility = 'hidden';
-    const ok = [[x + 4, y + 4], [x + w - 4, y + 4], [x + 4, y + h - 4], [x + w - 4, y + h - 4], [x + w / 2, y + h / 2]].every(([px, py]) => { const el = document.elementFromPoint(px, py); return !el || el === document.body || el.matches('.main, .view, .shell, html'); });
-    b.style.visibility = ''; return ok; };
-  const park = () => {                                   // default: bottom-right corner; translucent, so it may sit over text
-    if (saved) return place(saved.x, saved.y);
-    place(innerWidth - b.offsetWidth - 22, innerHeight - b.offsetHeight - 22);
-  };
-  requestAnimationFrame(park);
-  let raf = 0; const onScroll = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => { if (!saved) park(); }); };
-  addEventListener('scroll', onScroll, { passive: true }); addEventListener('resize', onScroll);
-  let drag = null, moved = false;
-  b.addEventListener('pointerdown', (e) => { drag = { dx: e.clientX - b.offsetLeft, dy: e.clientY - b.offsetTop }; moved = false; b.setPointerCapture(e.pointerId); });
-  b.addEventListener('pointermove', (e) => { if (!drag) return; moved = true; b.classList.add('dragging'); place(e.clientX - drag.dx, e.clientY - drag.dy); });
-  b.addEventListener('pointerup', () => { if (drag && moved) { saved = { x: b.offsetLeft, y: b.offsetTop }; try { localStorage.setItem('ehv-fab', JSON.stringify(saved)); } catch { } } drag = null; b.classList.remove('dragging'); });
-  b.addEventListener('click', (e) => { if (moved) { e.preventDefault(); return; } openNorms(t); });
-  b.addEventListener('dblclick', () => { saved = null; try { localStorage.removeItem('ehv-fab'); } catch { } park(); });
+// Accessibility menu: one floating button (bottom-right, draggable) that opens a small panel —
+// norms & standards, graphs on / off, full history rows (admin), text size. A tap outside closes it.
+let A11Y_T = null;
+function normsFab(t) { A11Y_T = t; a11yMenu(); }
+function a11yMenu() {
+  let w = $('#a11y');
+  if (!w) {
+    w = document.createElement('div'); w.id = 'a11y'; w.className = 'a11y';
+    w.innerHTML = `<div class="a11y-panel" role="dialog" aria-label="Accessibility and view"></div><button class="a11y-fab" aria-expanded="false" title="Accessibility & view · drag to move · double-click to return to the corner">${IC.norms}<span>Accessibility</span></button>`;
+    document.body.appendChild(w);
+    const fab = w.querySelector('.a11y-fab'), panel = w.querySelector('.a11y-panel');
+    // position: anchored to the bottom-right by default; a dragged position is kept as a share of the screen
+    const put = () => { let p = null; try { p = JSON.parse(localStorage.getItem('ehv-a11y-pos')); } catch { }
+      w.style.right = p ? `${Math.min(92, Math.max(0, p.r))}%` : '22px'; w.style.bottom = p ? `${Math.min(92, Math.max(0, p.b))}%` : '22px'; };
+    put();
+    let drag = null, moved = false;
+    fab.addEventListener('pointerdown', (e) => { const r = w.getBoundingClientRect(); drag = { x: e.clientX, y: e.clientY, r: innerWidth - r.right, b: innerHeight - r.bottom }; moved = false; fab.setPointerCapture(e.pointerId); });
+    fab.addEventListener('pointermove', (e) => { if (!drag) return; const dx = e.clientX - drag.x, dy = e.clientY - drag.y; if (!moved && Math.hypot(dx, dy) < 6) return; moved = true; w.classList.add('dragging');
+      w.style.right = Math.max(4, Math.min(innerWidth - fab.offsetWidth - 4, drag.r - dx)) + 'px'; w.style.bottom = Math.max(4, Math.min(innerHeight - fab.offsetHeight - 4, drag.b - dy)) + 'px'; });
+    fab.addEventListener('pointerup', () => { if (drag && moved) { const r = w.getBoundingClientRect(); try { localStorage.setItem('ehv-a11y-pos', JSON.stringify({ r: (innerWidth - r.right) / innerWidth * 100, b: (innerHeight - r.bottom) / innerHeight * 100 })); } catch { } } drag = null; w.classList.remove('dragging'); });
+    fab.addEventListener('click', (e) => { if (moved) { e.preventDefault(); moved = false; return; } const open = !w.classList.contains('open'); w.classList.toggle('open', open); fab.setAttribute('aria-expanded', open); if (open) drawA11y(); });
+    fab.addEventListener('dblclick', () => { try { localStorage.removeItem('ehv-a11y-pos'); } catch { } put(); });
+    document.addEventListener('pointerdown', (e) => { if (w.classList.contains('open') && !w.contains(e.target)) { w.classList.remove('open'); fab.setAttribute('aria-expanded', false); } });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') w.classList.remove('open'); });
+    panel.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-a]'); if (!b) return; const act = b.dataset.a;
+      if (act === 'norms') { w.classList.remove('open'); A11Y_T ? openNorms(A11Y_T) : (location.hash = '#/norms'); return; }
+      if (act === 'graphs') setViewPref('graphs', !viewPref('graphs'));
+      if (act === 'history') { if (!isAdmin()) return; setViewPref('history', !viewPref('history')); }
+      if (act.startsWith('ts')) setViewPref('text', +act.slice(2));
+      applyView(); drawA11y(); stickHeads();
+    });
+  }
+  w.classList.remove('open'); applyView();
 }
+function drawA11y() {
+  const p = $('#a11y .a11y-panel'); if (!p) return; const adm = isAdmin();
+  const sw = (on) => `<i class="sw ${on ? 'on' : ''}"></i>`;
+  p.innerHTML = `<div class="a11y-h"><b>Accessibility & view</b><span class="dim">tap outside to close</span></div>
+    <button class="a11y-i" data-a="norms">${IC.standards}<span><b>Norms & standards</b><small>${A11Y_T ? 'circular clause + industry practice for this test' : 'MSETCL circular and industry standards'}</small></span></button>
+    <button class="a11y-i" data-a="graphs">${IC.trend}<span><b>Graphs</b><small>show or hide every graph in the results</small></span>${sw(viewPref('graphs'))}</button>
+    <button class="a11y-i ${adm ? '' : 'locked'}" data-a="history" ${adm ? '' : 'aria-disabled="true"'}>${IC.schedule}<span><b>Full test history</b><small>${adm ? 'off = detailed results show only the latest and previous test' : 'set by the admin — sign in as admin to change'}</small></span>${sw(viewPref('history'))}</button>
+    <div class="a11y-i ts"><span class="ts-a">A</span><span><b>Text size</b><small>larger text for easier reading</small></span><span class="seg">${['A', 'A+', 'A++'].map((l, i) => `<button data-a="ts${i}" class="${viewPref('text') === i ? 'on' : ''}">${l}</button>`).join('')}</span></div>`;
+}
+
+// Frozen table headers: a table's header row slides down under the frozen section / bay headings while
+// the table scrolls past (works inside horizontally scrolling tables, where CSS sticky cannot).
+function stickHeads() {
+  const topBar = $('.top')?.getBoundingClientRect().bottom || 56;
+  for (const tb of $$('table.seq, table.prog, table.never-t, table.wl')) {
+    const th = tb.tHead; if (!th) continue;
+    const r = tb.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) { if (th.style.transform) th.style.transform = ''; continue; }
+    let off = topBar;
+    const sum = tb.closest('details.sec:not(.inner)')?.querySelector(':scope>summary'); if (sum) off = Math.max(off, sum.getBoundingClientRect().bottom);
+    const ub = tb.closest('.ub')?.querySelector(':scope>.ub-h'); if (ub) off = Math.max(off, ub.getBoundingClientRect().bottom);
+    const eh = tb.closest('section.el-sec')?.querySelector(':scope>.row-flex'); if (eh) off = Math.max(off, eh.getBoundingClientRect().bottom);
+    const hh = th.getBoundingClientRect().height, y = Math.max(0, Math.min(off - r.top, r.height - hh - 30));
+    th.style.transform = y > 0 ? `translateY(${y}px)` : ''; th.classList.toggle('stuck', y > 0);
+  }
+}
+let SH_RAF = 0; const stickSoon = () => { cancelAnimationFrame(SH_RAF); SH_RAF = requestAnimationFrame(stickHeads); };
+addEventListener('scroll', stickSoon, { passive: true }); addEventListener('resize', stickSoon);
+document.addEventListener('toggle', stickSoon, true);
 
 function vNotFound() { setCrumbs([['Not found']]); view().innerHTML = '<div class="empty">Page not found. <a href="#/">Go to overview</a></div>'; }
 
@@ -595,7 +634,7 @@ function testCard(u, t) {
   const spark = sparkline(rs.filter(r => k.get(r) != null), k);
   return `<a class="test-card sev-${s}" href="#/eq/${u}?t=${t}" data-detail="${t}"><div class="tc-h"><span class="tc-ic">${IC[t]}</span><span class="n">${esc(TESTS[t].name)}</span><span style="flex:1"></span>${pill(s)}</div>
     <div class="tc-v"><span class="num">${worstL ? fmt(k.get(worstL), k.dp) : '—'}</span><span class="u">${k.unit}</span><span class="dim">worst latest ${esc(k.label)}${worstL ? ' · ' + esc(k.sub(worstL)) : ''}</span></div>${spark}
-    <div class="tc-f"><span>Last ${sch ? fmtDate(sch.last) : '—'}</span><span>${sch ? (sch.status === 'overdue' ? `<b style="color:var(--crit)">Overdue ${-sch.days} d</b>` : `Due ${fmtDate(sch.due)}`) : ''}</span></div></a>`;
+    <div class="tc-f"><span>Last ${sch ? fmtDate(sch.last) : '—'}</span><span>${sch ? (sch.status === 'overdue' ? `<b style="color:var(--watch)">Overdue ${-sch.days} d</b>` : `Due ${fmtDate(sch.due)}`) : ''}</span></div></a>`;
 }
 function sparkline(rs, k) {
   const pts = [...groupBy(rs, r => r.date)].map(([d, x]) => [d, Math.max(...x.map(k.get))]).sort((a, b) => a[0].localeCompare(b[0]));
@@ -623,7 +662,7 @@ function openDetail(u, t) {
   const gkeys = [...groups.keys()];
   const body = `
     <div class="dt-head">${art(artKind(u) === 'reactor' || artKind(u) === 'transformer' ? artKind(u) : (t === 'ct' ? 'ct' : t === 'la' ? 'la' : kvOf(u) === 400 ? 'breaker2' : 'breaker1'), { photo: `${u}-${t}`, alt: T.name })}
-      <div><div class="row-flex">${pill(s)}${sch ? (sch.status === 'overdue' ? pill('critical', `Overdue ${-sch.days} d`) : pill('ok', `Next due ${fmtDate(sch.due)}`)) : ''}${circularBtn(sr, 'Circular scan')}</div>
+      <div><div class="row-flex">${pill(s)}${sch ? (sch.status === 'overdue' ? pill('watch', `Overdue ${-sch.days} d`) : pill('ok', `Next due ${fmtDate(sch.due)}`)) : ''}${circularBtn(sr, 'Circular scan')}</div>
       <p class="lede" style="margin-top:8px">${esc(TEST_ABOUT[t])}</p>
       <div class="stat-strip">
         <div><span>Last completed</span><b>${sch ? fmtDate(sch.last) : '—'}</b></div><div><span>Completed tests</span><b>${new Set(rs.map(r => r.date)).size}</b></div>
@@ -659,7 +698,7 @@ function openDetail(u, t) {
 function route(opt = {}) {
   destroyCharts();
   if (!opt.keepModal) $$('.modal-bg, .drawer').forEach(m => m.remove());
-  $$('.fab-norms').forEach(f => f.remove());
+  A11Y_T = null;
   const h = location.hash.replace(/^#/, '') || '/';
   const [path, qs] = h.split('?'); const q = new URLSearchParams(qs || '');
   const p = path.split('/').filter(Boolean);
@@ -672,7 +711,7 @@ function route(opt = {}) {
   else if (p[0] === 'test') vTest(p[1], q);
   else (V[p[0] || ''] || vNotFound)(q);
   if (!opt.keepScroll) window.scrollTo(0, 0);
-  adminBar();
+  adminBar(); a11yMenu(); setTimeout(stickHeads, 80);
 }
 
 function shell() {

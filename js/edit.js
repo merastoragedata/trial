@@ -92,7 +92,7 @@ export function setTarget(k, n) { const t = targets(); if (n === null || n === '
 
 // view settings decided by the admin (graphs on/off, blank bays shown / hidden)
 const KEY_VIEW = 'ehv-view-v1', KEY_COD = 'ehv-cod-v1';
-export const viewPref = (k) => ({ graphs: true, blank: true, ...ls.get(KEY_VIEW, {}) })[k];
+export const viewPref = (k) => ({ graphs: true, blank: true, history: true, text: 0, ...ls.get(KEY_VIEW, {}) })[k];
 export function setViewPref(k, v) { const p = ls.get(KEY_VIEW, {}); p[k] = v; ls.set(KEY_VIEW, p); }
 // commissioning date of a bay / unit (admin may correct it; default = unit record or substation)
 export const codOverrides = () => ls.get(KEY_COD, {});
