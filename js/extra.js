@@ -1,7 +1,7 @@
 // Other tests recorded on a unit outside the diagnostic sheet (ratio, OC, SC, winding resistance, IR/PI),
 // shown as recorded with the portal's recalculation checks.
-import { fmtDate, unitName } from './data.js?v=20261126.1917';
-import { esc } from './ui.js?v=20261126.1917';
+import { fmtDate, unitName } from './data.js?v=20261126.1921';
+import { esc } from './ui.js?v=20261126.1921';
 
 let X = null;
 export async function loadExtra() { if (!X) X = await fetch(`data/extra_tests.json?v=${Date.now() >> 16}`).then(r => r.json()).catch(() => ({})); return X; }

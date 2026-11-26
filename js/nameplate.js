@@ -1,10 +1,30 @@
 // Nameplates: recreated plates (from the site photographs), photo viewer and per-unit uploads.
 // ICT plates are identical for all single-phase units except the serial number.
-import { DB, isTF, unitName } from './data.js?v=20261126.1917';
-import { esc, $, $$ } from './ui.js?v=20261126.1917';
+import { DB, isTF, unitName } from './data.js?v=20261126.1921';
+import { esc, $, $$ } from './ui.js?v=20261126.1921';
 
 let NP = null;
-export async function loadNameplates() { if (!NP) NP = await fetch(`data/nameplates.json?v=${Date.now() >> 16}`).then(r => r.json()).catch(() => ({})); return NP; }
+export async function loadNameplates() {
+  if (!NP) NP = await fetch(`data/nameplates.json?v=${Date.now() >> 16}`).then(r => r.json()).catch(() => ({}));
+  if (!CBN) CBN = await fetch(`data/cb_nameplates.json?v=${Date.now() >> 16}`).then(r => r.json()).catch(() => ({ bays: {} }));
+  return NP;
+}
+let CBN = null;
+/** Circuit-breaker nameplate data of a bay (type, serial, year, operation), or null. */
+export const cbInfo = (u) => CBN?.bays?.[u] || null;
+/** Collapsed section on a bay page: recreated CB nameplate with the type's full rating. */
+export function cbNameplateSection(u, { open = false } = {}) {
+  const B = cbInfo(u); if (!B) return '';
+  const spec = CBN.types[B.type] || [], half = Math.ceil(spec.length / 2), S = CBN.summary?.[B.type];
+  const plate = `<div class="np-plate"><div class="plate-screws"></div><div class="plate-maker">GE</div><div class="plate-title">SF6 CIRCUIT BREAKER · TYPE ${esc(B.type)}</div>
+    <div class="np-serials"><span>BREAKER SERIAL No.</span> <b>${esc(B.serial)}</b> · <span>YEAR OF MFG.</span> <b>${esc(String(B.year))}</b></div>
+    <div class="np-cols">${kv(spec.slice(0, half))}${kv(spec.slice(half))}</div>
+    <div class="plate-foot"><span>Customer: Maharashtra State Electricity Transmission Company Ltd.</span><b>GE T&amp;D India Limited</b></div></div>`;
+  const facts = [['Bay', `Bay ${u}`], ['Type', B.type], ['Serial no.', B.serial], ['Year of manufacture', B.year], ['Rated voltage', `${B.kv} kV`], ['Operation', B.operation], ['Commissioned', '11 Jan 2022'], ['Same type in service', S ? `${S.qty} · bays ${S.bays}` : '—']];
+  return `<details class="sec inner np-sec cb-np" ${open ? 'open' : ''}><summary><span class="sec-t">🏷 CB nameplate · ${esc(B.type)} · Sr ${esc(B.serial)}</span><span class="dim">${esc(B.operation)} · ${B.kv} kV · ${esc(B.make)} ${B.year}</span><span class="caret">▾</span></summary>
+    <div class="sec-b"><div class="cb-facts">${facts.map(([k, v]) => `<div><span>${esc(k)}</span><b>${esc(String(v))}</b></div>`).join('')}</div>${plate}
+    <p class="note">${esc(CBN.source || '')}. ${esc(CBN.note || '')}${/gang/i.test(B.operation) ? ' This breaker is gang-operated: one mechanism drives all three poles.' : ''}</p></div></details>`;
+}
 export const npReady = () => !!NP;
 const serialOf = (u, ph) => DB.site.units[u]?.serials?.[ph] || null;
 const kindOf = (u) => u === 'BUS_REACTOR' ? 'reactor' : /^(ICT1|ICT2|SPARE_ICT)$/.test(u) ? 'ict' : null;
