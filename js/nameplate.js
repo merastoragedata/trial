@@ -1,7 +1,7 @@
 // Nameplates: recreated plates (from the site photographs), photo viewer and per-unit uploads.
 // ICT plates are identical for all single-phase units except the serial number.
-import { DB, isTF, unitName } from './data.js?v=20261126.1921';
-import { esc, $, $$ } from './ui.js?v=20261126.1921';
+import { DB, isTF, unitName } from './data.js?v=20261126.1953';
+import { esc, $, $$ } from './ui.js?v=20261126.1953';
 
 let NP = null;
 export async function loadNameplates() {

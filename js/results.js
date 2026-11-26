@@ -1,15 +1,16 @@
 // Test-page sections: FY cards, parameter ranking, yearly progress, sequence-wise
 // results (all-time + latest) with colour rules and historic graphs, element / bay
 // pop-ups, norms drawer and admin cell editing.
-import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1921';
-import { findingsFor, LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule } from './rules.js?v=20261126.1921';
-import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1921';
-import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1921';
-import { art } from './art.js?v=20261126.1921';
-import { cbInfo, nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1921';
-import { dgaAnalysis } from './dga.js?v=20261126.1921';
-import { shareButtons, wireShare } from './report.js?v=20261126.1921';
-import { IC } from './icons.js?v=20261126.1921';
+import { DB, TESTS, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, sortUnits, done, years, addMonths, toDate, population, refresh, ELEM, codOf, VIEW, setTestVoltage, TANT } from './data.js?v=20261126.1953';
+import { findingsFor, LIM, SEV, SEV_LABEL, statusOf, laWindow, oltcCorrelation, shortUnit, intervalMonths, dueFrom, codDue, elemDue, lastRowDate, schedule, oltcHeld, oltcRemark } from './rules.js?v=20261126.1953';
+import { esc, chem, pill, phase, $, $$, lineChart, bandsFrom, PHASE_COLOR, circularBtn, modal, avgRefs, niceStep, trendLine } from './ui.js?v=20261126.1953';
+import { isAdmin, toggleAdmin, setCell, addRow, deleteNewRow, targets, setTarget, viewPref, setViewPref, setCod } from './edit.js?v=20261126.1953';
+import { art } from './art.js?v=20261126.1953';
+import { oltcBar, wireOltc } from './pages.js?v=20261126.1953';
+import { cbInfo, nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1953';
+import { dgaAnalysis } from './dga.js?v=20261126.1953';
+import { shareButtons, wireShare } from './report.js?v=20261126.1953';
+import { IC } from './icons.js?v=20261126.1953';
 
 let CTX = {};                     // callbacks from app.js: rerun(), rerender(), clauseCard(), standardsCard()
 export const bindResults = (c) => { CTX = c; };
@@ -52,6 +53,8 @@ export { codDue };
 /** Next-due colour: red = overdue, yellow = due within 30 days, green = not yet due. */
 export const dueCls = (d) => !d ? '' : d < DB.today ? 'due-red' : (d - DB.today) / 864e5 <= 30 ? 'due-yel' : 'due-grn';
 export const dueTxt = (d) => !d ? '—' : `<b class="due ${dueCls(d)}">${fmtDate(d)}</b>`;
+/** No-date marker for held OLTC sampling, with the admin's remark. */
+export const heldTxt = () => `<span class="due-held" title="${esc(oltcRemark())}">Not scheduled</span><div class="held-rem">${esc(oltcRemark())}</div>`;
 const months = (t, u) => intervalMonths(t, u === 'x' ? '404' : u);
 
 // ------------------------------------------------------------------ colour rules (cell → severity)
@@ -167,6 +170,7 @@ export function progress(t, M, fy) {
   const rows = M.units.map(({ u, es }) => {
     let pop = es.length, due = 0, prog = 0, h1 = 0, extra = 0, last = null;
     for (const e of es) {
+      if (oltcHeld(t, e.sub)) { pop--; continue; }
       const m = months(t, u), dts = e.done.map(r => r.date);
       const before = dts.filter(d => toDate(d) < start).pop(), inside = dts.filter(d => inFY(d, fy));
       const isDue = m < 12 ? true : (before ? dueFrom(t, u, before) : dts.length ? start : (codDue(t, u) ?? start)) <= end;
@@ -434,12 +438,12 @@ function phaseCompare(t, U) {
 }
 function elementBlock(t, e, latestOnly) {
   if (latestOnly && !e.done.length) return '';
-  const sch = elemDue(t, e.u, lastRowDate(e.rows));
+  const sch = elemDue(t, e.u, lastRowDate(e.rows), e.sub);
   const st = e.L ? statusOf(e.L) : 'none', od = sch && sch < DB.today;
   return `<div class="el" data-ph="${e.ph}" data-el="${esc(e.u + '|' + e.sub)}">
     <div class="el-h" data-open="${esc(e.u)}" data-sub="${esc(e.sub)}" title="Open this ${NOUN[t][0]} with full history">
       ${e.ph !== '-' && !(PH_UNIT(e.u, e.ph) && ['bushing', 'winding', 'dga'].includes(t)) ? phase(e.ph) : ''}<b>${esc(fullName(t, e.u, e.sub))}</b>${hChip(e.health)}${pill(st)}
-      <span class="el-due">${e.L ? 'Next due' : 'Never tested · due'} ${dueTxt(sch)}</span>
+      <span class="el-due">${oltcHeld(t, e.sub) ? heldTxt() : `${e.L ? 'Next due' : 'Never tested · due'} ${dueTxt(sch)}`}</span>
       ${t === 'bushing' && e.rows.find(r => r.mk)?.mk ? `<span class="el-sr">Bushing ${esc(e.rows.find(r => r.mk).mk.replace(/\n/g, ' ').replace(/^MAKE\s*:\s*/i, 'make ').replace(/SNO\.\s*-\s*/i, '· Sr no. '))}</span>` : ''}${['cb_crm', 'cb_timing'].includes(t) && cbInfo(e.u) ? `<span class="el-sr">CB ${esc(cbInfo(e.u).type)} · Sr no. ${esc(cbInfo(e.u).serial)}</span>` : ''}${isTF(e.u) && DB.site.units[e.u]?.serials?.[e.ph] ? `<span class="el-sr">Unit Sr no. ${esc(DB.site.units[e.u].serials[e.ph])}</span>` : ''}<button class="gl-btn" data-gl title="Show the graphs of this element only (until the page is reloaded)">📈 Graph</button><span class="el-open">${IC.arrow}</span></div>
     <div class="el-b"><div class="el-tbl">${latestOnly ? latestTable(t, e) : seqTable(t, e, false)}</div>${e.done.length ? `<div class="el-ch gx ${CHARTG[t] ? 'two' : ''}">${elemChart(t, e)}</div>` : ''}</div></div>`;
 }
@@ -614,6 +618,7 @@ export function renderSections(t, mount) {
   const cap = (s) => s[0].toUpperCase() + s.slice(1);
   const ringPct = pr.T.pct ?? 0;
   const html = `
+  ${t === 'dga' ? oltcBar() : ''}
   ${neverPanel(t, M)}
 
   <details class="sec" id="secRank"><summary><span class="sec-t">${IC.standards} Fleet ranking</span><span class="dim">${N[1]} of the same voltage class / rating ranked by any circular parameter</span><span class="caret">▾</span></summary>
@@ -645,7 +650,7 @@ export function renderSections(t, mount) {
   drawSeq();
   applyView(); wireToggles(mount); wireTV(mount);
   $$('#secWLb [data-open]', mount).forEach(el => el.onclick = () => openElement('winding', el.dataset.open));
-  wireInteractive(mount);
+  wireInteractive(mount); wireOltc(mount, () => CTX.rerender({ keepScroll: true }));
   wireFilter(mount, t, M, () => CTX.rerender({ keepScroll: true }));
   $$('#fySeg button, .ly-prev', mount).forEach(b => b.onclick = () => { FY_SEL = b.dataset.fy; CTX.rerender({ keepScroll: true }); });
   $$('[data-tgt]', mount).forEach(inp => inp.onchange = () => { setTarget(inp.dataset.tgt, inp.value === '' ? null : inp.value); CTX.rerender({ keepScroll: true }); });
@@ -660,10 +665,10 @@ function legend(t) {
 }
 
 function lastFyStrip(t, M, fy, pr) {
-  const pf = prevFY(fy), pp = progress(t, M, pf);
   const chip = (k, v, d = '') => `<div class="ly-c"><span>${k}</span><b>${v}</b>${d ? `<small>${d}</small>` : ''}</div>`;
-  return `<div class="ly">
-    <div class="ly-g ly-prev" data-fy="${pf}" role="button" title="Show the FY ${pf} list"><div class="ly-h">FY ${pf} <span class="dim">last year · open ›</span></div>${chip('Target', pp.T.target, pp.T.override ? 'declared' : 'policy')}${chip('Achieved', pp.T.prog, `${pp.T.pct ?? 0} %`)}</div>
+  const past = (f, lab) => { const pp = progress(t, M, f); return `<div class="ly-g ly-prev ${FY_SEL === f ? 'on' : ''}" data-fy="${f}" role="button" title="Show the FY ${f} list"><div class="ly-h">FY ${f} <span class="dim">${lab} · open ›</span></div>${chip('Target', pp.T.target, pp.T.override ? 'declared' : 'policy')}${chip('Achieved', pp.T.prog, `${pp.T.pct ?? 0} %`)}</div>`; };
+  const cur = curFY(), p1 = prevFY(cur), p2 = prevFY(p1);
+  return `<div class="ly">${past(p2, '2 years ago')}${past(p1, 'last year')}
     <div class="ly-g cur"><div class="ly-h">FY ${fy} <span class="dim">selected</span></div>${chip('Target', pr.T.target, pr.T.override ? 'declared' : 'policy')}${chip('Achieved', pr.T.prog, `${pr.T.pct ?? 0} %`)}${t === 'la' ? chip('By 30 Sep', `${pr.T.h1} / ${pr.T.h1Target}`, 'half-year: 50 %') : ''}${chip('Pending', Math.max(0, pr.T.target - pr.T.prog))}</div></div>`;
 }
 function progressTable(t, pr, fy) {

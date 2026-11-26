@@ -1,9 +1,9 @@
 // Shareable test results of one phase unit / bay (or one phase of a bay) in the portal's own sheet
 // format, exported as PNG (image) or PDF; on phones the system share sheet is offered.
-import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1921';
-import { findingsFor, SEV } from './rules.js?v=20261126.1921';
-import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1921';
-import { esc } from './ui.js?v=20261126.1921';
+import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1953';
+import { findingsFor, SEV } from './rules.js?v=20261126.1953';
+import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1953';
+import { esc } from './ui.js?v=20261126.1953';
 
 const SEVTXT = { ok: 'Healthy', watch: 'Monitor', alert: 'Planned action', critical: 'Priority action', none: 'Healthy' };
 
@@ -100,4 +100,100 @@ export function wireShare(root) {
       bg.onclick = (e) => { if (e.target === bg || e.target.classList.contains('x')) bg.remove(); }; return; }
     shareReport(S, b.dataset.share, b);
   });
+}
+
+// ------------------------------------------------------------------ page export (image / PDF) of what is open on screen
+/** Image / PDF buttons for the page being viewed. Collapsed sections are left out of the export. */
+export const pageShareButtons = (title) => `<span class="share" data-page-title="${esc(title)}"><span class="share-k">Export page</span><button class="btn sm" data-pshare="png">Image</button><button class="btn sm" data-pshare="pdf-p">PDF portrait</button><button class="btn sm" data-pshare="pdf-l">PDF landscape</button></span>`;
+export function wirePageShare(root) {
+  root.querySelectorAll('[data-pshare]').forEach(b => b.onclick = (ev) => { ev.preventDefault(); exportPage(b.closest('[data-page-title]').dataset.pageTitle, b.dataset.pshare, b); });
+}
+// Leaves of the page that go into the export: open sections only, no controls; tall containers are split
+// into their children so each capture stays small. Tables, figures and charts are captured whole.
+const SKIP = 'details:not([open]), .toolbar, .share, .th2-act, .seg, .gl-btn, [data-gl], .a11y, .norms-fab, button, input, select, script, style, .print-ask';
+function leaves(node) {
+  if (node.matches(SKIP) || node.offsetHeight < 2) return [];
+  const kids = [...node.children].filter(k => !k.matches(SKIP));
+  if (node.offsetHeight <= 1400 || !kids.length || /^(TABLE|SVG|svg|CANVAS|FIGURE)$/.test(node.tagName) || node.matches('.chart-card, .kvg, .el-h')) return [node];
+  return kids.flatMap(leaves);
+}
+/** A copy of the leaf inside shallow copies of its ancestors (so every CSS selector still applies). */
+function chainClone(leaf, top) {
+  const chain = []; for (let a = leaf.parentElement; a && a !== top.parentElement; a = a.parentElement) chain.unshift(a);
+  let outer = null, cur = null;
+  for (const a of chain) { const c = a.cloneNode(false); c.removeAttribute('id'); if (a.tagName === 'DETAILS') c.setAttribute('open', ''); if (!outer) outer = c; else cur.appendChild(c); cur = c; }
+  const copy = leaf.cloneNode(true);
+  copy.querySelectorAll(SKIP).forEach(n => n.parentNode && n.parentNode.removeChild(n));
+  const sc = leaf.querySelectorAll('canvas'), cc = copy.querySelectorAll('canvas');
+  sc.forEach((c, k) => { const d = cc[k]; if (!d) return; d.width = c.width; d.height = c.height; d.style.width = c.clientWidth + 'px'; d.style.height = c.clientHeight + 'px'; try { d.getContext('2d').drawImage(c, 0, 0); } catch (e) { } });
+  if (leaf.tagName === 'CANVAS') { copy.width = leaf.width; copy.height = leaf.height; copy.style.width = leaf.clientWidth + 'px'; copy.style.height = leaf.clientHeight + 'px'; try { copy.getContext('2d').drawImage(leaf, 0, 0); } catch (e) { } }
+  copy.querySelectorAll('[style*="sticky"]').forEach(n => { n.style.position = 'static'; });
+  (cur || outer || (outer = document.createElement('div'))).appendChild(copy);
+  return outer;
+}
+/** Cut blank rows above and below a capture (ancestor padding repeats on every block). */
+function trim(c) {
+  const g = c.getContext('2d'), W = c.width, H = c.height, d = g.getImageData(0, 0, W, H).data;
+  const blank = (y) => { for (let x = 0; x < W; x += 6) { const i = (y * W + x) * 4; if (d[i] < 245 || d[i + 1] < 245 || d[i + 2] < 245) return false; } return true; };
+  let a = 0, b = H - 1; while (a < b && blank(a)) a++; while (b > a && blank(b)) b--;
+  a = Math.max(0, a - 8); b = Math.min(H - 1, b + 8); if (b - a < 4) return c;
+  const o = document.createElement('canvas'); o.width = W; o.height = b - a + 1; o.getContext('2d').drawImage(c, 0, a, W, o.height, 0, 0, W, o.height); return o;
+}
+async function exportFrame() {
+  const ifr = document.createElement('iframe');
+  ifr.style.cssText = 'position:absolute;left:-14000px;top:0;width:1280px;height:1600px;border:0;background:#fff';
+  document.body.appendChild(ifr);
+  const d = ifr.contentDocument, links = [...document.querySelectorAll('link[rel="stylesheet"], style')].map(n => n.outerHTML).join('');
+  d.open(); d.write(`<!doctype html><html lang="en"><head><meta charset="utf-8"><base href="${location.href.split('#')[0]}">${links}<style>html,body{background:#fff!important;margin:0;width:1280px}.export-wrap{padding:6px 24px}</style></head><body class="${document.body.className}"><div class="shell"><main class="main"><div class="view export-wrap"></div></main></div></body></html>`); d.close();
+  await new Promise(res => { const ls = [...d.querySelectorAll('link[rel="stylesheet"]')]; let n = ls.length; if (!n) return res(); ls.forEach(l => { l.onload = l.onerror = () => { if (--n <= 0) res(); }; }); setTimeout(res, 4000); });
+  await d.fonts?.ready;
+  return ifr;
+}
+async function exportPage(title, kind, btn) {
+  const old = btn?.innerHTML; if (btn) btn.disabled = true;
+  const say = (t) => { if (btn) btn.innerHTML = t; };
+  let ifr;
+  try {
+    say('Preparing…');
+    await loadScript('vendor/html2canvas.min.js');
+    const top = document.querySelector('.view'), parts = leaves(top);
+    ifr = await exportFrame();
+    const box = ifr.contentDocument.querySelector('.export-wrap');
+    const canv = [];
+    for (let k = 0; k < parts.length; k++) {
+      say(`Preparing… ${Math.round(k / parts.length * 100)} %`);
+      box.innerHTML = ''; const node = chainClone(parts[k], top); box.appendChild(ifr.contentDocument.importNode(node, true));
+      // canvases lose their pixels when imported: draw them again
+      const src = [parts[k], ...parts[k].querySelectorAll('canvas')].filter(c => c.tagName === 'CANVAS'), dst = [...box.querySelectorAll('canvas')];
+      src.forEach((c, j) => { const t = dst[j]; if (!t) return; t.width = c.width; t.height = c.height; try { t.getContext('2d').drawImage(c, 0, 0); } catch (e) { } });
+      resolveVars(box);
+      canv.push(trim(await window.html2canvas(box, { scale: 1.6, backgroundColor: '#ffffff', useCORS: true, logging: false, windowWidth: 1280 })));
+    }
+    const S = { title: title.replace(/<[^>]+>/g, '') };
+    if (kind === 'png') {
+      const W = canv[0]?.width || 1, Htot = canv.reduce((a, c) => a + c.height, 0), f = Math.min(1, 30000 / Htot);
+      if (f < 0.45) throw new Error('this page is too long for one image — collapse the sections you do not need, or use PDF');
+      const out = document.createElement('canvas'); out.width = Math.round(W * f); out.height = Math.round(Htot * f);
+      const g = out.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, out.width, out.height);
+      let y = 0; for (const c of canv) { g.drawImage(c, 0, y, c.width * f, c.height * f); y += c.height * f; }
+      await deliver(await new Promise(res => out.toBlob(res, 'image/png')), fname(S, 'png'), 'image/png');
+    } else {
+      await loadScript('vendor/jspdf.umd.min.js');
+      const land = kind === 'pdf-l', pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: land ? 'landscape' : 'portrait' }), PW = land ? 297 : 210, PH = land ? 210 : 297, M = 10, W = PW - 2 * M;
+      let y = M, page = 1;
+      const foot = () => { pdf.setFontSize(8); pdf.setTextColor(120); pdf.text(`${S.title} · page ${page}`, M, PH - 5); };
+      for (const c of canv) {
+        const h = c.height * W / c.width;
+        if (y + h > PH - 12 && y > M) { foot(); pdf.addPage(); page++; y = M; }
+        if (h > PH - 22) {
+          const sliceH = Math.floor(c.width * (PH - 22) / W);
+          for (let sy = 0; sy < c.height; sy += sliceH) { const part = document.createElement('canvas'); part.width = c.width; part.height = Math.min(sliceH, c.height - sy); part.getContext('2d').drawImage(c, 0, sy, c.width, part.height, 0, 0, c.width, part.height);
+            const ph = part.height * W / c.width; if (y + ph > PH - 12 && y > M) { foot(); pdf.addPage(); page++; y = M; } pdf.addImage(part.toDataURL('image/jpeg', 0.88), 'JPEG', M, y, W, ph); y += ph + 1; }
+        } else { pdf.addImage(c.toDataURL('image/jpeg', 0.88), 'JPEG', M, y, W, h); y += h + 1; }
+      }
+      foot();
+      await deliver(pdf.output('blob'), fname(S, 'pdf'), 'application/pdf');
+    }
+  } catch (e) { alert('Could not prepare the export: ' + e.message); }
+  finally { if (ifr && ifr.parentNode) ifr.parentNode.removeChild(ifr); if (btn) { btn.disabled = false; btn.innerHTML = old; } }
 }
