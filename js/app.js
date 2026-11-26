@@ -1,17 +1,18 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1152';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1152';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1152';
-import { IC, LOGO } from './icons.js?v=20261126.1152';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1152';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1152';
-import { art, skyline } from './art.js?v=20261126.1152';
-import { shareButtons, wireShare } from './report.js?v=20261126.1152';
-import { testHeader } from './testviz.js?v=20261126.1152';
-import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1152';
-import { pendingPage, resultsPage } from './pages.js?v=20261126.1152';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1152';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1152';
-import { refresh } from './data.js?v=20261126.1152';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1201';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1201';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1201';
+import { IC, LOGO } from './icons.js?v=20261126.1201';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1201';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1201';
+import { art, skyline } from './art.js?v=20261126.1201';
+import { shareButtons, wireShare } from './report.js?v=20261126.1201';
+import { testHeader } from './testviz.js?v=20261126.1201';
+import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1201';
+import { puCards, puPage } from './pu.js?v=20261126.1201';
+import { pendingPage, resultsPage } from './pages.js?v=20261126.1201';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1201';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1201';
+import { refresh } from './data.js?v=20261126.1201';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -364,7 +365,7 @@ function vUnit(u, q) {
   $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openElement(t, u, null); } });
   if (q.get('t') && ts.includes(q.get('t'))) { location.replace(`#/el/${q.get('t')}/${encodeURIComponent(u)}`); return; }
   { const h1 = $('.asset h1'); if (h1) { h1.parentElement.insertAdjacentHTML('afterend', `<div class="row-flex mt">${shareButtons(u, null, !['SPARE_ICT', 'BUS_REACTOR'].includes(u))}</div>`); wireShare(view()); } }
-  { const as = $('.asset'); if (as && isTF(u)) { as.insertAdjacentHTML('afterend', detailsCard(u) + `<div class="np-wrap">${nameplateSection(u, null)}</div>`); wireDetails(view(), () => route({ keepScroll: true })); wireNameplates(view()); } }
+  { const as = $('.asset'); if (as && isTF(u)) { as.insertAdjacentHTML('afterend', puCards(u) + detailsCard(u) + `<div class="np-wrap">${nameplateSection(u, null)}</div>`); wireDetails(view(), () => route({ keepScroll: true })); wireNameplates(view()); } }
 }
 
 function vTest(t, q) {
@@ -728,6 +729,7 @@ function route(opt = {}) {
   $('#sb').classList.remove('open');
   const V = { '': vOverview, equipment: vEquipment, sld: vSld, tests: vTests, findings: vFindings, schedule: vSchedule, norms: vNorms, standards: vStandards, data: vData, about: vAbout };
   if (p[0] === 'eq') vUnit(decodeURIComponent(p[1]), q);
+  else if (p[0] === 'pu') puPage(decodeURIComponent(p[1]), p[2], view(), { setCrumbs, rerender: () => route({ keepScroll: true }) });
   else if (p[0] === 'el') vElement(p[1], decodeURIComponent(p[2] || ''), p[3] ? decodeURIComponent(p[3]) : null);
   else if (p[0] === 'targets') vTargets(q);
   else if (p[0] === 'pending') { setCrumbs([['Pending tests']]); pendingPage(view(), q, heroHead); }

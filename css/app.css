@@ -1393,3 +1393,37 @@ html.no-graphs .gx-local .grid.g2>.gx{display:block!important}
 .tgt-card table.prog td:first-child{min-width:200px}
 .tgt-card table.prog td:last-child,.tgt-card table.prog th:last-child{min-width:220px}
 .tc-f .due-by{display:block;text-align:right}
+
+/* ================================================================ ICT phase units */
+.pu-sec{margin:18px 0 8px}
+.pu-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.pu-card{display:flex;flex-direction:column;gap:10px;padding:18px 18px 14px;border-radius:20px;text-decoration:none;color:var(--ink);border:2px solid color-mix(in srgb,var(--phc) 45%,#c8d3e0);
+  background:var(--grain),linear-gradient(160deg,color-mix(in srgb,var(--phc) 10%,#fff),#fff 55%);box-shadow:0 14px 30px -18px rgba(11,40,80,.55);position:relative;overflow:hidden;transition:transform .18s,box-shadow .18s}
+.pu-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--phc)}
+.pu-card:hover{transform:translateY(-4px);box-shadow:0 24px 44px -20px rgba(11,40,80,.7)}
+.puc-h{display:flex;align-items:center;gap:12px}
+.puc-ph{width:54px;height:54px;flex:none;display:grid;place-items:center;border-radius:16px;background:var(--phc);color:#fff;font:900 28px/1 var(--display, inherit);box-shadow:0 8px 16px -8px var(--phc)}
+.puc-ph.big{width:46px;height:46px;font-size:24px;border-radius:12px}
+.puc-t{font:800 22px/1.15 var(--display, inherit)}
+.puc-s{font:600 14px 'IBM Plex Mono',monospace;color:var(--ink-3)}
+.puc-hi{margin-left:auto;font-size:15px;padding:4px 10px}
+.puc-rows{display:flex;flex-direction:column;gap:8px}
+.puc-r{display:grid;grid-template-columns:1fr auto;grid-template-rows:auto auto;gap:0 10px;padding:9px 12px;border-radius:12px;background:#fff;border:1px solid rgba(52,85,122,.18)}
+.puc-k{font-weight:700;font-size:15px}
+.puc-r b{grid-column:2;grid-row:1;justify-self:end;font:800 19px/1.1 var(--display, inherit)}
+.puc-r b i{font:600 12px Inter,sans-serif;color:var(--ink-3);font-style:normal}
+.puc-r small{font-size:12.5px;color:var(--ink-3)}
+.puc-d{justify-self:end;font-size:12.5px}
+.sv-alert{color:#8a4600}.sv-critical{color:#a3141a}.sv-watch{color:#7a5a00}
+.puc-f{display:flex;align-items:center;gap:10px;margin-top:2px}
+.puc-go{margin-left:auto;display:inline-flex;align-items:center;gap:6px;font:800 15px var(--display, inherit);color:#fff;background:var(--phc);padding:9px 14px;border-radius:12px}
+.puc-go svg{width:16px;height:16px}
+.pu-hero{border-left:8px solid var(--phc)}
+.pu-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.pu-facts div{padding:10px 12px;border-radius:12px;background:#fff;border:1px solid rgba(52,85,122,.2)}
+.pu-facts span{display:block;font-size:12px;color:var(--ink-3);font-weight:700;text-transform:uppercase;letter-spacing:.05em}
+.pu-facts b{font-size:16px}
+.pu-blocks{display:flex;flex-direction:column;gap:16px;margin-top:16px}
+.pu-blk .card-h h2{margin:0}
+.pu-t td.l{text-align:left}
+@media (max-width:1100px){.pu-cards{grid-template-columns:1fr}}
