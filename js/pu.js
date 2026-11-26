@@ -1,13 +1,13 @@
 // ICT phase units (R / Y / B single-phase 167 MVA units): big cards on the ICT page and a dedicated
 // phase-unit page bringing bushing, winding and DGA results of one unit together.
-import { DB, fmt, fmtDate, unitName } from './data.js?v=20261126.1201';
-import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1201';
-import { model, fullName, elemHealth, elHref, dueTxt, cellSev } from './results.js?v=20261126.1201';
-import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1201';
-import { shareButtons, wireShare } from './report.js?v=20261126.1201';
-import { art } from './art.js?v=20261126.1201';
-import { esc, $, pill } from './ui.js?v=20261126.1201';
-import { IC } from './icons.js?v=20261126.1201';
+import { DB, fmt, fmtDate, unitName } from './data.js?v=20261126.1426';
+import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1426';
+import { model, fullName, elemHealth, elHref, dueTxt, cellSev } from './results.js?v=20261126.1426';
+import { nameplateSection, wireNameplates } from './nameplate.js?v=20261126.1426';
+import { shareButtons, wireShare } from './report.js?v=20261126.1426';
+import { art } from './art.js?v=20261126.1426';
+import { esc, $, pill } from './ui.js?v=20261126.1426';
+import { IC } from './icons.js?v=20261126.1426';
 
 const TESTS3 = [['bushing', 'Bushings', 'tand20', 'Corr. tan δ', '%', 3], ['winding', 'Winding insulation', 'tand20', 'Corr. tan δ', '%', 3], ['dga', 'Main tank & OLTC (DGA)', 'TDCG', 'TDCG', 'ppm', 0]];
 const PHC = { R: '#c4161c', Y: '#b78a00', B: '#1a5fc2' };

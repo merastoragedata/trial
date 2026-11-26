@@ -1427,3 +1427,37 @@ html.no-graphs .gx-local .grid.g2>.gx{display:block!important}
 .pu-blk .card-h h2{margin:0}
 .pu-t td.l{text-align:left}
 @media (max-width:1100px){.pu-cards{grid-template-columns:1fr}}
+details.eqd{margin:14px 0;border:2px solid #6b7682!important;border-radius:16px!important;background:var(--grain),linear-gradient(180deg,#f6f7f8,#eceff2)!important}
+details.eqd>summary{background:linear-gradient(90deg,#e4e8ec,#f6f7f8)!important}
+
+/* ================================================================ v15 · larger type everywhere (senior engineers) */
+body{font-size:17.5px}
+.t td,table.seq td,table.prog td,table.never-t td{font-size:16.5px}
+table.seq td.chgc{font-size:17px}
+table.seq td.rem,table.seq td.rem.ed{font-size:15px}
+.t th,table.seq thead th,table.prog th,table.never-t th{font-size:14.5px}
+.note,.legend,.dim,.sub,.card-h .sub{font-size:15px}
+.lede{font-size:18px}
+details.sec>summary .sec-t{font-size:19.5px}
+details.sec>summary .dim{font-size:15px}
+.el-h b{font-size:17px}.el-due{font-size:15px}
+.ub-n{font-size:21px}.ub-k{font-size:13px}
+.pu-h b{font-size:17px}
+.tn{font-size:16.5px}
+.btn{font-size:15.5px}.btn.sm{font-size:14.5px}
+.seg button,.seg a{font-size:15px}
+.mc-chips button{font-size:14px}
+.fact b{font-size:16.5px}.fact small,.gl small{font-size:14px}.fk,.gl span{font-size:13px}.gl b{font-size:27px}
+.eqd-i span{font-size:13.5px}.eqd-i b{font-size:16.5px}
+.puc-k{font-size:16.5px}.puc-r small,.puc-d{font-size:14px}.puc-r b{font-size:21px}
+/* yearly progress: the most-read section */
+.fc-k{font-size:15.5px}.fc-v{font-size:42px}.fc-d{font-size:15px}
+.ly-h{font-size:17px}.ly-h .dim{font-size:13.5px}
+.ly-c{min-width:110px;padding:6px 14px}.ly-c span{font-size:13.5px}.ly-c b{font-size:30px}.ly-c small{font-size:13.5px}
+table.prog td{padding:12px 14px}
+table.prog td:first-child b,table.prog td:first-child a{font-size:17.5px}
+.pbar{width:130px;height:12px}.pbar.big{width:170px;height:14px}
+.pnum{font-size:16px;font-weight:700}
+b.due{font-size:16px}
+.due-by{font-size:13.5px}
+table.prog input.tgt{font-size:17px;width:86px;padding:6px 8px}
