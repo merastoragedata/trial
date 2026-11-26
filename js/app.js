@@ -1,16 +1,17 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.0943';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.0943';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.0943';
-import { IC, LOGO } from './icons.js?v=20261126.0943';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.0943';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.0943';
-import { art, skyline } from './art.js?v=20261126.0943';
-import { shareButtons, wireShare } from './report.js?v=20261126.0943';
-import { testHeader } from './testviz.js?v=20261126.0943';
-import { pendingPage, resultsPage } from './pages.js?v=20261126.0943';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.0943';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.0943';
-import { refresh } from './data.js?v=20261126.0943';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1152';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1152';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1152';
+import { IC, LOGO } from './icons.js?v=20261126.1152';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1152';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1152';
+import { art, skyline } from './art.js?v=20261126.1152';
+import { shareButtons, wireShare } from './report.js?v=20261126.1152';
+import { testHeader } from './testviz.js?v=20261126.1152';
+import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1152';
+import { pendingPage, resultsPage } from './pages.js?v=20261126.1152';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1152';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1152';
+import { refresh } from './data.js?v=20261126.1152';
 
 const view = () => $('#view');
 const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
@@ -289,7 +290,7 @@ function schedTable(list, compact) {
   ${list.map(s => `<tr><td><a href="#/test/${s.t}">${esc(TESTS[s.t].short)}</a></td><td><a href="#/eq/${s.unit}?t=${s.t}">${esc(unitName(s.unit))}</a>${compact && s.lag.length ? ` <span class="tag ver" title="${esc(lagTxt(s))}">${s.lag.length} lagging</span>` : ''}</td>
   ${compact ? '' : `<td><button class="btn sm btn-doc" data-circ="${s.sr}">Sr ${s.sr} · ${esc(s.freq)}</button></td><td class="r">${fmtDate(s.last)}</td>`}
   <td class="r" title="Last completed ${fmtDate(s.last)}">${dueTxt(s.due)}</td>
-  <td>${s.status === 'overdue' ? pill('watch', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}</td>
+  <td>${s.status === 'overdue' ? pill('watch', `Overdue ${-s.days} d`) : s.status === 'due' ? pill('watch', `In ${s.days} d`) : pill('ok', `In ${s.days} d`)}${s.by && (!s.last || s.by.last !== s.last) ? `<div class="due-by">${esc(s.by.k)} · ${s.by.last ? 'last ' + fmtDate(s.by.last) : 'never tested'}</div>` : ''}</td>
   ${compact ? '' : `<td style="white-space:normal">${s.lag.length ? `<span class="note">${esc(lagTxt(s))}</span>` : '<span class="dim">—</span>'}</td>`}</tr>`).join('')}</tbody></table></div>`;
 }
 
@@ -363,6 +364,7 @@ function vUnit(u, q) {
   $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openElement(t, u, null); } });
   if (q.get('t') && ts.includes(q.get('t'))) { location.replace(`#/el/${q.get('t')}/${encodeURIComponent(u)}`); return; }
   { const h1 = $('.asset h1'); if (h1) { h1.parentElement.insertAdjacentHTML('afterend', `<div class="row-flex mt">${shareButtons(u, null, !['SPARE_ICT', 'BUS_REACTOR'].includes(u))}</div>`); wireShare(view()); } }
+  { const as = $('.asset'); if (as && isTF(u)) { as.insertAdjacentHTML('afterend', detailsCard(u) + `<div class="np-wrap">${nameplateSection(u, null)}</div>`); wireDetails(view(), () => route({ keepScroll: true })); wireNameplates(view()); } }
 }
 
 function vTest(t, q) {
@@ -652,7 +654,7 @@ function testCard(u, t) {
   const spark = sparkline(rs.filter(r => k.get(r) != null), k);
   return `<a class="test-card sev-${s}" href="#/eq/${u}?t=${t}" data-detail="${t}"><div class="tc-h"><span class="tc-ic">${IC[t]}</span><span class="n">${esc(TESTS[t].name)}</span><span style="flex:1"></span>${pill(s)}</div>
     <div class="tc-v"><span class="num">${worstL ? fmt(k.get(worstL), k.dp) : '—'}</span><span class="u">${k.unit}</span><span class="dim">worst latest ${esc(k.label)}${worstL ? ' · ' + esc(k.sub(worstL)) : ''}</span></div>${spark}
-    <div class="tc-f"><span>Last ${sch ? fmtDate(sch.last) : '—'}</span><span>${sch ? (sch.status === 'overdue' ? `<b style="color:var(--watch)">Overdue ${-sch.days} d</b>` : `Due ${fmtDate(sch.due)}`) : ''}</span></div></a>`;
+    <div class="tc-f"><span>Last ${sch ? fmtDate(sch.last) : '—'}</span><span>${sch ? (sch.status === 'overdue' ? `<b style="color:var(--watch)">Overdue ${-sch.days} d</b>` : `Due ${fmtDate(sch.due)}`) : ''}${sch?.by && sch.by.last !== sch.last ? `<small class="due-by">${esc(sch.by.k)} · ${sch.by.last ? 'last ' + fmtDate(sch.by.last) : 'never tested'}</small>` : ''}</span></div></a>`;
 }
 function sparkline(rs, k) {
   const pts = [...groupBy(rs, r => r.date)].map(([d, x]) => [d, Math.max(...x.map(k.get))]).sort((a, b) => a[0].localeCompare(b[0]));
@@ -680,7 +682,7 @@ function openDetail(u, t) {
   const gkeys = [...groups.keys()];
   const body = `
     <div class="dt-head">${art(artKind(u) === 'reactor' || artKind(u) === 'transformer' ? artKind(u) : (t === 'ct' ? 'ct' : t === 'la' ? 'la' : kvOf(u) === 400 ? 'breaker2' : 'breaker1'), { photo: `${u}-${t}`, alt: T.name })}
-      <div><div class="row-flex">${pill(s)}${sch ? (sch.status === 'overdue' ? pill('watch', `Overdue ${-sch.days} d`) : pill('ok', `Next due ${fmtDate(sch.due)}`)) : ''}${circularBtn(sr, 'Circular scan')}</div>
+      <div><div class="row-flex">${pill(s)}${sch ? (sch.status === 'overdue' ? pill('watch', `Overdue ${-sch.days} d${sch.by && sch.by.last !== sch.last ? ' · ' + sch.by.k : ''}`) : pill('ok', `Next due ${fmtDate(sch.due)}`)) : ''}${circularBtn(sr, 'Circular scan')}</div>
       <p class="lede" style="margin-top:8px">${esc(TEST_ABOUT[t])}</p>
       <div class="stat-strip">
         <div><span>Last completed</span><b>${sch ? fmtDate(sch.last) : '—'}</b></div><div><span>Completed tests</span><b>${new Set(rs.map(r => r.date)).size}</b></div>
@@ -748,6 +750,7 @@ function shell() {
   document.addEventListener('pointerdown', (e) => { if (!e.target.closest('.tn-dd')) { ddm.classList.toggle('open', false); dd.setAttribute('aria-expanded', false); } });
   ddm.addEventListener('click', (e) => { if (e.target.closest('a')) ddm.classList.toggle('open', false); });
   $('#printBtn').onclick = () => window.print();
+  setupPrint();
   $('#searchBtn').onclick = openPalette;
   const ab = document.createElement('button'); ab.className = 'icon-btn admin-btn'; ab.id = 'adminBtn'; ab.title = 'Admin: edit results, remarks and targets'; ab.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span>Admin</span>`;
   $('#themeBtn').before(ab); ab.onclick = () => { toggleAdmin(); rerenderInPlace(); };
@@ -808,7 +811,7 @@ function adminBar() {
   shell();
   bindResults(RESULTS_CTX);
   try {
-    await loadAll();
+    await loadAll(); await loadNameplates();
     run(); SCHED = schedule();
     bindRise((u) => findings().some(f => f.t === 'bushing' && f.unit === u && /rising/i.test(f.title)));
     afterLoad();
@@ -819,3 +822,27 @@ function adminBar() {
     console.error(e);
   }
 })();
+
+
+// ------------------------------------------------------------------ printing: choose portrait / landscape, always fit to paper width
+function setupPrint() {
+  if (!window.__nativePrint) window.__nativePrint = window.print.bind(window);   // keep the browser's own print before wrapping it
+  window.print = () => {
+    document.querySelector('.print-ask')?.remove();
+    const d = document.createElement('div'); d.className = 'print-ask';
+    d.innerHTML = `<div class="pa-in" role="dialog" aria-label="Print"><b>Print / save as PDF</b><span>The page is scaled to fit the paper width.</span>
+      <div class="pa-b"><button class="btn pri" data-o="portrait">▯ Portrait</button><button class="btn pri" data-o="landscape">▭ Landscape</button><button class="btn" data-o="">Cancel</button></div></div>`;
+    document.body.appendChild(d);
+    d.onclick = (e) => { const b = e.target.closest('[data-o]'); if (!b && e.target !== d) return; d.remove(); if (b && b.dataset.o) fitPrint(b.dataset.o); };
+  };
+}
+function fitPrint(orient) {
+  // Readable scale for the paper, and the page laid out at exactly that width: tables wrap instead of
+  // being cut off at the right edge or shrunk to unreadable size.
+  let st = document.getElementById('print-style'); if (!st) { st = document.createElement('style'); st.id = 'print-style'; document.head.appendChild(st); }
+  const usable = (orient === 'landscape' ? 277 : 190) * 96 / 25.4, z = orient === 'landscape' ? 0.85 : 0.64;
+  const W = Math.floor(usable / z);   // the whole document is laid out at this width; the browser then scales it once to the paper
+  st.textContent = `@page{size:A4 ${orient};margin:10mm}@media print{html,body,.shell,.main,.view{width:${W}px!important;min-width:0!important;max-width:${W}px!important}.view{padding:0!important}}`;
+  document.querySelectorAll('table.seq thead').forEach(t => { t.style.transform = ''; });
+  setTimeout(() => window.__nativePrint(), 60);
+}

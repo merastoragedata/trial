@@ -1,0 +1,154 @@
+{
+  "note": "Transcribed from the site photographs (KARJAT_ICT_REACTOR_NAME_PLATE.pdf). The ICT plates are identical for all six single-phase units except the serial number; the photographed rating plate is Sr 90462A04 (ICT 2, B-phase). Values marked verify were faint on the photograph.",
+  "ict": {
+    "maker": "TOSHIBA",
+    "maker_full": "TOSHIBA TRANSMISSION & DISTRIBUTION SYSTEMS (INDIA) PRIVATE LIMITED",
+    "photos": [
+      { "src": "assets/nameplates/ict_rating_plate.jpg", "title": "Rating and diagram plate (photographed on Sr 90462A04)" },
+      { "src": "assets/nameplates/ict_valve_schedule_plate.jpg", "title": "Valve schedule plate" },
+      { "src": "assets/nameplates/ict_overloading_plate.jpg", "title": "Overloading of transformer plate" }
+    ],
+    "rating": {
+      "title": "RATING AND DIAGRAM PLATE",
+      "drg": "1 5630 0472",
+      "rows": [
+        ["Type", "AUTO TRANSFORMER"],
+        ["Type of cooling", "ONAN / ONAF / ODAF"],
+        ["Rated power HV (kVA)", "100200 / 133600 / 167000"],
+        ["Rated power IV (kVA)", "100200 / 133600 / 167000"],
+        ["Rated power LV (kVA)", "33400 / 44533.33 / 55666.66"],
+        ["Rated voltage at no load HV (kV)", "400/√3"],
+        ["Rated voltage at no load IV (kV)", "220/√3"],
+        ["Rated voltage at no load LV (kV)", "33"],
+        ["Rated line current HV (A)", "433.88 / 578.5 / 723.13"],
+        ["Rated line current IV (A)", "788.87 / 1051.83 / 1314.78"],
+        ["Phase current LV (A)", "1012.12 / 1349.49 / 1686.87"],
+        ["No-load loss (kW) guaranteed / measured", "47 / 41.97 (verify)"],
+        ["Load loss (kW) guaranteed / measured", "198 / 180.06 (verify)"],
+        ["Auxiliary loss (kW) guaranteed / measured", "7 / 5.17 (verify)"],
+        ["% Impedance HV-IV at 167 MVA, normal tap", "12.5 % ±10 % / measured 12.70"],
+        ["% Impedance HV-LV at 167 MVA, normal tap", "45 % ±15 % / measured 42.60 (verify)"],
+        ["% Impedance IV-LV at 167 MVA, normal tap", "30 % ±15 % / measured 25.41 (verify)"],
+        ["Insulation level HV (SI/LI/AC)", "1050 / 1300 / 38"],
+        ["Insulation level IV (LI/AC)", "950 / 38"],
+        ["Insulation level LV (LI/AC)", "250 / 95"],
+        ["Insulation level N (LI/AC)", "95 / 38"],
+        ["Year of manufacture", "2020"],
+        ["Transformer serial no.", "@SERIAL"],
+        ["Frequency (Hz)", "50"],
+        ["No. of phases", "1"],
+        ["Vector group (after 3-ϕ bank formation)", "YNa0d11"],
+        ["Reference standard", "IS : 2026"],
+        ["Max. temperature rise, oil (°C)", "40"],
+        ["Max. temperature rise, winding (°C)", "45"],
+        ["Max. ambient temperature (°C)", "50"],
+        ["Total mass (kg)", "156000"],
+        ["Core & coil mass (kg)", "72000"],
+        ["Copper mass (kg)", "15000"],
+        ["CRGO mass (kg)", "47325"],
+        ["Transport mass, without oil (kg)", "95000"],
+        ["Quantity of oil (L)", "45000"],
+        ["Type of oil", "UNINHIBITED NAPHTHENIC"],
+        ["Type of CRGO", "M4 OR BETTER"],
+        ["No. of fans", "10 (8 working + 2 standby)"],
+        ["Fan capacity", "10,450 m³/hr"],
+        ["No. of pumps", "4 (2 working + 2 standby)"],
+        ["Pump capacity", "1000 LPM"],
+        ["Customer reference", "M/s. STELMEC, (MSETCL)"],
+        ["PO No.", "SL-EPC/MSETCL/PQ-394/KARJAT/TOSHIBA/P002 DATED 31.08.2019"],
+        ["Type of on-load tap changer", "SE / 1500L3 / 1050 / 500 / 8W · MAKE: CTR · OLTC: BI-DIRECTIONAL"]
+      ],
+      "taps": {
+        "head": ["Tap position", "Change-over selector", "Join lead No.2 to", "HV line voltage (kV)", "HV line current ODAF (A)", "ONAF", "ONAN"],
+        "rows": [
+          ["1 MAX", "3 - 4", "12", "440", "657.39", "525.91", "394.44"], ["2", "3 - 4", "11", "435", "664.95", "531.96", "398.97"], ["3", "3 - 4", "10", "430", "672.68", "538.14", "403.61"],
+          ["4", "3 - 4", "9", "425", "680.59", "544.48", "408.36"], ["5", "3 - 4", "8", "420", "688.70", "550.96", "413.22"], ["6", "3 - 4", "7", "415", "696.99", "557.60", "418.20"],
+          ["7", "3 - 4", "6", "410", "705.49", "564.40", "423.30"], ["8", "3 - 4", "5", "405", "714.20", "571.36", "428.52"], ["9a", "3 - 4", "4", "400", "723.13", "578.50", "433.88"],
+          ["9b", "3 - 4 / 3 - 12", "3", "400", "723.13", "578.50", "433.88"], ["9c", "3 - 12", "12", "400", "723.13", "578.50", "433.88"], ["10", "3 - 12", "11", "395", "732.28", "585.83", "439.37"],
+          ["11", "3 - 12", "10", "390", "741.67", "593.34", "445.00"], ["12", "3 - 12", "9", "385", "751.31", "601.04", "450.78"], ["13", "3 - 12", "8", "380", "761.19", "608.95", "456.71"],
+          ["14", "3 - 12", "7", "375", "771.34", "617.07", "462.80"], ["15", "3 - 12", "6", "370", "781.76", "625.41", "469.06"], ["16", "3 - 12", "5", "365", "792.47", "633.98", "475.48"],
+          ["17 MIN", "3 - 12", "4", "360", "803.48", "642.78", "482.09"]
+        ],
+        "note": "IV side: line voltage 220 kV, line current ODAF / ONAF / ONAN 1314.78 / 1051.83 / 788.87 A · LV side: 33 kV, phase current 1686.87 / 1349.49 / 1012.12 A (all taps)"
+      },
+      "cts": [
+        { "title": "PROTECTION CT'S", "head": ["Phase", "Core", "Ratio", "Acc. class", "Burden (VA)", "Knee-point voltage", "Sec. resistance (Ω)", "Terminals"],
+          "rows": [["1.1", "CORE 1", "2000/1A", "PS", "-", "600 V", "5", "1S1 - 1S2"], ["2.1", "CORE 1", "2000/1A", "PS", "-", "600 V", "5", "1S1 - 1S2"]] },
+        { "title": "WTI CT'S", "head": ["Phase", "Core", "Ratio", "Acc. class", "Burden (VA)", "Knee-point voltage", "Sec. resistance (Ω)", "Terminals"],
+          "rows": [["1.1", "CORE 2", "804/1.8-1.7-1.5", "5", "15", "-", "-", "2S1-2S2-2S3-2S4"], ["2.1", "CORE 3", "1315/1.9-1.7-1.6", "5", "15", "-", "-", "3S1-3S2-3S3-3S4"], ["3.1", "CORE 1", "1687/2.0-1.8-1.7", "5", "15", "-", "-", "1S1-1S2-1S3-1S4"]] },
+        { "title": "LOAD CURRENT CT", "head": ["Phase", "Core", "Ratio", "Acc. class", "Burden (VA)", "Knee-point voltage", "Sec. resistance (Ω)", "Terminals"],
+          "rows": [["2.1", "CORE 2", "2000/1A", "0.5", "20", "-", "-", "2S1 - 2S2"]] }
+      ],
+      "wti": [["HV WTI CT terminals", "2S1 - 2S2"], ["IV WTI CT terminals", "3S1 - 3S2"], ["LV WTI CT terminals", "1S1 - 1S2"]]
+    },
+    "overload": {
+      "title": "OVERLOADING OF TRANSFORMER",
+      "sub": "(100.2/133.6/167 MVA, 400/220/66 kV, AUTO TRANSFORMER)",
+      "head": ["S No", "Maximum daily temperature, °C", "Maximum continuous rating, MVA", "Overload in % over the maximum continuous rating", "Permissible overloading in hrs", "Max hot-spot temperature, °C"],
+      "rows": [["1", "50", "167", "10", "24", "140"], ["2", "50", "167", "20", "12", "140"], ["3", "50", "167", "30", "1.5", "140"], ["4", "50", "167", "40", "0.5", "160"], ["5", "50", "167", "50", "0.25", "160"]]
+    },
+    "valves": {
+      "title": "VALVE SCHEDULE PLATE",
+      "drg": "1 5690 0580",
+      "notes": [
+        "All air release plugs item no 61 and 64 are to be closed.",
+        "Valve items 20, 30, 32, 63, 83 and 90 are to be kept in open position during service.",
+        "Valve and plug items 14, 15, 16, 17, 18, 23, 24, 29, 33, 34, 35, 36, 37, 38, 39, 62, 92, 93 & 94 to be kept in closed position during service.",
+        "Item no. 13, 84 & 85 shall be opened only when they are connected to DGA and on-line insulating oil drying system.",
+        "Equalizing valve between OLTC and main tank is provided to evacuate both transformer and OLTC simultaneously; this valve shall be open during transport, vacuum & oil filling and shall be closed while transformer is in service."
+      ],
+      "items": [
+        ["13", "Valve 50 mm for DGA connection", "2"], ["14", "Adapter 15 mm to fix pressure gauge", "1"], ["15", "Top filter valve 50 mm for main conservator", "1"],
+        ["16", "Drain cum bottom filter valve 50 mm for main conservator", "1"], ["17", "Oil filling hole with plug 40 mm for main conservator", "1"],
+        ["18", "Valve 25 mm for by-pass (equalizing) valve for air cell breathing with conservator", "1"], ["20", "Valve 25 mm for breather", "2"],
+        ["23", "Oil filling hole with plug 40 mm for OLTC conservator", "1"], ["24", "Oil drain valve 25 mm for OLTC conservator", "1"], ["29", "Oil drain valve 25 mm for OLTC", "1"],
+        ["30", "Valve 25 mm for surge relay on OLTC conservator side", "1"], ["32", "Shut-off valve 80 mm on either side of gas & oil operated relay", "2"],
+        ["33", "Pipe assembly (copper tube) with gas collecting device", "1"], ["34", "Drain valve 100 mm with blanking plate & adapter 40 mm", "1"],
+        ["35", "Top filter valve 50 mm with blanking plate & adapter 40 mm", "1"], ["36", "Bottom filter valve 50 mm with blanking plate & adapter 40 mm", "1"],
+        ["37", "Bottom sampling valve 15 mm with plug", "1"], ["38", "Top sampling valve 15 mm with plug", "1"], ["39", "Drain plug 19 mm for main transformer", "1"],
+        ["40", "OLTC equalizing valve 15 NB", "1"], ["61", "Air release plug 19 mm for radiator", "10"], ["62", "Oil drain plug 19 mm for radiator", "10"],
+        ["63", "Valve 100 mm for radiator", "20"], ["64", "Air release plug 19 mm", "As req."], ["65", "Pressure relief device with drain pipe arrangement & trip contacts", "2"],
+        ["83", "Flow sensitive conservator isolation valve for nitrogen injection system", "1"], ["84", "Valve 25 mm for nitrogen gas injection to tank", "6"],
+        ["85", "Butterfly valve 125 mm for oil drain - top (fire prevention & extinguishing system)", "1"], ["90", "Butterfly valve 150 mm for cooling arrangement", "16"],
+        ["92", "Top filter gate valve 50 mm with adapter 32 mm for header pipes", "2"], ["93", "Bottom filter gate valve 50 mm with adapter 32 mm for header pipes", "2"],
+        ["94", "Drain valve 25 mm for top & bottom cooling pipes", "4"]
+      ]
+    }
+  },
+  "reactor": {
+    "maker": "TBEA",
+    "maker_full": "TBEA ENERGY (INDIA) PRIVATE LIMITED · Property of MAHARASHTRA STATE ELECTRICITY TRANSMISSION COMPANY LIMITED",
+    "photos": [{ "src": "assets/nameplates/reactor_plate.jpg", "title": "Shunt reactor rating plate" }],
+    "title": "SHUNT REACTOR · CONFORMS TO IEC 60076-6",
+    "rows": [
+      ["Type of cooling", "ONAN"], ["Rated power (MVAr)", "125"], ["Rated continuous voltage, line (kV)", "420"], ["Rated continuous voltage, neutral (kV)", "145"],
+      ["Rated line current (A)", "171.83"], ["Max. temperature rise over 50 °C ambient @ 420 kV, top oil (°C)", "35"], ["Max. temperature rise, average winding (°C)", "40"],
+      ["Impedance per phase at 50 Hz, guaranteed / measured (Ω)", "1411.2 (Max.) / 1378.6"], ["Zero-sequence impedance per phase at 50 Hz, guaranteed / measured (Ω)", "1411.2 (Approx.) / 1384.70"],
+      ["Serial no.", "T14182/1"], ["Drawing no.", "8TY.860.70016C.1"], ["Indent no.", "T14182"], ["Total losses, guaranteed / measured (kW)", "185 (Max) / 165.88 (verify)"],
+      ["Type", "GAPPED CORE"], ["Vector group", "YN"], ["No. of phases", "3"], ["Frequency (Hz)", "50"],
+      ["Insulation level, line (kV)", "SI 1050 LI 1300 (rest hidden on photo)"], ["Insulation level, neutral (kV)", "LI 550 AC 23… (cut on photo)"],
+      ["Core with clamp (kg)", "52000"], ["Winding with insulation (kg)", "21000"], ["Tank & fittings weight (kg)", "48000"], ["Oil weight (kg)", "illegible on photo"],
+      ["Transport weight, dry-air filled (kg)", "110000"], ["Total weight (kg)", "illegible on photo"], ["Volume of oil (L)", "illegible on photo"], ["Year of manufacture", "2020"],
+      ["Customer reference no.", "K0646 (verify)"], ["Customer", "M/S STELMAC LTD, (MSETCL)"], ["PO no.", "SL-EPC/MSETCL/PQ-394/Karjat/TBEA/PO-05 Dated 04/10/2019"]
+    ],
+    "cts": { "title": "BUSHING CURRENT TRANSFORMER TO IEC-61869-1 and 61869-2",
+      "head": ["Location", "Label", "Qty", "Ratio", "Accuracy class", "Burden (VA)", "Min. knee-point Vk (V)", "Imag @ Vk/4 (mA)", "Max. sec. resistance @ 75 °C (Ω)", "Application"],
+      "rows": [
+        ["Line bushing", "1UCT1 / 1VCT1 / 1WCT1", "3", "200/1 A", "PS", "--", "200", "< 30", "1", "Reactor backup impedance protection"],
+        ["Line bushing", "1UCT2 / 1VCT2 / 1WCT2", "3", "200/1 A", "PS", "--", "200", "< 30", "1", "REF protection"],
+        ["Line bushing", "1UCT3 / 1VCT3 / 1WCT3", "3", "200/1 A", "PS", "--", "200", "< 30", "1", "Spare"],
+        ["Line bushing", "1UCT4 / 1VCT4 / 1WCT4", "3", "200/1 A", "0.5", "10", "--", "--", "--", "Metering"],
+        ["Neutral side", "NUCT1 / NVCT1 / NWCT1", "3", "200/1 A", "PS", "--", "200", "< 30", "1", "REF protection"],
+        ["Neutral side", "NUCT2 / NVCT2 / NWCT2", "3", "2000-1000-500/1 A", "PS", "--", "1000-500-250", "< 30", "10-5-2.5", "Differential protection"],
+        ["Neutral side", "NUCT3 / NVCT3 / NWCT3", "3", "2000-1000-500/1 A", "PS", "--", "1000-500-250", "< 30", "10-5-2.5", "Spare"],
+        ["Neutral side", "NVCT4", "1", "175/2 A", "3.0", "15", "--", "--", "--", "WTI"]
+      ] },
+    "notes": [
+      "CT secondary shall not be kept open while reactor is in operation.",
+      "Core and clamp shall be grounded when reactor is in operation.",
+      "Conservator is fitted with an aircell.",
+      "Tank is designed for full vacuum.",
+      "T1-T2 terminals are given for primary current injection (40 A max) for CT testing. Test terminal T2 shall be earthed during operation."
+    ]
+  }
+}

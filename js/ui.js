@@ -1,6 +1,6 @@
 // Small DOM, chart and circular-viewer helpers.
-import { DB, fmtDate, toDate } from './data.js?v=20261126.0943';
-import { SEV_LABEL } from './rules.js?v=20261126.0943';
+import { DB, fmtDate, toDate } from './data.js?v=20261126.1152';
+import { SEV_LABEL } from './rules.js?v=20261126.1152';
 
 export const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 // Shape-coded status (readable without colour): ◆ critical · ▲ alert · ● watch · ✓ normal · i info · – no data
@@ -90,16 +90,20 @@ const labelPlugin = {
   afterDatasetsDraw(chart) {
     if (chart.config.type !== 'line') return;
     const { ctx, chartArea: a } = chart; ctx.save();
-    ctx.font = '600 10.5px Inter, sans-serif';
+    ctx.font = '600 11.5px Inter, sans-serif';
+    const boxes = [], hit = (b) => boxes.some(q => b.x0 < q.x1 && b.x1 > q.x0 && b.y0 < q.y1 && b.y1 > q.y0);
     chart.data.datasets.forEach((d, i) => {
       const meta = chart.getDatasetMeta(i); if (meta.hidden) return;
-      if (d.isLimit) { const p = meta.data[1]; if (!p) return; ctx.fillStyle = d.borderColor; ctx.textAlign = 'right'; ctx.fillText(d.label, a.right - 4, p.y - 4); return; }
+      if (d.isLimit) { const p = meta.data[1]; if (!p || p.y < a.top || p.y > a.bottom) return; ctx.fillStyle = d.borderColor; ctx.textAlign = 'right'; const w = ctx.measureText(d.label).width; ctx.fillText(d.label, a.right - 4, p.y - 4); boxes.push({ x0: a.right - 6 - w, x1: a.right, y0: p.y - 16, y1: p.y }); return; }
       if (d.isTrend) { const p = meta.data[1]; if (!p) return; ctx.save(); ctx.font = '600 10px Inter, sans-serif'; ctx.fillStyle = d.borderColor; ctx.textAlign = 'right'; ctx.fillText(d.label, Math.min(p.x, a.right - 2), Math.min(a.bottom - 4, p.y + 14 + (d.trendIdx || 0) * 13)); ctx.restore(); return; }
       if (d.isRef) { const p = meta.data[0]; if (!p || p.y < a.top || p.y > a.bottom) return; ctx.save(); ctx.font = (d.refK === 0 ? '600 ' : '500 ') + '9.5px Inter, sans-serif'; ctx.fillStyle = d.refK === 0 ? css('--ink-2') : d.borderColor; ctx.textAlign = 'left'; ctx.fillText(d.label, a.left + 4, p.y - 3); ctx.restore(); return; }
       if (chart.data.datasets.filter(x => !x.isLimit && !x.isRef).length > 3) return;
       const p = meta.data.at(-1), raw = d.data.at(-1); if (!p || !raw) return;
-      ctx.fillStyle = d.borderColor; ctx.textAlign = 'center';
-      ctx.fillText(String(+(+raw.y).toFixed(3)), p.x, p.y - 9);
+      const t = String(+(+raw.y).toFixed(3)), w = ctx.measureText(t).width + 4;
+      const align = p.x + w / 2 > a.right ? 'right' : p.x - w / 2 < a.left ? 'left' : 'center', bx = align === 'right' ? p.x - w - 2 : align === 'left' ? p.x + 2 : p.x - w / 2;
+      for (const dy of [-10, 20, -24, 34]) { const ty = p.y + dy, b = { x0: bx, x1: bx + w, y0: ty - 12, y1: ty + 2 };
+        if (ty - 10 < a.top || ty > a.bottom - 2 || hit(b)) continue;
+        boxes.push(b); ctx.fillStyle = d.borderColor; ctx.textAlign = align; ctx.fillText(t, align === 'right' ? p.x - 4 : align === 'left' ? p.x + 4 : p.x, ty); break; }
     });
     ctx.restore();
   },

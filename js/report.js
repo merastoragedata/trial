@@ -1,9 +1,9 @@
 // Shareable test results of one phase unit / bay (or one phase of a bay) in the portal's own sheet
 // format, exported as PNG (image) or PDF; on phones the system share sheet is offered.
-import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.0943';
-import { findingsFor, SEV } from './rules.js?v=20261126.0943';
-import { model, fullName, cellSev, COLS } from './results.js?v=20261126.0943';
-import { esc } from './ui.js?v=20261126.0943';
+import { DB, TESTS, fmt, fmtDate, isTF, unitName, bayTitle } from './data.js?v=20261126.1152';
+import { findingsFor, SEV } from './rules.js?v=20261126.1152';
+import { model, fullName, cellSev, COLS } from './results.js?v=20261126.1152';
+import { esc } from './ui.js?v=20261126.1152';
 
 const SEVTXT = { ok: 'Normal', watch: 'Watch', alert: 'Beyond circular', critical: 'Critical', none: 'Normal' };
 
@@ -73,7 +73,7 @@ export async function shareReport(S, kind, btn) {
       await deliver(await new Promise(r => c.toBlob(r, 'image/png')), fname(S, 'png'), 'image/png');
     } else {
       await loadScript('vendor/jspdf.umd.min.js');
-      const pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4' }), PW = 210, PH = 297, M = 10, W = PW - 2 * M;
+      const land = kind === 'pdf-l', pdf = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', orientation: land ? 'landscape' : 'portrait' }), PW = land ? 297 : 210, PH = land ? 210 : 297, M = 10, W = PW - 2 * M;
       let y = M, page = 1;
       const foot = () => { pdf.setFontSize(8); pdf.setTextColor(120); pdf.text(`${S.title} · consolidated test report · page ${page}`, M, PH - 5); };
       for (const blk of host.querySelectorAll('.rblk')) {
@@ -92,7 +92,7 @@ export async function shareReport(S, kind, btn) {
   finally { host?.remove(); if (btn) { btn.disabled = false; btn.innerHTML = old; } }
 }
 /** Buttons to drop on a page: share the report of unit / bay u (optionally one phase). */
-export const shareButtons = (u, ph, chooser) => `<span class="share" data-share-u="${esc(u)}" data-share-ph="${esc(ph || '')}"><span class="share-k">Share results</span>${chooser ? `<select class="share-sel" data-share-sel aria-label="Report scope"><option value="">${isTF(u) ? 'Whole unit' : 'Whole bay'}</option>${['R', 'Y', 'B'].map(p => `<option value="${p}">${p}-phase${isTF(u) ? ' unit' : ''} only</option>`).join('')}</select>` : ''}<button class="btn sm" data-share="png">Image</button><button class="btn sm" data-share="pdf">PDF</button><button class="btn sm ghost" data-share="view">Preview</button></span>`;
+export const shareButtons = (u, ph, chooser) => `<span class="share" data-share-u="${esc(u)}" data-share-ph="${esc(ph || '')}"><span class="share-k">Share results</span>${chooser ? `<select class="share-sel" data-share-sel aria-label="Report scope"><option value="">${isTF(u) ? 'Whole unit' : 'Whole bay'}</option>${['R', 'Y', 'B'].map(p => `<option value="${p}">${p}-phase${isTF(u) ? ' unit' : ''} only</option>`).join('')}</select>` : ''}<button class="btn sm" data-share="png">Image</button><button class="btn sm" data-share="pdf-p">PDF portrait</button><button class="btn sm" data-share="pdf-l">PDF landscape</button><button class="btn sm ghost" data-share="view">Preview</button></span>`;
 export function wireShare(root) {
   root.querySelectorAll('[data-share]').forEach(b => b.onclick = (ev) => {
     ev.preventDefault(); ev.stopPropagation(); const w = b.closest('[data-share-u]'); const sel = w.querySelector('[data-share-sel]'); const S = reportScope(w.dataset.shareU, (sel ? sel.value : w.dataset.sharePh) || null);
