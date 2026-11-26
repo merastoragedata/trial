@@ -1,9 +1,10 @@
 // Planning & reporting pages: pending tests by horizon, and results by date.
-import { DB, TESTS, fmt, fmtDate, toDate, kvOf, isTF, unitName, bayTitle, done, recs, ELEM, sortUnits } from './data.js?v=20261126.1426';
-import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1426';
-import { model, fullName, dueTxt, fyRange, curFY, cellSev, NOUN, elHref, COLS } from './results.js?v=20261126.1426';
-import { esc, $, $$, pill } from './ui.js?v=20261126.1426';
-import { IC } from './icons.js?v=20261126.1426';
+import { DB, TESTS, fmt, fmtDate, toDate, kvOf, isTF, unitName, bayTitle, done, recs, ELEM, sortUnits } from './data.js?v=20261126.1456';
+import { elemDue, lastRowDate, statusOf } from './rules.js?v=20261126.1456';
+import { model, fullName, dueTxt, fyRange, curFY, cellSev, NOUN, elHref, COLS } from './results.js?v=20261126.1456';
+import { esc, $, $$, pill } from './ui.js?v=20261126.1456';
+import { extraInRange } from './extra.js?v=20261126.1456';
+import { IC } from './icons.js?v=20261126.1456';
 
 const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 6e4).toISOString().slice(0, 10);
 const addDays = (d, n) => new Date(d.getTime() + n * 864e5);
@@ -11,6 +12,14 @@ const days = (d) => Math.round((d - DB.today) / 864e5);
 const TKEYS = () => Object.keys(TESTS);
 const testChips = (sel, base) => `<div class="seg wrap">${[['all', 'All tests'], ...TKEYS().map(t => [t, TESTS[t].short || TESTS[t].name])].map(([k, l]) => `<a class="${sel === k ? 'on' : ''}" href="${base(k)}">${esc(l)}</a>`).join('')}</div>`;
 const qs = (o) => '?' + Object.entries(o).filter(([, v]) => v != null && v !== '').map(([k, v]) => `${k}=${encodeURIComponent(v)}`).join('&');
+
+// the value(s) that matter most for each test — shown as the last result in the planning lists
+const KEYV = { ct: [['tand20', 'tan δ', '%', 3], ['C', 'C', 'pF', 1]], bushing: [['tand20', 'tan δ', '%', 3], ['C', 'C', 'pF', 1]], winding: [['tand20', 'tan δ', '%', 3], ['C', 'C', 'pF', 1]],
+  cb_crm: [['R', 'R', 'µΩ', 1]], cb_timing: [['open1', 'Trip TC1', 'ms', 1], ['open2', 'Trip TC2', 'ms', 1], ['close', 'Close', 'ms', 1]], la: [['Icorr', 'Icorr', 'µA', 0]], dga: [['TDCG', 'TDCG', 'ppm', 0], ['C2H2', 'C₂H₂', 'ppm', 1]] };
+export function keyVals(t, L) {
+  if (!L) return '<span class="dim">—</span>';
+  return KEYV[t].filter(([k]) => L.v[k] != null).map(([k, lab, un, dp]) => { const sv = cellSev(t, k, L.v[k], L); return `<span class="kv1 ${sv && sv !== 'ok' ? 'c-' + sv : ''}"><i>${lab}</i> <b>${fmt(L.v[k], dp)}</b> <small>${un}</small></span>`; }).join('') || '<span class="dim">no reading</span>';
+}
 
 // ------------------------------------------------------------------ pending tests
 /** Every element whose next due date (from its own latest test, else commissioning) falls on or before the horizon. */
@@ -27,13 +36,13 @@ export function pendingPage(mount, q, head) {
   }
   const od = all.filter(x => x.due < today).length;
   const card = (t) => { const n = all.filter(x => x.t === t), o = n.filter(x => x.due < today).length;
-    return `<a class="pcard ${n.length ? '' : 'zero'}" href="#pend-${t}"><span class="pc-ic">${IC[t]}</span><span class="pc-n">${n.length}</span><span class="pc-k">${esc(TESTS[t].name)}</span><span class="pc-d">${o ? `<b class="due due-red">${o} overdue</b>` : '<span class="dim">none overdue</span>'}</span></a>`; };
+    return `<a class="pcard ${n.length ? '' : 'zero'}" href="javascript:void 0" data-jump="pend-${t}" title="Show the ${esc(TESTS[t].name)} list below"><span class="pc-ic">${IC[t]}</span><span class="pc-n">${n.length}</span><span class="pc-k">${esc(TESTS[t].name)}</span><span class="pc-d">${o ? `<b class="due due-red">${o} overdue</b>` : '<span class="dim">none overdue</span>'}</span></a>`; };
   const sect = (t) => { const L = all.filter(x => x.t === t).sort((a, b) => a.due - b.due); if (!L.length) return '';
     const byU = new Map(); for (const x of L) { if (!byU.has(x.e.u)) byU.set(x.e.u, []); byU.get(x.e.u).push(x); }
     return `<details class="sec" open id="pend-${t}"><summary><span class="sec-t">${IC[t]} ${esc(TESTS[t].name)}</span><span class="dim">${L.length} ${NOUN[t][L.length === 1 ? 0 : 1]} in ${byU.size} ${byU.size === 1 ? 'bay / unit' : 'bays / units'} · ${L.filter(x => x.due < today).length} overdue</span><span class="caret">▾</span></summary>
-      <div class="sec-b"><div class="tbl-wrap"><table class="t prog pend"><thead><tr><th style="min-width:300px">Bay / unit</th><th style="min-width:230px">${esc(NOUN[t][0][0].toUpperCase() + NOUN[t][0].slice(1))}</th><th class="r">Last tested</th><th class="r">Next due</th><th class="r">Days</th><th></th></tr></thead><tbody>
+      <div class="sec-b"><div class="tbl-wrap"><table class="t prog pend"><thead><tr><th style="min-width:300px">Bay / unit</th><th style="min-width:230px">${esc(NOUN[t][0][0].toUpperCase() + NOUN[t][0].slice(1))}</th><th class="r">Last tested</th><th class="r" style="min-width:200px">Last result</th><th class="r">Next due</th><th class="r">Days</th><th></th></tr></thead><tbody>
       ${[...byU].map(([u, xs]) => xs.map((x, i) => `<tr>${i === 0 ? `<td rowspan="${xs.length}" class="pu-cell"><a href="#/eq/${esc(u)}?t=${t}"><b>${esc(unitName(u))}</b></a><div class="dim">${esc(isTF(u) ? DB.site.units[u].rating : bayTitle(u))}</div></td>` : ''}
-        <td><a href="${elHref(t, u, x.e.sub)}">${esc(fullName(t, u, x.e.sub, true))}</a></td><td class="r">${x.e.L ? fmtDate(x.e.L.date) : '<span class="dim">never tested</span>'}</td><td class="r">${dueTxt(x.due)}</td>
+        <td><a href="${elHref(t, u, x.e.sub)}">${esc(fullName(t, u, x.e.sub, true))}</a></td><td class="r">${x.e.L ? fmtDate(x.e.L.date) : '<span class="dim">never tested</span>'}</td><td class="r keyv">${keyVals(t, x.e.L)}</td><td class="r">${dueTxt(x.due)}</td>
         <td class="r">${x.due < today ? `<b class="due due-red">${-days(x.due)} d overdue</b>` : `in ${days(x.due)} d`}</td><td><a class="btn sm ghost" href="${elHref(t, u, x.e.sub)}">Open ${IC.arrow}</a></td></tr>`).join('')).join('')}
       </tbody></table></div></div></details>`; };
   mount.innerHTML = head('Planning', 'Pending tests', `Every CT, bushing, winding insulation, oil sampling point, CB pole and LA whose next due date falls on or before the chosen date — counted from its own latest completed test (never tested: commissioning + circular interval). Overdue items are always included.`, `<button class="btn" onclick="window.print()">${IC.print}Print / PDF</button>`)
@@ -43,6 +52,7 @@ export function pendingPage(mount, q, head) {
       <div class="filt-sum"><b>${all.length}</b> pending up to <b>${fmtDate(horizon)}</b> · <b class="due due-red">${od} overdue</b> · ${all.length - od} falling due</div></section>
     ${tSel === 'all' ? `<div class="pcards">${TKEYS().map(card).join('')}</div>` : ''}
     ${tests.map(sect).join('') || '<div class="empty">Nothing pending up to this date.</div>'}`;
+  mount.querySelectorAll('[data-jump]').forEach(a => a.onclick = (e) => { e.preventDefault(); const sec = document.getElementById(a.dataset.jump); if (sec) { sec.open = true; sec.scrollIntoView({ behavior: 'smooth', block: 'start' }); } });
   const inp = $('#pendTo', mount); if (inp) inp.onchange = () => { if (inp.value) location.hash = '#/pending' + qs({ h: 'date', to: inp.value, t: tSel }); };
 }
 
@@ -78,6 +88,7 @@ export function resultsPage(mount, q, head) {
         ${m === 'day' ? `<label class="filt-d on">Date <input type="date" id="rDay" value="${from}"></label>` : ''}</div>
       <div class="filt-r"><span class="filt-k">Test</span>${testChips(tSel, (k) => base({ t: k }))}</div>
       <div class="filt-sum"><b>${total}</b> completed test result${total === 1 ? '' : 's'} ${from === to ? `on <b>${fmtDate(from)}</b>` : `from <b>${fmtDate(from)}</b> to <b>${fmtDate(to)}</b>`}${m === 'day' ? ` · dates with tests nearby: ${nearDates(from).map(d => `<a href="${base({ m: 'day', d })}">${fmtDate(d)}</a>`).join(' · ') || '—'}` : ''}</div></section>
+    ${tSel === 'all' || ['bushing', 'winding'].includes(tSel) ? extraInRange(from, to) : ''}
     ${sets.map(sect).join('') || '<div class="empty">No completed test in this period.</div>'}`;
   const go = (o) => { location.hash = base(o); };
   const f = $('#rFrom', mount), tt = $('#rTo', mount), d = $('#rDay', mount);

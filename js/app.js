@@ -1,21 +1,30 @@
-import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1426';
-import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1426';
-import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1426';
-import { IC, LOGO } from './icons.js?v=20261126.1426';
-import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1426';
-import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1426';
-import { art, skyline } from './art.js?v=20261126.1426';
-import { shareButtons, wireShare } from './report.js?v=20261126.1426';
-import { testHeader } from './testviz.js?v=20261126.1426';
-import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1426';
-import { puCards, puPage } from './pu.js?v=20261126.1426';
-import { pendingPage, resultsPage } from './pages.js?v=20261126.1426';
-import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1426';
-import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1426';
-import { refresh } from './data.js?v=20261126.1426';
+import { DB, TESTS, loadAll, recs, groupBy, unitName, bayTitle, kvOf, isTF, fmt, fmtDate, unitsFor, sortUnits, testsForUnit, done, years } from './data.js?v=20261126.1456';
+import { run, findings, statusOf, unitStatus, schedule, SEV, SEV_LABEL, LIM, duval1, DUVAL_NAMES, worst } from './rules.js?v=20261126.1456';
+import { esc, chem, pill, sevIcon, phase, $, $$, lineChart, barChart, destroyCharts, PHASE_COLOR, circularBtn, modal, drawSnippet, bandsFrom, duvalSVG, setPaletteItems, openPalette } from './ui.js?v=20261126.1456';
+import { IC, LOGO } from './icons.js?v=20261126.1456';
+import { healthIndex, gaugeSVG, HI_WEIGHTS, HI_BANDS, bindRise, assetHealth } from './health.js?v=20261126.1456';
+import { sld400, sld220, SLD_LEGEND } from './sld.js?v=20261126.1456';
+import { art, skyline } from './art.js?v=20261126.1456';
+import { shareButtons, wireShare } from './report.js?v=20261126.1456';
+import { testHeader } from './testviz.js?v=20261126.1456';
+import { loadNameplates, nameplateSection, wireNameplates, detailsCard, wireDetails } from './nameplate.js?v=20261126.1456';
+import { loadExtra, extraUnits } from './extra.js?v=20261126.1456';
+import { puCards, puPage } from './pu.js?v=20261126.1456';
+import { pendingPage, resultsPage } from './pages.js?v=20261126.1456';
+import { renderSections, bindResults, openElement, openNorms, NOUN, renderElementPage, targetsPage, elemLabel, phaseUnitName, fullName, applyView, dueTxt } from './results.js?v=20261126.1456';
+import { isAdmin, toggleAdmin, exportEdits, importEdits, resetEdits, editCount, viewPref, setViewPref } from './edit.js?v=20261126.1456';
+import { refresh } from './data.js?v=20261126.1456';
 
 const view = () => $('#view');
-const setCrumbs = (parts) => { $('#crumbs').innerHTML = parts.map((p, i) => i === parts.length - 1 ? `<b>${esc(p[0])}</b>` : `<a href="${p[1]}">${esc(p[0])}</a><span class="sep">/</span>`).join(''); document.title = `${parts.at(-1)[0]} · EHV Diagnostic Portal`; };
+const setCrumbs = (parts) => {
+  // the same path in the top bar and in the full-width path bar under it, always starting from Home
+  const full = parts[0] && parts[0][0] !== 'Overview' ? [['Home', '#/'], ...parts] : [['Home', '#/']];
+  const html = full.map((p, i) => i === full.length - 1 ? `<b aria-current="page">${esc(p[0])}</b>` : `<a href="${p[1] || '#/'}">${esc(p[0])}</a><span class="sep">›</span>`).join('');
+  $('#crumbs').innerHTML = html;
+  let bar = $('#pathbar'); if (!bar) { bar = document.createElement('nav'); bar.id = 'pathbar'; bar.className = 'pathbar'; bar.setAttribute('aria-label', 'You are here'); $('.main').insertBefore(bar, $('.main').firstChild); }
+  bar.innerHTML = `<button class="pb-back" onclick="history.length > 1 ? history.back() : (location.hash = '#/')" title="Back to the previous page">← Back</button><span class="pb-k">You are here</span>${html}`;
+  document.title = `${full.at(-1)[0]} · EHV Diagnostic Portal`;
+};
 const ph = (r) => r.ph && r.ph !== '-' ? r.ph : '';
 const TF_UNITS = ['ICT1', 'ICT2', 'SPARE_ICT', 'BUS_REACTOR'];
 const DIAS = [['401', '402', '403'], ['404', '405', '406'], ['407', '408', '409'], ['410', '411', '412'], ['413', '414', '415']];
@@ -265,12 +274,13 @@ function vOverview() {
       ${kpi('', '#/data', 'Test records', DB.records.length.toLocaleString('en-IN'), `${DB.site.issues.length} data-quality notes`)}</section>
     <div class="sec-h" style="margin-top:6px"><h2>Transformer & reactor health index</h2><span class="note">0–100 · DGA, oil, winding & bushing condition · worst factor governs</span></div>
     <div class="hi-grid">${TF_UNITS.map(hiCard).join('')}</div>
-    <div class="grid g-7-5 mt-l">
-      <div class="card sld-card"><div class="card-h"><span style="width:18px;color:var(--brand-2)">${IC.sld}</span><h2>400 kV switchyard</h2><span class="sub">breakers coloured by test health</span><div class="sp"></div><a class="btn sm" href="#/sld">Full SLD ${IC.arrow}</a></div>
-        <div class="card-b"><div class="sld-wrap">${sld400()}</div>${SLD_LEGEND}</div></div>
-      <div class="card"><div class="card-h"><h2>Bay health</h2><span class="sub">weakest first · CB, CT, LA</span><div class="sp"></div><a class="btn sm ghost" href="#/equipment">All ${IC.arrow}</a></div>
-        <div class="bay-rank">${bh.slice(0, 12).map(([u, h]) => `<a href="#/eq/${u}"><span class="b">${esc(unitName(u))}</span><span class="dim nm">${esc(bayTitle(u))}</span><span class="track"><span class="fill bg-${h.band[1]}" style="width:${h.hi}%"></span></span><span class="num band-${h.band[1]}">${h.hi}</span></a>`).join('')}</div></div>
-    </div>
+    ${[[400, sld400, '400 kV switchyard', 'one-and-a-half breaker scheme · 5 diameters'], [220, sld220, '220 kV switchyard', 'double main + transfer bus']].map(([kv, sldf, title, sub]) => { const list = bh.filter(([u]) => kvOf(u) === kv);
+      return `<div class="kv-sec"><div class="kv-h"><span class="kv-tag">${kv} kV</span><h2>${title}</h2><span class="note">${sub} · ${list.length} bays</span></div>
+      <div class="grid g-7-5"><div class="card sld-card"><div class="card-h"><span style="width:18px;color:var(--brand-2)">${IC.sld}</span><h3>Single-line diagram</h3><span class="sub">breakers coloured by test health</span><div class="sp"></div><a class="btn sm" href="#/sld">Full SLD ${IC.arrow}</a></div>
+        <div class="card-b"><div class="sld-wrap">${sldf()}</div>${SLD_LEGEND}</div></div>
+      <div class="card"><div class="card-h"><h3>${kv} kV bay health</h3><span class="sub">weakest first · CB, CT, LA</span><div class="sp"></div><a class="btn sm ghost" href="#/equipment">All ${IC.arrow}</a></div>
+        <div class="bay-rank">${list.map(([u, h]) => `<a href="#/eq/${u}"><span class="b">${esc(unitName(u))}</span><span class="dim nm">${esc(bayTitle(u))}</span><span class="track"><span class="fill bg-${h.band[1]}" style="width:${h.hi}%"></span></span><span class="num band-${h.band[1]}">${h.hi}</span></a>`).join('')}</div></div></div></div>`; }).join('')}
+    ${tertiaryCard()}
     <div class="grid g-7-5 mt">
       <div class="card"><div class="card-h"><h2>Needs attention</h2><span class="sub">critical & alert</span><div class="sp"></div><a class="btn sm ghost" href="#/findings">All findings ${IC.arrow}</a></div>${findingList(fs.filter(f => SEV[f.sev] >= 3), 6)}</div>
       <div class="card"><div class="card-h"><h2>Test schedule</h2><span class="sub">per equipment · overdue & next 120 days</span><div class="sp"></div><a class="btn sm ghost" href="#/schedule">Full schedule ${IC.arrow}</a></div>${schedTable([...od, ...due].slice(0, 12), true)}</div>
@@ -365,7 +375,7 @@ function vUnit(u, q) {
   $$('.finding a.btn[href*="?t="]').forEach(a => a.onclick = (e) => { const t = a.getAttribute('href').split('?t=')[1]; if (a.getAttribute('href').startsWith('#/eq/' + u)) { e.preventDefault(); openElement(t, u, null); } });
   if (q.get('t') && ts.includes(q.get('t'))) { location.replace(`#/el/${q.get('t')}/${encodeURIComponent(u)}`); return; }
   { const h1 = $('.asset h1'); if (h1) { h1.parentElement.insertAdjacentHTML('afterend', `<div class="row-flex mt">${shareButtons(u, null, !['SPARE_ICT', 'BUS_REACTOR'].includes(u))}</div>`); wireShare(view()); } }
-  { const as = $('.asset'); if (as && isTF(u)) { as.insertAdjacentHTML('afterend', puCards(u) + detailsCard(u) + `<div class="np-wrap">${nameplateSection(u, null)}</div>`); wireDetails(view(), () => route({ keepScroll: true })); wireNameplates(view()); } }
+  { const as = $('.asset'); if (as && isTF(u)) { as.insertAdjacentHTML('afterend', puCards(u) + extraUnits().filter(e => e.u === u).map(e => `<a class="card ex-card" href="#/pu/${e.u}/${e.ph}"><b>🧾 Other tests on the ${e.ph}-phase unit — ${esc(e.title)}</b><span>${esc(e.work)} · voltage ratio, OC, SC, winding resistance, IR / PI</span><small>Open the ${e.ph}-phase unit page →</small></a>`).join('') + detailsCard(u) + `<div class="np-wrap">${nameplateSection(u, null)}</div>`); wireDetails(view(), () => route({ keepScroll: true })); wireNameplates(view()); } }
 }
 
 function vTest(t, q) {
@@ -564,7 +574,7 @@ function drawA11y() {
 // Frozen table headers: a table's header row slides down under the frozen section / bay headings while
 // the table scrolls past (works inside horizontally scrolling tables, where CSS sticky cannot).
 function stickHeads() {
-  const topBar = $('.top')?.getBoundingClientRect().bottom || 56;
+  const topBar = Math.max($('.top')?.getBoundingClientRect().bottom || 56, $('#pathbar')?.getBoundingClientRect().bottom || 0);
   for (const tb of $$('table.seq, table.prog, table.never-t, table.wl')) {
     const th = tb.tHead; if (!th) continue;
     const r = tb.getBoundingClientRect(); if (r.bottom < 0 || r.top > innerHeight) { if (th.style.transform) th.style.transform = ''; continue; }
@@ -813,7 +823,7 @@ function adminBar() {
   shell();
   bindResults(RESULTS_CTX);
   try {
-    await loadAll(); await loadNameplates();
+    await loadAll(); await loadNameplates(); await loadExtra();
     run(); SCHED = schedule();
     bindRise((u) => findings().some(f => f.t === 'bushing' && f.unit === u && /rising/i.test(f.title)));
     afterLoad();
@@ -847,4 +857,17 @@ function fitPrint(orient) {
   st.textContent = `@page{size:A4 ${orient};margin:10mm}@media print{html,body,.shell,.main,.view{width:${W}px!important;min-width:0!important;max-width:${W}px!important}.view{padding:0!important}}`;
   document.querySelectorAll('table.seq thead').forEach(t => { t.style.transform = ''; });
   setTimeout(() => window.__nativePrint(), 60);
+}
+
+
+// 33 kV level: the ICT tertiary (LV) bushings 3.1 / 3.2 are the only 33 kV equipment with diagnostic results
+function tertiaryCard() {
+  const rows = [];
+  for (const u of ['ICT1', 'ICT2', 'SPARE_ICT']) for (const ph of u === 'SPARE_ICT' ? ['-'] : ['R', 'Y', 'B']) for (const pos of ['LV-3.1', 'LV-3.2']) {
+    const rs = recs('bushing', { unit: u }).filter(r => r.ph === ph && r.pos === pos && done(r)).sort((a, b) => a.date.localeCompare(b.date)); const L = rs.at(-1); if (!L) continue;
+    const s = statusOf(L) === 'none' ? 'ok' : statusOf(L);
+    rows.push(`<tr><td><a href="#/el/bushing/${u}/${encodeURIComponent((ph === '-' ? '-' : ph) + '|' + pos)}"><b>${esc(unitName(u))}${ph !== '-' ? `, ${ph}ph` : ''}, LV Bushing ${pos.slice(3)}</b></a></td><td class="r">${fmtDate(L.date)}</td><td class="r">${fmt(L.v.C, 1)}</td><td class="r">${fmt(L.v.tand20, 3)}</td><td>${pill(s, s === 'ok' ? 'Normal' : undefined)}</td></tr>`);
+  }
+  return `<div class="kv-sec"><div class="kv-h"><span class="kv-tag lv">33 kV</span><h2>ICT tertiary (LV) level</h2><span class="note">LV bushings 3.1 / 3.2 of each single-phase unit · latest test</span></div>
+    <div class="card"><div class="tbl-wrap"><table class="t prog"><thead><tr><th>LV bushing</th><th class="r">Latest test</th><th class="r">C (pF)</th><th class="r">Corr. tan δ % @20 °C</th><th>Status</th></tr></thead><tbody>${rows.join('')}</tbody></table></div></div></div>`;
 }

@@ -1461,3 +1461,106 @@ table.prog td:first-child b,table.prog td:first-child a{font-size:17.5px}
 b.due{font-size:16px}
 .due-by{font-size:13.5px}
 table.prog input.tgt{font-size:17px;width:86px;padding:6px 8px}
+
+.kv-sec{margin-top:26px}
+.kv-h{display:flex;align-items:center;gap:14px;margin-bottom:12px;flex-wrap:wrap}
+.kv-h h2{margin:0}
+.kv-tag{display:inline-flex;align-items:center;justify-content:center;min-width:96px;padding:8px 14px;border-radius:12px;background:linear-gradient(145deg,#c4161c,#8a1015);color:#fff;font:900 20px/1 var(--display, inherit);box-shadow:0 8px 16px -8px rgba(138,16,21,.7)}
+.kv-sec:nth-of-type(2) .kv-tag{background:linear-gradient(145deg,#1a6fc2,#0b3d6e)}
+.kv-tag.lv{background:linear-gradient(145deg,#0f766e,#0b4d48)}
+
+td.keyv{white-space:nowrap}
+.kv1{display:inline-flex;align-items:baseline;gap:4px;margin-left:10px;padding:2px 8px;border-radius:8px}
+.kv1 i{font-style:normal;font-size:13px;color:var(--ink-3)}.kv1 b{font:800 17px 'IBM Plex Mono',monospace}.kv1 small{font-size:12px;color:var(--ink-3)}
+
+details.ex-sec{border:2px solid #7c3aed!important}
+details.ex-sec>summary{background:linear-gradient(90deg,#efe7fd,#fffdf8)!important}
+.ex-t{margin:10px 0 18px}.ex-t h3{margin:0 0 4px;font:800 18px var(--display, inherit);color:#4c1d95}
+.ex-card{display:flex;flex-direction:column;gap:4px;padding:14px 18px;margin:14px 0;border:2px solid #7c3aed;border-radius:16px;text-decoration:none;color:var(--ink);background:linear-gradient(135deg,#f5f0ff,#fff)}
+.ex-card b{font-size:18px}.ex-card span{color:var(--ink-2)}.ex-card small{color:#7c3aed;font-weight:700}
+
+/* navigation address on every page */
+.pathbar{position:sticky;top:var(--top-h);z-index:35;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 36px;background:linear-gradient(180deg,#f4f7fb,#e9eff6);border-bottom:1.5px solid #c8d3e0;font-size:17px;box-shadow:0 6px 12px -10px rgba(11,40,80,.5)}
+.pathbar a{color:#1a5fc2;font-weight:700;text-decoration:none}.pathbar a:hover{text-decoration:underline}
+.pathbar b{color:var(--ink);font-weight:800}
+.pathbar .sep{color:#8a97a6;font-weight:700}
+.pb-k{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--ink-3);font-weight:700}
+.pb-back{border:1.5px solid #1a6fc2;background:#fff;color:#1a6fc2;border-radius:10px;padding:6px 12px;font:800 15px Inter,sans-serif;cursor:pointer}
+.pb-back:hover{background:#1a6fc2;color:#fff}
+.topnav .crumbs{display:none!important}
+:root{--path-h:48px}
+details.sec:not(.inner)[open]>summary{top:calc(var(--top-h) + var(--path-h))!important}
+details.sec:not(.inner)[open] .ub-h{top:calc(var(--top-h) + var(--path-h) + var(--sum-h))!important}
+section.el-sec>.row-flex{top:calc(var(--top-h) + var(--path-h))!important}
+@media print{.pathbar{position:static;box-shadow:none}.pb-back{display:none}}
+
+/* ================================================================ v16 · big type + clearly visible dotted inner borders */
+body{font-size:20px}
+.t td,table.seq td,table.prog td,table.never-t td{font-size:18.5px}
+table.seq td.chgc{font-size:19px}
+table.seq td.rem,table.seq td.rem.ed{font-size:16.5px}
+.t th,table.seq thead th,table.prog th,table.never-t th{font-size:15.5px}
+.note,.legend,.dim,.sub,.card-h .sub{font-size:16.5px}
+.lede{font-size:19.5px}
+h1{font-size:34px}h2{font-size:25px}h3{font-size:20px}
+details.sec>summary .sec-t{font-size:21px}
+details.sec>summary .dim{font-size:16px}
+.el-h b{font-size:19px}.el-due{font-size:16.5px}
+.ub-n{font-size:23px}.ub-k{font-size:14px}
+.tn{font-size:18px}.topnav .brand .t{font-size:19px}
+.btn{font-size:17px}.btn.sm{font-size:15.5px}
+.seg button,.seg a{font-size:16.5px}
+.mc-chips button{font-size:15px}
+.mc-t{font-size:12.5px}.mc-v{font-size:13px}.mc-lim{font-size:11.5px}
+.fact b{font-size:18px}.fact small,.gl small{font-size:15px}.fk,.gl span{font-size:14px}.gl b{font-size:30px}
+.fc-k{font-size:17px}.fc-v{font-size:46px}.fc-d{font-size:16.5px}
+.ly-c b{font-size:33px}.ly-c span,.ly-c small{font-size:14.5px}.ly-h{font-size:19px}
+table.prog td:first-child b,table.prog td:first-child a{font-size:19px}
+.pnum{font-size:18px}b.due{font-size:17.5px}.due-by{font-size:15px}
+.kv1 b{font-size:19px}.kv1 i,.kv1 small{font-size:14px}
+.puc-t{font-size:25px}.puc-k{font-size:18px}.puc-r b{font-size:23px}.puc-r small,.puc-d{font-size:15px}
+.eqd-i span{font-size:15px}.eqd-i b{font-size:18px}
+.pathbar{font-size:18px}
+.np-kv,.np-t{font-size:15px}.np-kv td{font-size:15px}
+.pill{font-size:15px}
+/* dotted inner grid that is clearly visible; solid outer frame */
+table.seq td,table.prog td,table.never-t td,table.t td{border-bottom:1.6px dotted #8b7d5a!important;border-right:1.6px dotted #b3a582}
+table.seq td:last-child,table.prog td:last-child,table.never-t td:last-child,table.t td:last-child{border-right:0}
+table.seq thead th,table.prog th,table.t thead th{border-right:1.6px dotted rgba(110,85,20,.55)}
+table.prog,table.never-t,table.t{border:2px solid #9c8c63;border-radius:10px;border-collapse:separate;border-spacing:0}
+
+/* v16b · every table cell at readable size (older td.r / lt-tag / rng rules were pinning numbers at 11.5–12.5px) */
+.main table td,.main table td.r,.main table.seq td.r,.main .t td.r,.main .t.heat td.r,.main table.seq td.dt,.main table.seq td.lt-tag{font-size:18px!important}
+.main table.seq td.chgc{font-size:18.5px!important}
+.main table.seq td.rem,.main table.seq td.rem.ed,.main table.lt td.rng,.main table td.dim{font-size:16px!important}
+.main table th{font-size:15.5px!important}
+.main table.np-kv th,.main table.np-t th,.main table.np-kv td,.main table.np-t td{font-size:16px!important}
+.main table td.keyv{font-size:17px!important}
+.main table td .kv1 b{font-size:19px}
+/* home voltage sections: SLD full width, bay health list below in two wide columns */
+.kv-sec .grid.g-7-5{grid-template-columns:1fr!important}
+.kv-sec .bay-rank{display:grid;grid-template-columns:1fr 1fr;column-gap:30px;padding:8px 16px 14px}
+.kv-sec .bay-rank a,.bay-rank a{grid-template-columns:minmax(0,1fr) 92px 150px 46px!important;font-size:18px;padding:9px 10px;border-bottom:1.5px dotted #c9bc97;border-radius:0}
+.bay-rank .nm{font-size:16px!important}.bay-rank .track{height:10px}.bay-rank .num{font-size:19px;font-weight:800}
+.main table td.dt,.main table.prog.pend td.r:nth-child(3),.main td .due,.main b.due{white-space:nowrap}
+.main table.pend td:first-child{max-width:250px;width:250px}
+.main table.pend td.keyv{white-space:normal}
+.main table.pend td.keyv .kv1{margin:2px 4px}
+/* v16c · keep the big type but make wide tables fit the page instead of scrolling sideways */
+.main table th{white-space:normal!important;padding-left:6px!important;padding-right:6px!important}
+.main table td{padding-left:7px!important;padding-right:7px!important}
+.main table.pend th:nth-child(1),.main table.pend td:first-child{min-width:200px!important;width:220px!important;max-width:230px}
+.main table.pend th:nth-child(2){min-width:160px!important}
+.main table.pend th:nth-child(4){min-width:170px!important}
+.main table.prog th{min-width:0!important}
+.main table.prog td:first-child{max-width:300px}
+.main table.prog td{white-space:normal}
+.main table.prog td.r{white-space:nowrap}
+.main table.seq th{min-width:0!important}
+.main table.seq td.rem,.main table.seq th:last-child{min-width:130px!important;max-width:190px}
+.main table.t.nw td{white-space:normal!important}
+.main table.t.nw td.r{white-space:nowrap!important}
+.main table td.keyv{white-space:normal!important}
+.main table.prog td.r{white-space:normal}
+.main table.seq td:nth-child(2):not(.r){max-width:230px}
+.main table.seq td.r,.main .t td.r{font-size:17px!important}
