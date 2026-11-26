@@ -5,9 +5,9 @@
 //   220 kV — line bays: single ACSR Zebra; ICT IV bays and TBC: twin ACSR Zebra;
 //            bus coupler: IPS tube between equipment with quad-conductor jumpers to the buses.
 // Tie bays, the bus coupler and the TBC have no lightning arrester. One pole of three is drawn.
-import { DB, unitName, kvOf } from './data.js?v=20261126.1914';
-import { unitStatus, worst, SEV_LABEL } from './rules.js?v=20261126.1914';
-import { esc } from './ui.js?v=20261126.1914';
+import { DB, unitName, kvOf } from './data.js?v=20261126.1917';
+import { unitStatus, worst, SEV_LABEL } from './rules.js?v=20261126.1917';
+import { esc } from './ui.js?v=20261126.1917';
 
 const DIAS = [['401', '402', '403'], ['404', '405', '406'], ['407', '408', '409'], ['410', '411', '412'], ['413', '414', '415']];
 const ENDS = {
@@ -129,7 +129,7 @@ function sequence(u) {
   const ct_ = has(u, 'ct') || fut, cb_ = has(u, 'cb_crm') || has(u, 'cb_timing') || fut, la_ = has(u, 'la');
   const dev = (laOn = la_) => [['iso'], cb_ && ['cb'], ct_ && ['ct'], ['iso'], laOn && ['la']].filter(Boolean);
   if (u === '200') return [['bus', '220 kV Main Bus', 'via ICT IV bay', true], ['la'], ['end']];
-  if (u === '400') return [['bus', '400 kV Bus', 'spare connection'], ['iso'], ['cb'], ['ct'], ['la'], ['end']];
+  if (u === '400') return [['bus', '400 kV Bus-II', 'Y-phase · keeps the spare charged'], ['iso'], ['cb'], ['ct'], ['la'], ['end']];
   if (kv === 400 && k === 1) return [['node', D[0]], ['iso'], ['ct'], ['cb'], ['iso'], ['node', D[2]]];   // tie bay
   if (kv === 400) return [['bus', k === 0 ? '400 kV Bus-I' : '400 kV Bus-II', ''], ...dev(), ['end']];
   if (u === '207') return [['bus', '220 kV Main Bus-I', ''], ['iso'], ['cb'], ['ct'], ['iso'], ['bus', '220 kV Main Bus-II', '']];
